@@ -177,7 +177,7 @@ public:
 	};
 	friend class iterator;
 
-	iterator insert(const value_type& p)
+	std::pair <iterator, bool> insert(const value_type& p)
 	{
 		const TKey &key   = p.first;
 		const TValue &val = p.second;
@@ -191,6 +191,10 @@ public:
 			if ((ptr -> m_integer & 1) == 0){
 				if (m_comp_func (*ptr -> m_key_data, p)){
 					ptr -> m_key_data -> second = p.second;
+
+					return std::make_pair
+						(iterator (m_judy, h, (PPvoid_t) ptr),
+						 false);
 				}else{
 					value_type *copy = ptr -> m_key_data;
 					value_list *lst = ptr -> m_list = new value_list;
@@ -201,8 +205,10 @@ public:
 							lst -> end (), p);
 
 					ptr -> m_integer |= 1;
-					return iterator (m_judy, h, (PPvoid_t) ptr,
-									 lst -> insert (ret_it, p));
+					return std::make_pair (
+						iterator (m_judy, h, (PPvoid_t) ptr,
+								  lst -> insert (ret_it, p)),
+						true);
 				}
 			}else{
 				value_list *lst = (value_list *) (ptr -> m_integer & ~1);
@@ -216,18 +222,24 @@ public:
 				for (; beg != end; ++beg){
 					if (m_comp_func (*beg, p)){
 						(*beg).second = p.second;
-						return iterator (m_judy, h, (PPvoid_t) ptr, beg);
+						return std::make_pair (
+							iterator (m_judy, h, (PPvoid_t) ptr, beg),
+							false);
 					}
 				}
 
-				return iterator (m_judy, h, (PPvoid_t) ptr,
-								 lst -> insert (lst -> end (), p));
+				return std::make_pair (
+					iterator (m_judy, h, (PPvoid_t) ptr,
+							  lst -> insert (lst -> end (), p)),
+					true);
 			}
 		}else{
 			ptr -> m_key_data = new value_type (p);
-		}
 
-		return iterator (m_judy, h, (PPvoid_t) ptr);
+			return std::make_pair (
+				iterator (m_judy, h, (PPvoid_t) ptr),
+				true);
+		}
 	}
 
 	iterator begin ()
