@@ -1,8 +1,13 @@
-#include <search.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+
+#ifdef USE_JUDY_HASH
+#		include "judyhash.h"
+#else
+#		include <search.h>
+#endif
 
 static void strmyupr (char *s)
 {
@@ -28,13 +33,14 @@ static ENTRY *my_allocate (void *allocator_data)
 
 int main (int argc, char **argv)
 {
+	struct hsearch_data hash_tab;
 	int  dups = 0;
 	char word [2000];
 	ENTRY entry;
 	ENTRY *found_entry = NULL;
 	int ret = 0;
-	struct hsearch_data hash_tab;
 	my_allocator alloc;
+	int i = 0;
 
 	--argc;
 	++argv;
@@ -47,7 +53,7 @@ int main (int argc, char **argv)
 //	((hsearch_data_internal *) hash_tab.data) -> m_allocator_data = &alloc;
 
 	entry.data = 0;
-	int i = 0;
+	i = 0;
 	while (fgets (word, 2000, stdin)) {
 		++i;
 		word [strlen (word) - 1] = 0;
@@ -82,6 +88,8 @@ int main (int argc, char **argv)
 
 	fprintf (stderr, "%lu duplicate lines\n\n",
 			 dups);
+
+#ifdef USE_JUDY_HASH
 	fprintf (stderr, "%lu conflicts found\n\n",
 			 ((hsearch_data_internal *) hash_tab.data) -> m_conflicts);
 	fprintf (stderr, "%lu std::list allocations\n\n",
@@ -90,6 +98,7 @@ int main (int argc, char **argv)
 			 ((hsearch_data_internal *) hash_tab.data) -> m_item_allocs);
 	fprintf (stderr, "%lu push_back count\n\n",
 			 ((hsearch_data_internal *) hash_tab.data) -> m_push_back_count);
+#endif
 
 	while (argc);
 

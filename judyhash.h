@@ -1,14 +1,20 @@
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef _JUDYHASH_H_
+#define _JUDYHASH_H_
 
 #include <stdlib.h>
 #include <stddef.h>
 
 #include <Judy.h>
 
-	typedef struct entry {
+#ifdef __cplusplus
+#include "judyhash_plusplus.h"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+	typedef struct {
 		char *key;
 		void *data;
 	} ENTRY;
@@ -51,6 +57,9 @@ extern "C" {
 // hdestroy_r!
 #define hdestroy_r judyhash_hdestroy_r
 	extern void judyhash_hdestroy_r (struct hsearch_data *tab);
+
 #ifdef __cplusplus
 }
 #endif
+
+#endif // _JUDYHASH_H_

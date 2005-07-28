@@ -26,17 +26,6 @@ unsigned long hsh_string_hash (const char *key)
 		h = h * MULT1 + *key++ ; 
 
 	return h ; 
-/*
-	unsigned long h      = 0;
-	assert (key);
-
-	while (*key) {
-		h *= MULT1;
-		h += (unsigned char)*key++;
-	}
-
-	return h;
-*/
 }
 #else
 
