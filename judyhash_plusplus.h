@@ -34,6 +34,28 @@ public:
 	Pvoid_t  m_judy;
 	size_type m_size;
 
+	struct debug_info {
+		int m_value_count;
+		int m_list_count;
+		int m_list_item_count;
+
+		debug_info ()
+		{
+			m_value_count     = 0;
+			m_list_count      = 0;
+			m_list_item_count = 0;
+		}
+
+		debug_info (const debug_info &a)
+		{
+			m_value_count     = a.m_value_count;
+			m_list_count      = a.m_list_count;
+			m_list_item_count = a.m_list_item_count;
+		}
+	};
+
+	debug_info m_debug_info;
+
 //
 private:
 	THashFunc m_hash_func;
@@ -77,9 +99,10 @@ public:
 
 	judyhash_map (const judyhash_map& a)
 	{
-		m_judy      = a.m_judy;
-		m_size      = a.m_size;
-		m_hash_func = a.m_hash_func;
+		m_judy       = a.m_judy;
+		m_size       = a.m_size;
+		m_hash_func  = a.m_hash_func;
+		m_debug_info = a.m_debug_info;
 	}
 
 	template <class Tit>
@@ -97,6 +120,7 @@ public:
 		std::swap (m_judy, a.m_judy);
 		std::swap (m_size, a.m_size);
 		std::swap (m_hash_func, a.m_hash_func);
+		std::swap (m_debug_info, a.m_debug_info);
 	}
 
 //	judyhash_map (const key_equal& eq_func)
@@ -281,6 +305,11 @@ public:
 						 false);
 				}else{
 					value_type *copy = ptr -> m_key_data;
+#ifndef NDEBUG
+					m_debug_info.m_list_count       += 1;
+					m_debug_info.m_list_item_count  += 2;
+					m_debug_info.m_value_count      -= 1;
+#endif
 					value_list *lst = ptr -> m_list = new value_list;
 					lst -> insert (
 						lst -> end (), *copy);
@@ -323,6 +352,10 @@ public:
 					true);
 			}
 		}else{
+#ifndef NDEBUG
+			m_debug_info.m_value_count += 1;
+#endif
+
 			ptr -> m_key_data = new value_type (p);
 
 			++m_size;
