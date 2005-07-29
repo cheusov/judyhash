@@ -8,11 +8,11 @@
 #include <algorithm>
 
 //#define MULT1 3U
-#define MULT1 7U
+//#define MULT1 7U
 //#define MULT1 31U
 //#define MULT1 33U
 //#define MULT1 65599U
-//#define MULT1 2654435789U
+#define MULT1 2654435789U
 
 #define MULT2 (MULT1*MULT1)
 #define MULT3 (MULT2*MULT1)
@@ -486,6 +486,8 @@ int judyhash_hsearch_r (
 				}
 			}
 	}
+
+	return 0;
 }
 
 void judyhash_hdestroy_r (struct hsearch_data *tab)
