@@ -1,6 +1,7 @@
 #include <list>
 #include <utility>
 #include <assert.h>
+#include <algorithm>
 
 template <
 	typename TKey,
@@ -11,11 +12,27 @@ class judyhash_map {
 
 // types
 public:
-	typedef TKey                                          key_type;
-	typedef TValue                                        mapped_type;
-	typedef std::pair <const TKey, TValue>                value_type;
+	typedef TKey                            key_type;
+	typedef TValue                          data_type;
+	typedef TValue                          mapped_type;
+	typedef std::pair <const TKey, TValue>  value_type;
+	typedef TEqualFunc                      key_equal;
+	typedef THashFunc                       hasher;
+
+//	typedef _Ty referent_type;
+//	typedef typename _Mybase::value_compare value_compare;
+//	typedef typename _Mybase::allocator_type allocator_type;
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef value_type       * pointer;
+	typedef value_type const * const_pointer;
+	typedef value_type       & reference;
+	typedef value_type const & const_reference;
+
+//	typedef typename _Mybase::const_iterator const_iterator;
 
 	Pvoid_t  m_judy;
+	size_type m_size;
 
 //
 private:
@@ -23,6 +40,15 @@ private:
 
 	struct comp_func {
 		TEqualFunc m_eq_func;
+
+		comp_func ()
+		{
+		}
+
+		comp_func (const key_equal& eq_func)
+			: m_eq_func (eq_func)
+		{
+		}
 
 		bool operator () (const value_type &a, const value_type &b) const
 		{
@@ -37,6 +63,57 @@ public:
 	judyhash_map ()
 	{
 		m_judy = 0;
+		m_size = 0;
+	}
+
+	template <class Tit>
+	judyhash_map (Tit beg, Tit end)
+	{
+		m_judy = 0;
+		m_size = 0;
+
+		insert (beg, end);
+	}
+
+	judyhash_map (const judyhash_map& a)
+	{
+		m_judy      = a.m_judy;
+		m_size      = a.m_size;
+		m_hash_func = a.m_hash_func;
+	}
+
+	template <class Tit>
+	void insert (Tit beg, Tit end)
+	{
+		while (beg != end){
+			insert (*beg);
+
+			++beg;
+		}
+	}
+
+	void swap (judyhash_map& a)
+	{
+		std::swap (m_judy, a.m_judy);
+		std::swap (m_size, a.m_size);
+		std::swap (m_hash_func, a.m_hash_func);
+	}
+
+//	judyhash_map (const key_equal& eq_func)
+//		: m_comp_func (eq_func)
+//	{
+//		m_judy = 0;
+//		m_size = 0;
+//	}
+
+//	judy hash_map(const key_compare& eq_func, const allocator_type& alloc)
+//		: _Mybase(_Traits, _Al)
+//	{
+//	}
+
+	size_type size () const
+	{
+		return m_size;
 	}
 
 	union judy_value {
@@ -145,6 +222,13 @@ public:
 			}
 		}
 
+		iterator operator ++ (int)
+		{
+			iterator ret = *this;
+			operator ++ ();
+			return ret;
+		}
+
 		value_type& operator ++ ()
 		{
 			if (!m_end){
@@ -204,7 +288,10 @@ public:
 						= lst -> insert (
 							lst -> end (), p);
 
+					++m_size;
+
 					ptr -> m_integer |= 1;
+
 					return std::make_pair (
 						iterator (m_judy, h, (PPvoid_t) ptr,
 								  lst -> insert (ret_it, p)),
@@ -219,7 +306,7 @@ public:
 
 				typename value_list::iterator found = end;
 
-				for (; beg != end; ++beg){
+				for (; !(beg == end); ++beg){
 					if (m_comp_func (*beg, p)){
 						(*beg).second = p.second;
 						return std::make_pair (
@@ -228,6 +315,8 @@ public:
 					}
 				}
 
+				++m_size;
+
 				return std::make_pair (
 					iterator (m_judy, h, (PPvoid_t) ptr,
 							  lst -> insert (lst -> end (), p)),
@@ -235,6 +324,8 @@ public:
 			}
 		}else{
 			ptr -> m_key_data = new value_type (p);
+
+			++m_size;
 
 			return std::make_pair (
 				iterator (m_judy, h, (PPvoid_t) ptr),
