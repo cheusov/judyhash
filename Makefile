@@ -1,35 +1,44 @@
 #CXX=icc
-#CXX=g++
-CXX=/usr/local/gcc-3/bin/g++
+CXX=g++
+CC=gcc
+#CXX=/usr/local/gcc-3/bin/g++
 CFLAGS=-O3 -march=i686
 #CFLAGS=-O0 -g
+
+CPPFLAGS=-I/usr/include/stlport
+LDFLAGS=-lstlport -lm
 
 all : libjudyhash.so main main2 main-test main-plusplus
 
 main.o : main.c
-	$(CC) -o $@ -D_GNU_SOURCE -c $(CFLAGS) $^
+	$(CC) -o $@ -D_GNU_SOURCE -c $(CPPFLAGS) $(CFLAGS) $^
 main : main.o
-	$(CC) -o $@ $^
+	$(CC) $(LDFLAGS) -o $@ $^
 
 main2.o : main.c
-	$(CC) -o $@ -I. -DUSE_JUDY_HASH -c $(CFLAGS) $<
+	$(CC) -o $@ -I. -DUSE_JUDY_HASH -c $(CPPFLAGS) $(CFLAGS) $<
 main2 : main2.o libjudyhash.so
-	$(CC) -o $@ -L. -ljudyhash -lJudy main2.o
+	$(CC) $(LDFLAGS) -o $@ -L. -ljudyhash -lJudy main2.o
 
-main-plusplus : main-plusplus.o
-	$(CXX) -o $@ main-plusplus.o -L. -lJudy
 main-plusplus.o : main.cpp judyhash_plusplus.h
-	$(CXX) -o $@ -I. $(CFLAGS) -c main.cpp
+	$(CXX) -o $@ -I. $(CPPFLAGS) $(CFLAGS) -c main.cpp
+main-plusplus : main-plusplus.o
+	$(CXX) $(LDFLAGS) -o $@ main-plusplus.o -L. -lJudy
 
-main-test : main-test.c
-	$(CXX) -o $@ $(CFLAGS) $^
-main-test2 : main-test.c libjudyhash.so
-	$(CXX) -o $@ -I. -L. -ljudyhash -lJudy $(CFLAGS) main-test.c
+main-test2.o : main-test.c libjudyhash.so
+	$(CC) -c -o $@ -I. $(CPPFLAGS) $(CFLAGS) main-test.c
+main-test2 : main-test.o libjudyhash.so
+	$(CC) -o $@ $(LDFLAGS) -L. -ljudyhash -lJudy main-test.o
 
-libjudyhash.so : judyhash.o
-	$(CXX) -shared -static -o $@ $^
+main-test.o : main-test.c
+	$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
+main-test : main-test.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
 judyhash.o : judyhash.cpp
-	$(CXX) -c -o $@ $(CFLAGS) $<
+	$(CXX) -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
+libjudyhash.so : judyhash.o
+	$(CXX) $(LDFLAGS) -shared -static -o $@ $^
 
 .PHONY : clean
 clean:
