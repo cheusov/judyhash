@@ -4,7 +4,7 @@
 #include <map>
 
 //#define USE_JUDY_HASH
-#define USE_HASH_MAP
+//#define USE_HASH_MAP
 //#define EMPTY_LOOP
 
 #include "judyhash.h"
@@ -14,7 +14,7 @@
 #endif
 
 struct hsh_string_hash {
-	unsigned long operator () (const char *key) const
+	size_t operator () (const char *key) const
 	{
 //		const int m = 7U;
 //		const int m = 31U;
@@ -65,15 +65,46 @@ struct cmp_string_lt {
 	}
 };
 
+class dinkumware_hash_traits
+:
+public hsh_string_hash,
+public cmp_string_eq,
+public cmp_string_lt
+{
+public:
+	const size_t bucket_size = 4;
+	const size_t min_buckets = 8;
+
+	hash_compare ()
+	{
+	}
+
+	size_t operator () (const char * key) const
+	{
+		return hsh_string_hash::operator () (key);
+	}
+
+	bool operator () (const char * key1, const char *key2) const
+	{
+		return cmp_string_lt::operator () (key1, key2);
+	}
+};
+
 #ifdef USE_JUDY_HASH
 typedef judyhash_map <
 	const char *, int, hsh_string_hash, cmp_string_eq
 	> my_hash;
 #else
 #ifdef USE_HASH_MAP
+#ifdef __ICC
+typedef std::hash_map <
+	const char *, int, dinkumware_hash_traits
+	> my_hash;
+#else
 typedef std::hash_map <
 	const char *, int, hsh_string_hash, cmp_string_eq
 	> my_hash;
+#endif
 #else
 typedef std::map <const char *, int, cmp_string_lt> my_hash;
 #endif
@@ -109,12 +140,16 @@ int main ()
 		init_values,
 		init_values + sizeof (init_values)/sizeof (init_values [0]));
 
-//	my_hash ht = ht2;
-#if defined(USE_JUDY_HASH) || defined(USE_HASH_MAP)
+#if defined(USE_JUDY_HASH)
+	my_hash ht (0, hsh_string_hash (), cmp_string_eq ());
+#else
+#if defined(USE_HASH_MAP) && !defined(__ICC)
 	my_hash ht (0, hsh_string_hash (), cmp_string_eq ());
 #else
 	my_hash ht;
 #endif
+#endif
+
 	ht.swap (ht2);
 
 	while (fgets (line, sizeof (line), stdin)){
@@ -162,7 +197,6 @@ int main ()
 	ht.erase ("apple");
 	ht.erase ("record");
 	ht.erase ("the");
-
 	for (int i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
 		const char *key = init_values [i].first;
 		my_hash::iterator found = ht.find (key);
