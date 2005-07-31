@@ -17,7 +17,11 @@ public:
 	typedef TKey                            key_type;
 	typedef TValue                          data_type;
 	typedef TValue                          mapped_type;
+#if 1
+	typedef std::pair <TKey, TValue>  value_type;
+#else
 	typedef std::pair <const TKey, TValue>  value_type;
+#endif
 	typedef TEqualFunc                      key_equal;
 	typedef THashFunc                       hasher;
 
@@ -134,11 +138,6 @@ public:
 	size_type bucket_count () const
 	{
 		return m_size;
-	}
-
-	void erase (const key_type& key)
-	{
-		erase (find (key));
 	}
 
 	void swap (judyhash_map& a)
@@ -341,6 +340,20 @@ public:
 		}
 	};
 	friend class iterator;
+
+	void erase (const key_type& key)
+	{
+		erase (find (key));
+	}
+
+	iterator erase(iterator f, iterator l)
+	{
+		while (! (f == l)){
+			erase (f++);
+		}
+
+		return f;
+	}
 
 	void erase (iterator it)
 	{
