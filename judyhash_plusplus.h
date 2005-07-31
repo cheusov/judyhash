@@ -4,8 +4,6 @@
 #include <assert.h>
 #include <algorithm>
 
-#define JUDY_HASH_NEW(v) new (m_alloc.allocate (1)) value_type (v)
-
 template <
 	typename TKey,
 	typename TValue,
@@ -19,19 +17,20 @@ public:
 	typedef TKey                            key_type;
 	typedef TValue                          data_type;
 	typedef TValue                          mapped_type;
-	typedef std::pair <TKey, TValue>  value_type;
+	typedef std::pair <const TKey, TValue>  value_type;
 	typedef TEqualFunc                      key_equal;
 	typedef THashFunc                       hasher;
 
-//	typedef _Ty referent_type;
-//	typedef typename _Mybase::value_compare value_compare;
-//	typedef typename _Mybase::allocator_type allocator_type;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
-	typedef value_type       * pointer;
+
+	// It is not possible to derive 'pointer' and 'reference' types from
+	// TAllocator
+	typedef value_type *  pointer;
 	typedef value_type const * const_pointer;
-	typedef value_type       & reference;
+	typedef value_type & reference;
 	typedef value_type const & const_reference;
+
 	typedef TAllocator         allocator_type;
 
 //	typedef typename _Mybase::const_iterator const_iterator;
@@ -68,15 +67,15 @@ private:
 	TEqualFunc m_eq_func;
 
 //	typedef std::vector <value_type*> value_list;
-	typedef std::list <value_type*> value_list;
+	typedef std::list <pointer> value_list;
 
-/*
-	inline value_type * judy_hash_new (const value_type &a)
+	inline pointer judy_hash_new (const value_type &v)
 	{
-//		return new value_type (a);
-		return new (m_alloc.allocate (1)) value_type (a);
+		pointer p = m_alloc.allocate (1);
+		new (p) value_type (v);
+		return p;
 	}
-*/
+
 	allocator_type m_alloc;
 
 //
@@ -178,7 +177,7 @@ public:
 
 	union judy_value {
 		Word_t        m_integer;
-		value_type   *m_key_data;
+		pointer       m_key_data;
 		value_list   *m_list;
 	};
 
@@ -286,13 +285,13 @@ public:
 			}
 		}
 
-		value_type& operator * ()
+		reference operator * ()
 		{
 			if (m_value){
 				if (m_inside_list){
 					return * (*m_list_it);
 				}else{
-					return ** (value_type **) m_value;
+					return ** (pointer *) m_value;
 				}
 			}else{
 				throw 123;
@@ -447,7 +446,7 @@ public:
 						(iterator (m_judy, h, (PPvoid_t) ptr),
 						 false);
 				}else{
-					value_type *copy = ptr -> m_key_data;
+					pointer copy = ptr -> m_key_data;
 #ifndef NDEBUG
 					m_debug_info.m_list_count       += 1;
 					m_debug_info.m_list_item_count  += 2;
@@ -460,7 +459,7 @@ public:
 
 					typename value_list::iterator ret_it
 						= lst -> insert (
-							lst -> end (), JUDY_HASH_NEW(p));
+							lst -> end (), judy_hash_new (p));
 
 					++m_size;
 
@@ -492,7 +491,7 @@ public:
 
 				return std::make_pair (
 					iterator (m_judy, h, (PPvoid_t) ptr,
-							  lst -> insert (lst -> end (), JUDY_HASH_NEW (p))),
+							  lst -> insert (lst -> end (), judy_hash_new (p))),
 					true);
 			}
 		}else{
@@ -500,7 +499,7 @@ public:
 			m_debug_info.m_value_count += 1;
 #endif
 
-			ptr -> m_key_data = JUDY_HASH_NEW(p);
+			ptr -> m_key_data = judy_hash_new (p);
 
 			++m_size;
 
