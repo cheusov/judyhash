@@ -4,7 +4,7 @@
 #include <map>
 
 //#define USE_JUDY_HASH
-//#define USE_HASH_MAP
+#define USE_HASH_MAP
 //#define EMPTY_LOOP
 
 #include "judyhash.h"
@@ -20,7 +20,7 @@ struct hsh_string_hash {
 //		const int m = 31U;
 //		const int m = 33U;
 //		const int m = 65599U;
-		const int m = 2654435789U;
+		const size_t m = 2654435789U;
 
 		unsigned h = 0;
 
@@ -72,10 +72,10 @@ public cmp_string_eq,
 public cmp_string_lt
 {
 public:
-	const size_t bucket_size = 4;
-	const size_t min_buckets = 8;
+	static const size_t bucket_size = 4;
+	static const size_t min_buckets = 1024;
 
-	hash_compare ()
+	dinkumware_hash_traits ()
 	{
 	}
 
@@ -184,8 +184,8 @@ int main ()
 	std::cout << "list item count:  " << ht.m_debug_info.m_list_item_count << '\n';
 	std::cout << "list count:       " << ht.m_debug_info.m_list_count << '\n';
 
-	std::cout << "key_eq     = " << &ht.key_eq () << '\n';
-	std::cout << "hash_funct = " << &ht.hash_funct () << '\n';
+	ht.key_eq ();
+	ht.hash_funct ();
 #endif
 
 	std::cout << "map size: " << ht.size () << '\n';
