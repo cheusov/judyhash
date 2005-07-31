@@ -3,8 +3,8 @@
 #include <string.h>
 #include <map>
 
-//#define USE_JUDY_HASH
-#define USE_HASH_MAP
+#define USE_JUDY_HASH
+//#define USE_HASH_MAP
 //#define EMPTY_LOOP
 
 #include "judyhash.h"
@@ -193,7 +193,14 @@ int main ()
 	std::cout << "max_count=" << ht.max_size () << '\n';
 #endif
 
-	ht.erase ("layout");
+	my_hash::iterator layout_iterator = ht.find ("layout");
+	my_hash::iterator layout_nest_iterator = layout_iterator;
+	++layout_nest_iterator;
+
+	layout_nest_iterator = ht.erase (layout_iterator, layout_nest_iterator);
+	std::cout << "key after removed \"layout\"=" << (*layout_nest_iterator).first << '\n';
+	std::cout << "value after removed \"layout\"=" << (*layout_nest_iterator).second << '\n';
+
 	ht.erase ("apple");
 	ht.erase ("record");
 	ht.erase ("the");
