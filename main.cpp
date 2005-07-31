@@ -4,7 +4,7 @@
 #include <map>
 
 //#define USE_JUDY_HASH
-//#define USE_HASH_MAP
+#define USE_HASH_MAP
 //#define EMPTY_LOOP
 
 #include "judyhash.h"
@@ -23,6 +23,26 @@ struct hsh_string_hash {
 		const int m = 2654435789U;
 
 		unsigned h = 0;
+
+		if (*key)
+			h = (unsigned char) *key++;
+		else
+			return h;
+
+		if (*key)
+			h = h + ((unsigned char) *key++ << 8);
+		else
+			return h;
+
+		if (*key)
+			h = h + ((unsigned char) *key++ << 16);
+		else
+			return h;
+
+		if (*key)
+			h = h + ((unsigned char) *key++ << 24);
+		else
+			return h;
 
 		while (*key)
 			h = h * m + *key++;
@@ -52,10 +72,10 @@ typedef judyhash_map <
 #else
 #ifdef USE_HASH_MAP
 typedef std::hash_map <
-	const char *, int//, hsh_string_hash, cmp_string_eq
+	const char *, int, hsh_string_hash, cmp_string_eq
 	> my_hash;
 #else
-typedef std::map <std::string, int> my_hash;
+typedef std::map <const char *, int, cmp_string_lt> my_hash;
 #endif
 #endif
 
@@ -78,10 +98,11 @@ int main ()
 
 	my_hash::value_type init_values [] = {
 		my_hash::value_type ("record", 1000),
-		my_hash::value_type ("access", 1000),
-		my_hash::value_type ("the", 1000),
-		my_hash::value_type ("27562356273562036503276502560265", 1000),
-		my_hash::value_type ("layout", 1000)
+		my_hash::value_type ("access", 1001),
+		my_hash::value_type ("the", 1002),
+		my_hash::value_type ("27562356273562036503276502560265", 1003),
+		my_hash::value_type ("layout", 1004),
+		my_hash::value_type ("layout", 99999999)
 	};
 
 	my_hash ht2 (
@@ -89,7 +110,11 @@ int main ()
 		init_values + sizeof (init_values)/sizeof (init_values [0]));
 
 //	my_hash ht = ht2;
+#if defined(USE_JUDY_HASH) || defined(USE_HASH_MAP)
+	my_hash ht (0, hsh_string_hash (), cmp_string_eq ());
+#else
 	my_hash ht;
+#endif
 	ht.swap (ht2);
 
 	while (fgets (line, sizeof (line), stdin)){
@@ -98,9 +123,11 @@ int main ()
 #ifndef EMPTY_LOOP
 			= ht.insert (
 				my_hash::value_type (
-					strdup (line), line_count))
+					strdup (line), line_count));
+#else
+		;
+		strdup (line);
 #endif
-			;
 
 		bool new_item = curr.second;
 		if (!new_item){
@@ -115,18 +142,42 @@ int main ()
 		++line_count;
 	}
 
-#ifdef USE_JUDY_HASH
 	std::cout << "duplicates count: " << dups << '\n';
-	std::cout << "map size: " << ht.size () << '\n';
 
+#ifdef USE_JUDY_HASH
 	std::cout << "single item count:" << ht.m_debug_info.m_value_count << '\n';
 	std::cout << "list item count:  " << ht.m_debug_info.m_list_item_count << '\n';
 	std::cout << "list count:       " << ht.m_debug_info.m_list_count << '\n';
+
+	std::cout << "key_eq     = " << &ht.key_eq () << '\n';
+	std::cout << "hash_funct = " << &ht.hash_funct () << '\n';
 #endif
 
-//	my_hash::iterator beg, end;
-//	beg = ht.begin ();
-//	end = ht.end ();
+	std::cout << "map size: " << ht.size () << '\n';
+#if defined(USE_JUDY_HASH) || defined(USE_HASH_MAP)
+	std::cout << "max_count=" << ht.max_size () << '\n';
+#endif
+
+	ht.erase ("layout");
+	ht.erase ("apple");
+	ht.erase ("record");
+	ht.erase ("the");
+
+	for (int i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
+		const char *key = init_values [i].first;
+		my_hash::iterator found = ht.find (key);
+		if (found == ht.end ())
+			std::cout << "value[\"" << key << "\"]=(not found)\n";
+		else
+			std::cout << "value[\"" << key << "\"]=" << (*ht.find (key)).second << "\n";
+
+//		std::cout << "count[\"" << key << "\"]=" << ht.count (key) << "\n";
+	}
+
+//	while (1);
+	my_hash::iterator beg, end;
+	beg = ht.begin ();
+	end = ht.end ();
 
 //	for (; !(beg == end); ++beg){
 //		std::cout << "key2=`" << (*beg).first << "`\n";
