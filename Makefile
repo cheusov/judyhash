@@ -1,12 +1,16 @@
 #CXX=icc
+#CC=icc
+LD=g++
 CXX=g++
 CC=gcc
 #CXX=/usr/local/gcc-3/bin/g++
-CFLAGS=-O3 -march=i686
+#CC=/usr/local/gcc-3/bin/gcc
+CFLAGS=-O3 -march=i586
 #CFLAGS=-O0 -g
 
-CPPFLAGS=-I/usr/include/stlport
-LDFLAGS=-lstlport -lm
+LDFLAGS=-L.
+#CPPFLAGS=-I/usr/include/stlport
+#LDFLAGS=-L. -lstlport -lm
 
 all : libjudyhash.so main main2 main-test main-plusplus
 
@@ -38,7 +42,7 @@ main-test : main-test.o
 judyhash.o : judyhash.cpp
 	$(CXX) -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
 libjudyhash.so : judyhash.o
-	$(CXX) $(LDFLAGS) -shared -static -o $@ $^
+	$(LD) $(LDFLAGS) -shared -o $@ $^
 
 .PHONY : clean
 clean:

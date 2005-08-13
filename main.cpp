@@ -1,16 +1,23 @@
 #include <iostream>
 #include <string>
 #include <string.h>
-#include <map>
 
-#define USE_JUDY_HASH
-//#define USE_HASH_MAP
-//#define EMPTY_LOOP
+#if !defined(USE_STD_MAP) && !defined(USE_JUDY_HASH) && !defined(USE_HASH_MAP) && !defined(EMPTY_LOOP)
+#error Opps
+#endif
 
 #include "judyhash.h"
 
 #ifdef USE_HASH_MAP
+#if (__GNUC__ >= 3)
+#include <ext/hash_map>
+#else
 #include <hash_map>
+#endif
+#endif
+
+#if defined(USE_STD_MAP) || defined(EMPTY_LOOP)
+#include <map>
 #endif
 
 struct hsh_string_hash {
@@ -101,9 +108,17 @@ typedef std::hash_map <
 	const char *, int, dinkumware_hash_traits
 	> my_hash;
 #else
+
+#if __GNUC__ >= 3
+typedef __gnu_cxx::hash_map <
+	const char *, int, hsh_string_hash, cmp_string_eq
+	> my_hash;
+#else
 typedef std::hash_map <
 	const char *, int, hsh_string_hash, cmp_string_eq
 	> my_hash;
+#endif
+
 #endif
 #else
 typedef std::map <const char *, int, cmp_string_lt> my_hash;
@@ -194,12 +209,18 @@ int main ()
 #endif
 
 	my_hash::iterator layout_iterator = ht.find ("layout");
-	my_hash::iterator layout_nest_iterator = layout_iterator;
-	++layout_nest_iterator;
+	my_hash::iterator layout_next_iterator = layout_iterator;
+	++layout_next_iterator;
 
-	layout_nest_iterator = ht.erase (layout_iterator, layout_nest_iterator);
-	std::cout << "key after removed \"layout\"=" << (*layout_nest_iterator).first << '\n';
-	std::cout << "value after removed \"layout\"=" << (*layout_nest_iterator).second << '\n';
+#ifdef JUDYHASH_ERASE_RETURN_IT
+	{
+		layout_next_iterator = ht.erase (layout_iterator, layout_next_iterator);
+		std::cout << "key after removed \"layout\"=" << (*layout_next_iterator).first << '\n';
+		std::cout << "value after removed \"layout\"=" << (*layout_next_iterator).second << '\n';
+	}
+#else
+	ht.erase (layout_iterator, layout_next_iterator);
+#endif
 
 	ht.erase ("apple");
 	ht.erase ("record");

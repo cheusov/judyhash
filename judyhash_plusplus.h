@@ -346,13 +346,19 @@ public:
 		erase (find (key));
 	}
 
-	iterator erase(iterator f, iterator l)
+#ifdef JUDYHASH_ERASE_RETURN_IT
+	iterator erase (iterator f, iterator l)
+#else
+	void erase (iterator f, iterator l)
+#endif
 	{
 		while (! (f == l)){
 			erase (f++);
 		}
 
+#ifdef JUDYHASH_ERASE_RETURN_IT
 		return f;
+#endif
 	}
 
 	void erase (iterator it)
