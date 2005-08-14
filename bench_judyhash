@@ -1,0 +1,49 @@
+#!/bin/sh
+
+TESTFILE=~cheusov/texts/5000.out
+TMPFILE=temp.tmp
+
+lines='1000 10000 100000 1000000 10000000'
+
+test_judyhash (){
+    CXX=$1
+    CPPFLAGS=$2
+    CFLAGS=$3
+    LDFLAGS=$4
+    DEFINES=$5
+
+    echo "Ver: $@"
+
+    echo "Compiling..." 1>&2
+    $CXX -o judyhash $DEFINES $CFLAGS $LDFLAGS main.cpp || exit 1
+    for i in $lines; do
+	echo 'Extracting...' 1>&2
+	head -n $i < "$TESTFILE" > "$TMPFILE" || exit 2
+
+	echo 'OS-level cache' 1>&2
+	cat "$TMPFILE" > /dev/null || exit 3
+
+	echo 'Test!' 1>&2
+	exe_time=`time -p ./judyhash < "$TMPFILE" 2>&1 > /dev/null` || exit 4
+	echo "$i lines: `echo $exe_time | awk '/user/ {print $2}'`"
+	echo '' 1>&2
+    done
+}
+
+gpp='/usr/local/gcc-3/bin/g++'
+
+# g++ STL
+test_judyhash $gpp '' '-O3 -march=i586' ''       '-DUSE_STD_MAP'
+test_judyhash $gpp '' '-O3 -march=i586' '-lJudy' '-DUSE_JUDY_HASH'
+test_judyhash $gpp '' '-O3 -march=i586' ''       '-DUSE_HASH_MAP'
+
+# just file reading 
+test_judyhash $gpp '' '-O3 -march=i586' ''       '-DEMPTY_LOOP'
+
+# STLPORT STL
+test_judyhash $gpp '-I/usr/include/stlport' '-O3 -march=i586' \
+	'-lstlport -lm'        '-DUSE_STD_MAP'
+test_judyhash $gpp '-I/usr/include/stlport' '-O3 -march=i586' \
+	'-lstlport -lm -lJudy' '-DUSE_JUDY_HASH'
+test_judyhash $gpp '-I/usr/include/stlport' '-O3 -march=i586' \
+	'-lstlport -lm'        '-DUSE_HASH_MAP'
