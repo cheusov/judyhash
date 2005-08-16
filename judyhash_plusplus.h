@@ -304,7 +304,7 @@ public:
 			return ret;
 		}
 
-		value_type& operator ++ ()
+		iterator& operator ++ ()
 		{
 			if (!m_end){
 				if (!m_inside_list || ++m_list_it == m_list_end_it){
@@ -318,6 +318,8 @@ public:
 			}else{
 				throw 123;
 			}
+
+			return *this;
 		}
 
 		bool operator == (const iterator& i) const
