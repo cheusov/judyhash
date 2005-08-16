@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 TESTFILE=~cheusov/texts/5000.out
 TMPFILE=temp.tmp
@@ -14,11 +14,11 @@ test_judyhash (){
 
     echo "Ver: $@"
 
-    echo "Compiling..." 1>&2
-    $CXX -o judyhash $DEFINES $CFLAGS $LDFLAGS main.cpp || exit 1
-    for i in $lines; do
+    echo "Compiling... $CXX -o judyhash main.cpp $DEFINES $CFLAGS $LDFLAGS" 1>&2
+    $CXX -o judyhash main.cpp $DEFINES $CFLAGS $LDFLAGS || exit 1
+    for i in 1000 10000 100000 1000000 10000000; do
 	echo 'Extracting...' 1>&2
-	head -n $i < "$TESTFILE" > "$TMPFILE" || exit 2
+	/usr/bin/head -n "$i" < "$TESTFILE" > "$TMPFILE" || exit 2
 
 	echo 'OS-level cache' 1>&2
 	cat "$TMPFILE" > /dev/null || exit 3
@@ -30,20 +30,22 @@ test_judyhash (){
     done
 }
 
-gpp='/usr/local/gcc-3/bin/g++'
+for gpp in icc /usr/local/gcc-3/bin/g++ g++; do
+    which $gpp || continue
 
-# g++ STL
-test_judyhash $gpp '' '-O3 -march=i586' ''       '-DUSE_STD_MAP'
-test_judyhash $gpp '' '-O3 -march=i586' '-lJudy' '-DUSE_JUDY_HASH'
-test_judyhash $gpp '' '-O3 -march=i586' ''       '-DUSE_HASH_MAP'
+    # g++ STL
+    test_judyhash $gpp '' '-O3 -march=i586' ''       '-DUSE_STD_MAP'
+    test_judyhash $gpp '' '-O3 -march=i586' '-lJudy' '-DUSE_JUDY_HASH'
+    test_judyhash $gpp '' '-O3 -march=i586' ''       '-DUSE_HASH_MAP'
 
-# just file reading 
-test_judyhash $gpp '' '-O3 -march=i586' ''       '-DEMPTY_LOOP'
+    # just file reading 
+    test_judyhash $gpp '' '-O3 -march=i586' ''       '-DEMPTY_LOOP'
 
-# STLPORT STL
-test_judyhash $gpp '-I/usr/include/stlport' '-O3 -march=i586' \
+    # STLPORT STL
+    test_judyhash $gpp '-I/usr/include/stlport' '-O3 -march=i586' \
 	'-lstlport -lm'        '-DUSE_STD_MAP'
-test_judyhash $gpp '-I/usr/include/stlport' '-O3 -march=i586' \
+    test_judyhash $gpp '-I/usr/include/stlport' '-O3 -march=i586' \
 	'-lstlport -lm -lJudy' '-DUSE_JUDY_HASH'
-test_judyhash $gpp '-I/usr/include/stlport' '-O3 -march=i586' \
+    test_judyhash $gpp '-I/usr/include/stlport' '-O3 -march=i586' \
 	'-lstlport -lm'        '-DUSE_HASH_MAP'
+done
