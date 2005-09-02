@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <string.h>
+#include <assert.h>
+#include <pool/pool_alloc.hpp>
 
 #if !defined(USE_STD_MAP) && !defined(USE_JUDY_HASH) && !defined(USE_HASH_MAP) && !defined(EMPTY_LOOP)
 #error Opps
@@ -19,6 +21,49 @@
 #if defined(USE_STD_MAP) || defined(EMPTY_LOOP)
 #include <map>
 #endif
+
+template <typename T>
+class my_pool {
+private:
+	std::vector <T*> m_blocks;
+	int m_it_size;
+	int m_curr;
+public:
+	typedef const T* const_pointer;
+	typedef const T& const_reference;
+	typedef int difference_type;
+	typedef T* pointer;
+	typedef T& reference;
+	typedef size_t size_type;
+
+public:
+	my_pool ()
+	{
+		m_it_size = 300000;
+		m_curr    = 0;
+	}
+
+	~my_pool ()
+	{
+	}
+
+	pointer allocate (size_t s)
+	{
+		assert (s == 1);
+
+		if (m_curr == m_it_size || m_blocks.empty ()){
+			m_blocks.push_back (new T [m_it_size]);
+			m_curr = 0;
+		}
+
+		return m_blocks.back () + (m_curr++);
+	}
+
+	void deallocate (pointer ptr, size_type count)
+	{
+		assert (count == 1);
+	}
+};
 
 struct hsh_string_hash {
 	size_t operator () (const char *key) const
@@ -97,25 +142,29 @@ public:
 	}
 };
 
+//typedef my_pool < std::pair <const char *, int> > test_allocator_type;
+//typedef std::allocator < std::pair <const char *, int> > test_allocator_type;
+typedef boost::fast_pool_allocator < std::pair <const char *, int> > test_allocator_type;
+
 #ifdef USE_JUDY_HASH
 typedef judyhash_map <
-	const char *, int, hsh_string_hash, cmp_string_eq
+	const char *, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
 #else
 #ifdef USE_HASH_MAP
 #ifdef __ICC
 typedef std::hash_map <
-	const char *, int, dinkumware_hash_traits
+	const char *, int, dinkumware_hash_traits, test_allocator_type
 	> my_hash;
 #else
 
 #if __GNUC__ >= 3
 typedef __gnu_cxx::hash_map <
-	const char *, int, hsh_string_hash, cmp_string_eq
+	const char *, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
 #else
 typedef std::hash_map <
-	const char *, int, hsh_string_hash, cmp_string_eq
+	const char *, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
 #endif
 
