@@ -96,6 +96,7 @@ struct hsh_string_hash1 {
 struct hsh_string_hash2 {
 	size_t operator () (const char *key) const
 	{
+		return 0;
 	}
 };
 
@@ -141,20 +142,44 @@ static const my_hash1::value_type init_values [] = {
 	my_hash1::value_type ("layout", 99999999)
 };
 
+#define ITERATE_OVER(it_t, array, iter)                        \
+    for (it_t iter = (array).begin (), iter##_end = (array).end (); \
+         !(iter == iter##_end);                                \
+         ++iter)
+
 template <typename judyhash_type>
-void test (judyhash_type &ht)
+void print_hash (judyhash_type &ht, int num)
 {
+	ITERATE_OVER (typename judyhash_type::iterator, ht, v){
+		std::cout << num << " " << "key=`" << (*v).first << "` ";
+		std::cout << num << " " << "value=" << (*v).second << "\n";
+	}
+	std::cout << '\n';
+}
+
+template <typename judyhash_type>
+void test (judyhash_type &ht, int num)
+{
+	typedef typename judyhash_type::iterator   hash_iterator;
+	typedef typename judyhash_type::iterator   hash_const_iterator;
+	typedef typename judyhash_type::value_type hash_value_type;
+
 	judyhash_type ht2 (
 		init_values,
 		init_values + sizeof (init_values)/sizeof (init_values [0]));
+	print_hash (ht2, num);
+
+	ht.insert (hash_value_type ("apple", 7777));
 
 	ht.swap (ht2);
+	print_hash (ht2, num);
+	print_hash (ht, num);
 
-	std::cout << "map size: " << ht.size () << '\n';
-	std::cout << "max_count=" << ht.max_size () << '\n';
+	std::cout << num << " " << "map size: " << ht.size () << '\n';
+	std::cout << num << " " << "max_count=" << ht.max_size () << '\n';
 
-	my_hash1::iterator layout_iterator = ht.find ("layout");
-	my_hash1::iterator layout_next_iterator = layout_iterator;
+	hash_iterator layout_iterator = ht.find ("layout");
+	hash_iterator layout_next_iterator = layout_iterator;
 	++layout_next_iterator;
 
 	ht.erase (layout_iterator, layout_next_iterator);
@@ -164,27 +189,37 @@ void test (judyhash_type &ht)
 	ht.erase ("the");
 	for (int i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
 		const char *key = init_values [i].first;
-		my_hash1::iterator found = ht.find (key);
+		hash_iterator found = ht.find (key);
 		if (found == ht.end ())
-			std::cout << "value[\"" << key << "\"]=(not found)\n";
+			std::cout << num << " " << "value[\"" << key << "\"]=(not found)\n";
 		else
-			std::cout << "value[\"" << key << "\"]=" << (*ht.find (key)).second << "\n";
+			std::cout << num << " " << "value[\"" << key << "\"]=" << (*ht.find (key)).second << "\n";
 	}
 
-	my_hash1::iterator beg, end;
-	beg = ht.begin ();
-	end = ht.end ();
-
-	for (; !(beg == end); ++beg){
-		std::cout << "key2=`" << (*beg).first << "`\n";
-		std::cout << "value2=" << (*beg).second << "\n";
-	}
+	print_hash (ht, num);
 }
 
 int main (int argc, const char **argv)
 {
 	--argc, ++argv;
 
-	my_hash1 ht (0, hsh_string_hash1 (), cmp_string_eq ());
-	test (ht);
+	my_hash1 ht1;
+	test (ht1, 1);
+
+/*
+	my_hash2 ht2;
+	test (ht2, 2);
+
+	my_hash3 ht3;
+	test (ht3, 3);
+
+	my_hash4 ht4;
+	test (ht4, 4);
+
+	my_hash5 ht5;
+	test (ht5, 5);
+
+	my_hash6 ht6;
+	test (ht6, 6);
+*/
 }
