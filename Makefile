@@ -21,7 +21,7 @@ LDFLAGS=
 
 all : judyhash
 
-judyhash.o : main_test.cpp judyhash_plusplus.h
+judyhash.o : main_test.cpp judyhash.h
 	$(CXX) -o $@ -I. $(CPPFLAGS) $(CFLAGS) -c main_test.cpp
 judyhash : judyhash.o
 	$(CXX) $(LDFLAGS) -o $@ judyhash.o -L. -lJudy
