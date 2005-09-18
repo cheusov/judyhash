@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <algorithm>
 
+#include "Judy.h"
+
 template <
 	typename TKey,
 	typename TValue,
