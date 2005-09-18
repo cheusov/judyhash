@@ -1,4 +1,23 @@
-include Makefile.init
+############################################################
+
+# Examples
+CXX=g++
+#CXX=icc
+
+# Examples
+CPPFLAGS=-I/usr/include/boost
+#CPPFLAGS=-I/usr/include/boost -I/usr/include/stlport
+
+# Examples
+CFLAGS=-O3 -march=i586
+#CFLAGS=-O
+
+# Examples
+LDFLAGS=
+#LDFLAGS=-L. -lstlport -lm
+
+
+############################################################
 
 all : judyhash
 
