@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <string.h>
 #include <assert.h>
 #include <pool/pool_alloc.hpp>
@@ -174,12 +175,14 @@ typedef std::map <const char *, int, cmp_string_lt> my_hash;
 #endif
 #endif
 
-int main ()
+int main (int argc, const char **argv)
 {
 	char line [2048];
 	int line_count = 100;
 
 	int dups = 0;
+
+	--argc, ++argv;
 
 #ifdef USE_JUDY_HASH
 	std::cout << "JudyHash!!!\n";

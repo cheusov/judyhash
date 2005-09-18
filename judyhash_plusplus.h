@@ -1,5 +1,5 @@
 #include <list>
-#include <vector>
+//#include <vector>
 #include <utility>
 #include <assert.h>
 #include <algorithm>
@@ -7,8 +7,8 @@
 template <
 	typename TKey,
 	typename TValue,
-	typename THashFunc,
-	typename TEqualFunc,
+	typename THashFunc /* = std::hash<Key>*/,
+	typename TEqualFunc = std::equal_to <TKey>,
 	typename TAllocator = std::allocator< std::pair < TKey, TValue > > >
 class judyhash_map {
 
@@ -30,9 +30,9 @@ public:
 
 	// It is not possible to derive 'pointer' and 'reference' types from
 	// TAllocator
-	typedef value_type *  pointer;
+	typedef value_type       * pointer;
 	typedef value_type const * const_pointer;
-	typedef value_type & reference;
+	typedef value_type       & reference;
 	typedef value_type const & const_reference;
 
 	typedef TAllocator         allocator_type;
@@ -85,39 +85,46 @@ private:
 //
 public:
 	judyhash_map (
-		size_type          = 0,
-		const hasher& h    = THashFunc (), 
-		const key_equal& k = TEqualFunc ())
+		size_type n        = 0,
+		const hasher& h    = hasher (), 
+		const key_equal& k = key_equal (),
+		const allocator_type& a = allocator_type ())
+		:
+		m_hash_func (h),
+		m_eq_func   (k),
+		m_alloc     (a)
 	{
 		m_judy = 0;
 		m_size = 0;
-		m_hash_func = h;
-		m_eq_func = k;
 	}
 
 	template <class Tit>
 	judyhash_map (
 		Tit beg, Tit end,
 		size_type          = 0,
-		const hasher& h    = THashFunc (), 
-		const key_equal& k = TEqualFunc ())
+		const hasher& h    = hasher (), 
+		const key_equal& k = key_equal (),
+		const allocator_type& a = allocator_type ())
+		:
+		m_hash_func (h),
+		m_eq_func   (k),
+		m_alloc     (a)
 	{
 		m_judy = 0;
 		m_size = 0;
-
-		m_hash_func           = h;
-		m_eq_func = k;
 
 		insert (beg, end);
 	}
 
 	judyhash_map (const judyhash_map& a)
+		:
+		m_judy (0),
+		m_size (0),
+		m_hash_func (a.m_hash_func),
+		m_eq_func   (a.m_eq_func),
+		m_alloc     (a.m_alloc)
 	{
-		m_judy       = a.m_judy;
-		m_size       = a.m_size;
-		m_hash_func  = a.m_hash_func;
-		m_debug_info = a.m_debug_info;
-		m_alloc      = a.m_alloc;
+		insert (a.begin (), a.end ());
 	}
 
 	template <class Tit>
