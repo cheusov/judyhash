@@ -3,7 +3,7 @@
 #include <vector>
 #include <string.h>
 #include <assert.h>
-#include <utility>
+//#include <utility>
 #include <pool/pool_alloc.hpp>
 
 #include "judyhash.h"
@@ -51,9 +51,9 @@ public:
 	}
 };
 
-typedef my_pool < std::pair <const char *, int> > test_allocator_type1;
-//typedef std::allocator < std::pair <const char *, int> > test_allocator_type2;
-typedef boost::fast_pool_allocator < std::pair <const char *, int> > test_allocator_type2;
+typedef my_pool < std::pair <const char *const, int> > test_allocator_type1;
+//typedef std::allocator < std::pair <const char *const, int> > test_allocator_type2;
+typedef boost::fast_pool_allocator < std::pair <const char *const, int> > test_allocator_type2;
 
 struct hsh_string_hash1 {
 	size_t operator () (const char *key) const
@@ -139,6 +139,7 @@ static const my_hash1::value_type init_values [] = {
 	my_hash1::value_type ("the", 1002),
 	my_hash1::value_type ("27562356273562036503276502560265", 1003),
 	my_hash1::value_type ("layout", 1004),
+	my_hash1::value_type ("apple", 1005),
 	my_hash1::value_type ("layout", 99999999)
 };
 
@@ -148,7 +149,7 @@ static const my_hash1::value_type init_values [] = {
          ++iter)
 
 template <typename judyhash_type>
-void print_hash (judyhash_type &ht, int num)
+void print_hash_it (judyhash_type &ht, int num)
 {
 	ITERATE_OVER (typename judyhash_type::iterator, ht, v){
 		std::cout << num << " " << "key=`" << (*v).first << "` ";
@@ -158,35 +159,63 @@ void print_hash (judyhash_type &ht, int num)
 }
 
 template <typename judyhash_type>
+void print_hash_const_it (judyhash_type &ht, int num)
+{
+	ITERATE_OVER (typename judyhash_type::const_iterator, ht, v){
+		std::cout << num << " " << "key=`" << (*v).first << "` ";
+		std::cout << num << " " << "value=" << (*v).second << "\n";
+	}
+	std::cout << '\n';
+}
+
+template <typename judyhash_type>
 void test (judyhash_type &ht, int num)
 {
-	typedef typename judyhash_type::iterator   hash_iterator;
-	typedef typename judyhash_type::iterator   hash_const_iterator;
+	typedef typename judyhash_type::iterator         hash_iterator;
+	typedef typename judyhash_type::const_iterator   hash_const_iterator;
 	typedef typename judyhash_type::value_type hash_value_type;
 
+	// initializing 2
 	judyhash_type ht2 (
 		init_values,
 		init_values + sizeof (init_values)/sizeof (init_values [0]));
-	print_hash (ht2, num);
+	print_hash_it (ht2, num);
 
+	// initializing 1
 	ht.insert (hash_value_type ("apple", 7777));
 
+	// swapping 1 and 2
 	ht.swap (ht2);
-	print_hash (ht2, num);
-	print_hash (ht, num);
+	print_hash_it (ht2, num);
+	print_hash_const_it (ht, num);
 
+	// size and count
 	std::cout << num << " " << "map size: " << ht.size () << '\n';
 	std::cout << num << " " << "max_count=" << ht.max_size () << '\n';
 
+	// finding "layout"
 	hash_iterator layout_iterator = ht.find ("layout");
-	hash_iterator layout_next_iterator = layout_iterator;
+	hash_iterator layout_next_iterator;
+	layout_next_iterator = layout_iterator;
+	std::cout << num << " `" << (*layout_next_iterator).first << "` found\n";
 	++layout_next_iterator;
 
-	ht.erase (layout_iterator, layout_next_iterator);
+	// finding "apple"
+	hash_const_iterator apple_iterator = ht.find ("apple");
+	hash_const_iterator apple_next_iterator = apple_iterator;
+	std::cout << num << " `" << (*apple_next_iterator).first << "` found\n";
 
+	// erase found "layout" by iterator
+	ht.erase (layout_iterator, layout_next_iterator);
+	apple_iterator  = layout_iterator;
+
+	// erase "apple", "record", "the" and "language"
 	ht.erase ("apple");
 	ht.erase ("record");
 	ht.erase ("the");
+	ht.erase ("language");
+
+	// finding predefined words
 	for (int i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
 		const char *key = init_values [i].first;
 		hash_iterator found = ht.find (key);
@@ -196,7 +225,7 @@ void test (judyhash_type &ht, int num)
 			std::cout << num << " " << "value[\"" << key << "\"]=" << (*ht.find (key)).second << "\n";
 	}
 
-	print_hash (ht, num);
+	print_hash_const_it (ht, num);
 }
 
 int main (int argc, const char **argv)
