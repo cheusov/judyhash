@@ -11,7 +11,7 @@ template <
 	typename TValue,
 	typename THashFunc /* = std::hash<Key>*/,
 	typename TEqualFunc = std::equal_to <TKey>,
-	typename TAllocator = std::allocator< std::pair < TKey, TValue > > >
+	typename TAllocator = std::allocator< std::pair < TKey const, TValue > > >
 class judyhash_map {
 
 // types
@@ -19,11 +19,7 @@ public:
 	typedef TKey                            key_type;
 	typedef TValue                          data_type;
 	typedef TValue                          mapped_type;
-#if 1
-	typedef std::pair <TKey, TValue>  value_type;
-#else
 	typedef std::pair <const TKey, TValue>  value_type;
-#endif
 	typedef TEqualFunc                      key_equal;
 	typedef THashFunc                       hasher;
 
@@ -183,13 +179,15 @@ public:
 		return size_type (-1);
 	}
 
+private:
 	union judy_value {
 		Word_t        m_integer;
 		pointer       m_key_data;
 		value_list   *m_list;
 	};
 
-	class iterator {
+public:
+	class iterator_base {
 	private:
 		Word_t   m_index;
 		Pvoid_t  m_value;
@@ -199,10 +197,6 @@ public:
 		typename value_list::iterator m_list_it;
 		typename value_list::iterator m_list_end_it;
 
-//		friend template <
-//			typename TKey, typename TValue,
-//			typename THashFunc, typename TEqualFunc,
-//			typename TAllocator >
 		friend class judyhash_map;
 
 		void init_list_it ()
@@ -230,23 +224,18 @@ public:
 		}
 
 	public:
-		iterator ()
+		iterator_base ()
 		{
 			init ();
 		}
 
-		iterator (const iterator &a)
+		iterator_base (const iterator_base &a)
 		{
-			m_index       = a.m_index;
-			m_value       = a.m_value;
-			m_judy        = a.m_judy;
-			m_end         = a.m_end;
-			m_inside_list = a.m_inside_list;
-			m_list_it     = a.m_list_it;
-			m_list_end_it = a.m_list_end_it;
+			init ();
+			operator = (a);
 		}
 
-		iterator (Pvoid_t judy, Word_t index, Pvoid_t value)
+		iterator_base (Pvoid_t judy, Word_t index, Pvoid_t value)
 		{
 			init ();
 
@@ -259,7 +248,7 @@ public:
 			init_list_it ();
 		}
 
-		iterator (Pvoid_t judy,
+		iterator_base (Pvoid_t judy,
 				  Word_t index, Pvoid_t value,
 				  typename value_list::iterator it)
 		{
@@ -276,7 +265,7 @@ public:
 			m_list_it = it;
 		}
 
-		iterator (Pvoid_t judy)
+		iterator_base (Pvoid_t judy)
 		{
 			init ();
 
@@ -293,6 +282,22 @@ public:
 			}
 		}
 
+		iterator_base & operator = (const iterator_base& a)
+		{
+			if (this == &a)
+				return *this;
+
+			m_index       = a.m_index;
+			m_value       = a.m_value;
+			m_judy        = a.m_judy;
+			m_end         = a.m_end;
+			m_inside_list = a.m_inside_list;
+			m_list_it     = a.m_list_it;
+			m_list_end_it = a.m_list_end_it;
+
+			return *this;
+		}
+
 		reference operator * ()
 		{
 			if (m_value){
@@ -306,14 +311,14 @@ public:
 			}
 		}
 
-		iterator operator ++ (int)
+		iterator_base operator ++ (int)
 		{
-			iterator ret = *this;
+			iterator_base ret = *this;
 			operator ++ ();
 			return ret;
 		}
 
-		iterator& operator ++ ()
+		iterator_base& operator ++ ()
 		{
 			if (!m_end){
 				if (!m_inside_list || ++m_list_it == m_list_end_it){
@@ -331,7 +336,7 @@ public:
 			return *this;
 		}
 
-		bool operator == (const iterator& i) const
+		bool operator == (const iterator_base& i) const
 		{
 			if (m_end ^ i.m_end)
 				return false;
@@ -350,26 +355,102 @@ public:
 			m_end = true;
 		}
 	};
-	friend class iterator;
+
+	class const_iterator;
+
+	class iterator : public iterator_base {
+	private:
+		iterator (const const_iterator &a)
+		{
+			abort ();
+		}
+	public:
+		iterator ()
+		{
+		}
+		iterator (const iterator &a)
+			: iterator_base (a)
+		{
+		}
+		explicit iterator (const iterator_base &a)
+			: iterator_base (a)
+		{
+		}
+		iterator & operator = (const iterator& a)
+		{
+			return (iterator &) iterator_base::operator = (a);
+		}
+		reference operator * ()
+		{
+			return iterator_base::operator * ();
+		}
+		iterator operator ++ (int)
+		{
+			iterator ret = *this;
+			operator ++ ();
+			return ret;
+		}
+		iterator& operator ++ ()
+		{
+			return (iterator &) iterator_base::operator++ ();
+		}
+		bool operator == (const iterator& i) const
+		{
+			return iterator_base::operator == (i);
+		}
+	};
+
+	class const_iterator : public iterator_base {
+	public:
+		const_iterator ()
+		{
+		}
+		const_iterator (const const_iterator &a)
+			: iterator_base (a)
+		{
+		}
+		const_iterator (const iterator &a)
+			: iterator_base (a)
+		{
+		}
+		const_iterator & operator = (const const_iterator& a)
+		{
+			return (const_iterator &) iterator_base::operator = (a);
+		}
+		const_iterator & operator = (const iterator& a)
+		{
+			return (const_iterator &) iterator_base::operator = (a);
+		}
+		const_reference operator * ()
+		{
+			return iterator_base::operator * ();
+		}
+		const_iterator operator ++ (int)
+		{
+			const_iterator ret = *this;
+			operator ++ ();
+			return ret;
+		}
+		const_iterator& operator ++ ()
+		{
+			return (const_iterator &) iterator_base::operator++ ();
+		}
+		bool operator == (const const_iterator& i) const
+		{
+			return iterator_base::operator == (i);
+		}
+	};
 
 	void erase (const key_type& key)
 	{
 		erase (find (key));
 	}
 
-#ifdef JUDYHASH_ERASE_RETURN_IT
-	iterator erase (iterator f, iterator l)
-#else
 	void erase (iterator f, iterator l)
-#endif
 	{
 		while (! (f == l)){
 			erase (f++);
 		}
-
-#ifdef JUDYHASH_ERASE_RETURN_IT
-		return f;
-#endif
 	}
 
 	void erase (iterator it)
@@ -400,7 +481,8 @@ public:
 		}
 	}
 
-	iterator find (const key_type& key) const
+private:
+	iterator find_base (const key_type& key) const
 	{
 		unsigned long h = m_hash_func (key);
 		judy_value *ptr = (judy_value *) ::JudyLGet (m_judy, h, 0);
@@ -410,9 +492,10 @@ public:
 		}else{
 			if ((ptr -> m_integer & 1) == 0){
 				if (m_eq_func (ptr -> m_key_data -> first, key)){
-					return iterator (m_judy, h, (PPvoid_t) ptr);
+					return iterator (iterator_base
+									 (m_judy, h, (PPvoid_t) ptr));
 				}else{
-					iterator ret (m_judy, h, (PPvoid_t) ptr);
+					iterator ret (iterator_base (m_judy, h, (PPvoid_t) ptr));
 					ret.make_end ();
 					return ret;
 				}
@@ -427,15 +510,27 @@ public:
 
 				for (; !(beg == end); ++beg){
 					if (m_eq_func ((*beg) -> first, key)){
-						return iterator (m_judy, h, (PPvoid_t) ptr, beg);
+						return iterator (iterator_base
+										 (m_judy, h, (PPvoid_t) ptr, beg));
 					}
 				}
 
-				iterator ret (m_judy, h, (PPvoid_t) ptr, end);
+				iterator ret (iterator_base (m_judy, h, (PPvoid_t) ptr, end));
 				ret.make_end ();
 				return ret;
 			}
 		}
+	}
+
+public:
+	const_iterator find (const key_type& key) const
+	{
+		return find_base (key);
+	}
+
+	iterator find (const key_type& key)
+	{
+		return find_base (key);
 	}
 
 	size_type count (const key_type& key) const
@@ -454,7 +549,7 @@ public:
 		return c;
 	}
 
-	std::pair <iterator, bool> insert(const value_type& p)
+	std::pair <iterator, bool> insert (const value_type& p)
 	{
 		const TKey &key   = p.first;
 //		const TValue &val = p.second;
@@ -473,7 +568,7 @@ public:
 //					ptr -> m_key_data -> second = p.second;
 
 					return std::make_pair
-						(iterator (m_judy, h, (PPvoid_t) ptr),
+						(iterator (iterator_base (m_judy, h, (PPvoid_t) ptr)),
 						 false);
 				}else{
 					pointer copy = ptr -> m_key_data;
@@ -496,7 +591,7 @@ public:
 					ptr -> m_integer |= 1;
 
 					return std::make_pair (
-						iterator (m_judy, h, (PPvoid_t) ptr, ret_it),
+						iterator (iterator_base (m_judy, h, (PPvoid_t) ptr, ret_it)),
 						true);
 				}
 			}else{
@@ -512,7 +607,7 @@ public:
 					if (m_eq_func ((*beg) -> first, p.first)){
 //						(*beg) -> second = p.second;
 						return std::make_pair (
-							iterator (m_judy, h, (PPvoid_t) ptr, beg),
+							iterator (iterator_base (m_judy, h, (PPvoid_t) ptr, beg)),
 							false);
 					}
 				}
@@ -520,8 +615,8 @@ public:
 				++m_size;
 
 				return std::make_pair (
-					iterator (m_judy, h, (PPvoid_t) ptr,
-							  lst -> insert (lst -> end (), judy_hash_new (p))),
+					iterator (iterator_base (m_judy, h, (PPvoid_t) ptr,
+							  lst -> insert (lst -> end (), judy_hash_new (p)))),
 					true);
 			}
 		}else{
@@ -534,18 +629,26 @@ public:
 			++m_size;
 
 			return std::make_pair (
-				iterator (m_judy, h, (PPvoid_t) ptr),
+				iterator (iterator_base (m_judy, h, (PPvoid_t) ptr)),
 				true);
 		}
 	}
 
-	iterator begin () const
+	iterator begin ()
 	{
-		return iterator (m_judy);
+		return iterator (iterator_base (m_judy));
+	}
+	const_iterator begin () const
+	{
+		return const_iterator (iterator_base (m_judy));
 	}
 
-	iterator end () const
+	iterator end ()
 	{
 		return iterator ();
+	}
+	const_iterator end () const
+	{
+		return const_iterator ();
 	}
 };
