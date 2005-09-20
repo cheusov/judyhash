@@ -145,7 +145,7 @@ public:
 
 //typedef my_pool < std::pair <const char *, int> > test_allocator_type;
 //typedef std::allocator < std::pair <const char *, int> > test_allocator_type;
-typedef boost::fast_pool_allocator < std::pair <const char *, int> > test_allocator_type;
+typedef boost::fast_pool_allocator < std::pair <const char *const, int> > test_allocator_type;
 
 #ifdef USE_JUDY_HASH
 typedef judyhash_map <
