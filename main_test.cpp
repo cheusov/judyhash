@@ -148,24 +148,41 @@ static const my_hash1::value_type init_values [] = {
          !(iter == iter##_end);                                \
          ++iter)
 
-template <typename judyhash_type>
-void print_hash_it (judyhash_type &ht, int num)
+template <typename judyhash_type, typename judyhash_iterator_type>
+void print_uni (judyhash_type &ht, int num)
 {
-	ITERATE_OVER (typename judyhash_type::iterator, ht, v){
-		std::cout << num << " " << "key=`" << (*v).first << "` ";
-		std::cout << num << " " << "value=" << (*v).second << "\n";
+	typedef std::pair <
+		typename judyhash_type::key_type,
+		typename judyhash_type::data_type> pair_type;
+	typedef std::vector <pair_type> vec_type;
+
+	vec_type vec;
+
+	ITERATE_OVER (judyhash_iterator_type, ht, v){
+		vec.push_back (*v);
+	}
+
+	std::sort (vec.begin (), vec.end ());
+
+	ITERATE_OVER (typename vec_type::const_iterator, vec, v){
+		std::cout << "key=`" << (*v).first << "` ";
+		std::cout << "value=" << (*v).second << "\n";
 	}
 	std::cout << '\n';
 }
 
 template <typename judyhash_type>
+void print_hash_it (judyhash_type &ht, int num)
+{
+	print_uni <judyhash_type, typename judyhash_type::iterator>
+		(ht, num);
+}
+
+template <typename judyhash_type>
 void print_hash_const_it (judyhash_type &ht, int num)
 {
-	ITERATE_OVER (typename judyhash_type::const_iterator, ht, v){
-		std::cout << num << " " << "key=`" << (*v).first << "` ";
-		std::cout << num << " " << "value=" << (*v).second << "\n";
-	}
-	std::cout << '\n';
+	print_uni <judyhash_type, typename judyhash_type::const_iterator>
+		(ht, num);
 }
 
 template <typename judyhash_type>
@@ -190,22 +207,23 @@ void test (judyhash_type &ht, int num)
 	print_hash_const_it (ht, num);
 
 	// size and count
-	std::cout << num << " " << "map size: " << ht.size () << '\n';
-	std::cout << num << " " << "max_count=" << ht.max_size () << '\n';
+	std::cout << "map size: " << ht.size () << '\n';
+	std::cout << "max_count=" << ht.max_size () << '\n';
 
 	// finding "layout"
 	hash_iterator layout_iterator = ht.find ("layout");
 	hash_iterator layout_next_iterator;
 	layout_next_iterator = layout_iterator;
-	std::cout << num << " `" << (*layout_next_iterator).first << "` found\n";
+	std::cout << " `" << (*layout_next_iterator).first << "` found\n";
 	++layout_next_iterator;
 
 	// finding "apple"
 	hash_const_iterator apple_iterator = ht.find ("apple");
 	hash_const_iterator apple_next_iterator = apple_iterator;
-	std::cout << num << " `" << (*apple_next_iterator).first << "` found\n";
+	std::cout << " `" << (*apple_next_iterator).first << "` found\n";
 
 	// erase found "layout" by iterator
+//	ht.erase (layout_iterator);
 	ht.erase (layout_iterator, layout_next_iterator);
 	apple_iterator  = layout_iterator;
 
@@ -220,9 +238,9 @@ void test (judyhash_type &ht, int num)
 		const char *key = init_values [i].first;
 		hash_iterator found = ht.find (key);
 		if (found == ht.end ())
-			std::cout << num << " " << "value[\"" << key << "\"]=(not found)\n";
+			std::cout << "value[\"" << key << "\"]=(not found)\n";
 		else
-			std::cout << num << " " << "value[\"" << key << "\"]=" << (*ht.find (key)).second << "\n";
+			std::cout << "value[\"" << key << "\"]=" << (*found).second << "\n";
 	}
 
 	print_hash_const_it (ht, num);
@@ -232,23 +250,27 @@ int main (int argc, const char **argv)
 {
 	--argc, ++argv;
 
-	my_hash1 ht1;
-	test (ht1, 1);
-
-/*
-	my_hash2 ht2;
-	test (ht2, 2);
-
-	my_hash3 ht3;
-	test (ht3, 3);
-
-	my_hash4 ht4;
-	test (ht4, 4);
-
-	my_hash5 ht5;
-	test (ht5, 5);
-
-	my_hash6 ht6;
-	test (ht6, 6);
-*/
+	if (argc == 0){
+		return 10;
+	}if (!strcmp (argv [0], "1")){
+		my_hash1 ht1;
+		test (ht1, 1);
+	}else if (!strcmp (argv [0], "2")){
+		my_hash2 ht2;
+		test (ht2, 2);
+	}else if (!strcmp (argv [0], "3")){
+		my_hash3 ht3;
+		test (ht3, 3);
+	}else if (!strcmp (argv [0], "4")){
+		my_hash4 ht4;
+		test (ht4, 4);
+	}else if (!strcmp (argv [0], "5")){
+		my_hash5 ht5;
+		test (ht5, 5);
+	}else if (!strcmp (argv [0], "6")){
+		my_hash6 ht6;
+		test (ht6, 6);
+	}else{
+		return 11;
+	}
 }
