@@ -74,8 +74,7 @@ private:
 	inline pointer judy_hash_new (const value_type &v)
 	{
 		pointer p = m_alloc.allocate (1);
-		new (p) value_type (v);
-		return p;
+		return new (p) value_type (v);
 	}
 
 	allocator_type m_alloc;
@@ -321,7 +320,7 @@ public:
 		iterator_base& operator ++ ()
 		{
 			if (!m_end){
-				if (!m_inside_list || ++m_list_it == m_list_end_it){
+				if (!m_inside_list || (++m_list_it) == m_list_end_it){
 					m_value = JudyLNext (m_judy, &m_index, 0);
 					if (m_value){
 						init_list_it ();
@@ -347,7 +346,10 @@ public:
 			if (m_judy != i.m_judy)
 				return false;
 
-			return (m_index == i.m_index);
+			return (m_index       == i.m_index)
+				&& (m_value       == i.m_value)
+				&& (m_inside_list == i.m_inside_list)
+				&& (m_list_it     == i.m_list_it);
 		}
 
 		void make_end ()
@@ -461,23 +463,25 @@ public:
 		assert (m_judy == it.m_judy);
 
 		judy_value *ptr = (judy_value *) it.m_value;
-		if (ptr -> m_integer & 1){
+
+		if (it.m_inside_list){
+			assert ((ptr -> m_integer & 1) == 1);
+
 			value_list *lst = (value_list *) (ptr -> m_integer & ~1);
+			lst -> erase (it.m_list_it);
 
 #ifndef NDEBUG
 			m_debug_info.m_list_item_count -= 1;
 #endif
-
-//			bool is_beg = (m_list_it == lst -> begin ());
-			lst -> erase (it.m_list_it);
 		}else{
+			assert ((ptr -> m_integer & 1) == 0);
+
+			m_alloc.deallocate (ptr -> m_key_data, 1);
+			::JudyLDel (&m_judy, it.m_index, 0);
 
 #ifndef NDEBUG
 			m_debug_info.m_value_count -= 1;
 #endif
-
-			m_alloc.deallocate (ptr -> m_key_data, 1);
-			::JudyLDel (&m_judy, it.m_index, 0);
 		}
 	}
 
