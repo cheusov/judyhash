@@ -6,39 +6,56 @@
 
 #include "Judy.h"
 
+template <typename TKey, typename TValue>
+struct __judyhash_types {
+	typedef TKey                            _key_type;
+	typedef TValue                          _data_type;
+	typedef TValue                          _mapped_type;
+	typedef std::pair <const TKey, TValue>  _value_type;
+	typedef size_t                          _size_type;
+	typedef ptrdiff_t                       _difference_type;
+
+	// It is not possible to derive 'pointer' and 'reference' types from
+	// TAllocator
+	typedef _value_type                   * _pointer;
+	typedef _value_type             const * _const_pointer;
+	typedef _value_type                   & _reference;
+	typedef _value_type             const & _const_reference;
+};
+
+#define __JUDYHASH_REDEFINE_TYPEDEFS                                      \
+	typedef typename __base::_key_type                key_type;           \
+	typedef typename __base::_data_type               data_type;          \
+	typedef typename __base::_mapped_type             mapped_type;        \
+	typedef typename __base::_value_type              value_type;         \
+	typedef typename __base::_size_type               size_type;          \
+	typedef typename __base::_difference_type         difference_type;    \
+    \
+	typedef typename __base::_pointer                 pointer;            \
+	typedef typename __base::_const_pointer           const_pointer;      \
+	typedef typename __base::_reference               reference;          \
+	typedef typename __base::_const_reference         const_reference;
+
+    // It is not possible to derive 'pointer' and 'reference' types from  \
+    // TAllocator                                                         \
+
 template <
 	typename TKey,
 	typename TValue,
 	typename THashFunc /* = std::hash<Key>*/,
 	typename TEqualFunc = std::equal_to <TKey>,
 	typename TAllocator = std::allocator< std::pair < TKey const, TValue > > >
-class judyhash_map {
+class judyhash_map : private __judyhash_types <TKey, TValue> {
+private:
+	typedef __judyhash_types <TKey, TValue> __base;
 
 // types
 public:
-	typedef TKey                            key_type;
-	typedef TValue                          data_type;
-	typedef TValue                          mapped_type;
-	typedef std::pair <const TKey, TValue>  value_type;
 	typedef TEqualFunc                      key_equal;
 	typedef THashFunc                       hasher;
+	typedef TAllocator                      allocator_type;
 
-	typedef size_t size_type;
-	typedef ptrdiff_t difference_type;
-
-	// It is not possible to derive 'pointer' and 'reference' types from
-	// TAllocator
-	typedef value_type       * pointer;
-	typedef value_type const * const_pointer;
-	typedef value_type       & reference;
-	typedef value_type const & const_reference;
-
-	typedef TAllocator         allocator_type;
-
-//	typedef typename _Mybase::const_iterator const_iterator;
-
-	Pvoid_t  m_judy;
-	size_type m_size;
+	__JUDYHASH_REDEFINE_TYPEDEFS
 
 	struct debug_info {
 		int m_value_count;
@@ -64,6 +81,9 @@ public:
 
 //
 private:
+	Pvoid_t  m_judy;
+	size_type m_size;
+
 	THashFunc m_hash_func;
 
 	TEqualFunc m_eq_func;
@@ -121,6 +141,7 @@ public:
 		m_eq_func   (a.m_eq_func),
 		m_alloc     (a.m_alloc)
 	{
+		// optimize me!!!
 		insert (a.begin (), a.end ());
 	}
 
@@ -186,7 +207,13 @@ private:
 	};
 
 public:
-	class iterator_base {
+	class iterator_base : public __judyhash_types <TKey, TValue> {
+	public:
+		typedef __judyhash_types <TKey, TValue> __base;
+		typedef std::forward_iterator_tag iterator_category;
+
+		__JUDYHASH_REDEFINE_TYPEDEFS
+
 	private:
 		Word_t   m_index;
 		Pvoid_t  m_value;
@@ -220,6 +247,11 @@ public:
 			m_end   = true;
 
 			m_inside_list = false;
+		}
+
+		void make_end ()
+		{
+			m_end = true;
 		}
 
 	public:
@@ -352,9 +384,9 @@ public:
 				&& (m_list_it     == i.m_list_it);
 		}
 
-		void make_end ()
+		bool operator != (const iterator_base& i) const
 		{
-			m_end = true;
+			return ! (*this == i);
 		}
 	};
 
@@ -366,6 +398,9 @@ public:
 		{
 			abort ();
 		}
+
+		friend class judyhash_map;
+
 	public:
 		iterator ()
 		{
@@ -403,6 +438,8 @@ public:
 	};
 
 	class const_iterator : public iterator_base {
+	private:
+		friend class judyhash_map;
 	public:
 		const_iterator ()
 		{
