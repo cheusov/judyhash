@@ -156,11 +156,15 @@ void print_uni (judyhash_type &ht, int num)
 		typename judyhash_type::data_type> pair_type;
 	typedef std::vector <pair_type> vec_type;
 
+#if 1
+	vec_type vec (ht.begin (), ht.end ());
+#else
 	vec_type vec;
 
 	ITERATE_OVER (judyhash_iterator_type, ht, v){
 		vec.push_back (*v);
 	}
+#endif
 
 	std::sort (vec.begin (), vec.end ());
 
@@ -168,6 +172,7 @@ void print_uni (judyhash_type &ht, int num)
 		std::cout << "key=`" << (*v).first << "` ";
 		std::cout << "value=" << (*v).second << "\n";
 	}
+
 	std::cout << '\n';
 }
 
@@ -195,7 +200,13 @@ void test (judyhash_type &ht, int num)
 	// initializing 2
 	judyhash_type ht2 (
 		init_values,
-		init_values + sizeof (init_values)/sizeof (init_values [0]));
+		init_values + sizeof (init_values)/sizeof (init_values [0]),
+		0,
+		typename judyhash_type::hasher (),
+		typename judyhash_type::key_equal (),
+		typename judyhash_type::allocator_type ());
+
+	// ne skazhu
 	print_hash_it (ht2, num);
 
 	// initializing 1
@@ -256,16 +267,17 @@ int main (int argc, const char **argv)
 		my_hash1 ht1;
 		test (ht1, 1);
 	}else if (!strcmp (argv [0], "2")){
-		my_hash2 ht2;
+		my_hash2 ht2 (0);
 		test (ht2, 2);
 	}else if (!strcmp (argv [0], "3")){
-		my_hash3 ht3;
+		my_hash3 ht3 (0, my_hash3::hasher ());
 		test (ht3, 3);
 	}else if (!strcmp (argv [0], "4")){
-		my_hash4 ht4;
+		my_hash4 ht4 (0, my_hash4::hasher (), my_hash4::key_equal ());
 		test (ht4, 4);
 	}else if (!strcmp (argv [0], "5")){
-		my_hash5 ht5;
+		my_hash5 ht5 (0, my_hash5::hasher (),
+					  my_hash5::key_equal (), my_hash5::allocator_type ());
 		test (ht5, 5);
 	}else if (!strcmp (argv [0], "6")){
 		my_hash6 ht6;
