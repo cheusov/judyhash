@@ -1,8 +1,9 @@
+#include <string.h>
+#include <assert.h>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <string.h>
-#include <assert.h>
+#include <string>
 //#include <utility>
 #include <pool/pool_alloc.hpp>
 #include <map>
@@ -101,6 +102,21 @@ struct hsh_string_hash2 {
 	}
 };
 
+struct hsh_string_hash3 {
+	size_t operator () (const std::string &key) const
+	{
+		hsh_string_hash1 h;
+		return h (key.c_str ());
+	}
+};
+
+struct hsh_string_hash4 {
+	size_t operator () (const std::string &key) const
+	{
+		return 1000;
+	}
+};
+
 struct cmp_string_eq {
 	bool operator () (const char *a, const char *b) const
 	{
@@ -136,6 +152,16 @@ typedef judyhash_map <
 typedef judyhash_map <
 	const char *, int, hsh_string_hash2, cmp_string_eq, test_allocator_type2
 	> my_hash6;
+
+typedef std::map <
+	std::string, int
+	> std_map100;
+typedef judyhash_map <
+	std::string, int, hsh_string_hash3
+	> my_hash101;
+typedef judyhash_map <
+	std::string, int, hsh_string_hash4
+	> my_hash102;
 
 static const my_hash1::value_type init_values [] = {
 	my_hash1::value_type ("record", 1000),
@@ -175,6 +201,7 @@ void print_uni (judyhash_type &ht, const char * name)
 	std::sort (vec.begin (), vec.end ());
 
 	std::cout << name << ":\n";
+	std::cout << "size:" << ht.size () << '\n';
 	ITERATE_OVER (typename vec_type::const_iterator, vec, v){
 		std::cout << "key=`" << (*v).first << "` ";
 		std::cout << "value=" << (*v).second << "\n";
@@ -228,6 +255,24 @@ void test (judyhash_type &ht, int num)
 		init_values + sizeof (init_values)/sizeof (init_values [0]));
 	print_hash_it (ht2, "ht2 initial");
 
+	// test for operator =, erase, insert, operator []
+	// test for begin () when container is empty
+	judyhash_type ht4;
+	ht4.insert (hash_value_type ("cool", 10000));
+	ht4 ["cool2"] = 10001;
+	print_hash_it (ht4, "h4 before ht4 = ht2");
+
+	ht4.clear ();
+	print_hash_it (ht4, "h4 is empty");
+
+	ht4 = ht2;
+
+	print_hash_it (ht2, "h2 after ht4(ht2)");
+	print_hash_it (ht4, "h4 after ht4(ht2)");
+	ht4.erase ("record");
+	print_hash_it (ht2, "h2 after ht4.erase (\"record\")");
+	print_hash_it (ht4, "h4 after ht4.erase (\"record\")");
+
 	// test for copy-constructor
 	judyhash_type ht3 (ht2);
 	print_hash_it (ht2, "h2 after ht3(ht2)");
@@ -244,10 +289,6 @@ void test (judyhash_type &ht, int num)
 	ht.swap (ht2);
 	print_hash_it (ht2, "ht2 after swap");
 	print_hash_const_it (ht, "ht after swap");
-
-	// size and count
-	std::cout << "map size: " << ht.size () << '\n';
-	std::cout << "max_count=" << ht.max_size () << '\n';
 
 	// tests for iterator, find, iterator::operator++(),
 	//           iterator::operator*() etc.
@@ -325,6 +366,17 @@ int main (int argc, const char **argv)
 		my_hash6::hasher (),
 		my_hash6::key_equal (),
 		my_hash6::allocator_type ());
+
+	//max_count
+	std::cout << "max_count=" << ht777.max_size () << '\n';
+
+	std::cout << "single item count:"
+			  << ht777.m_debug_info.m_value_count << '\n';
+	std::cout << "list item count:  "
+			  << ht777.m_debug_info.m_list_item_count << '\n';
+	std::cout << "list count:       "
+			  << ht777.m_debug_info.m_list_count << '\n';
+
 	print_hash_it (ht777, "ht777");
 
 	if (argc == 0){
@@ -358,7 +410,18 @@ int main (int argc, const char **argv)
 		// test for constructor
 		my_hash6 ht6;
 		test (ht6, 6);
-	}else if (!strcmp (argv [0], "7")){
+	}else if (!strcmp (argv [0], "100")){
+		// test for constructor
+		std_map100 ht100;
+		test (ht100, 100);
+	}else if (!strcmp (argv [0], "101")){
+		// test for constructor
+		my_hash101 ht101;
+		test (ht101, 101);
+	}else if (!strcmp (argv [0], "102")){
+		// test for constructor
+		my_hash102 ht102;
+		test (ht102, 102);
 	}else{
 		return 11;
 	}

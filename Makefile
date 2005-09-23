@@ -1,7 +1,7 @@
 ############################################################
 
 # Examples
-CXX=g++
+CXX=icpc
 #CXX=icc
 
 # Examples
@@ -54,4 +54,10 @@ test : judyhash_test
 	echo "test5 done" && \
 	./judyhash_test "6" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "test6 done" && \
+	\
+	./judyhash_test "100" >expected.txt && \
+	./judyhash_test "101" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test101 done" && \
+	./judyhash_test "102" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test102 done" && \
 	true
