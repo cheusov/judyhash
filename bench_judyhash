@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 
 TESTFILE=~cheusov/texts/5000.out
 TMPFILE=temp.tmp
 
-lines='1000 10000 100000 1000000 10000000'
+lines='100000 300000 600000 1000000 3000000 6000000 10000000'
 
 test_judyhash (){
     CXX=$1
@@ -15,7 +15,7 @@ test_judyhash (){
     echo "Compiling: $@" 1>&2
 
     $CXX main.cpp -o judyhash $CPPFLAGS $DEFINES $CFLAGS $LDFLAGS || exit 1
-    for i in 1000 10000 100000 1000000 10000000; do
+    for i in $lines; do
 	echo 'Extracting...' 1>&2
 	/usr/bin/head -n "$i" < "$TESTFILE" > "$TMPFILE" || exit 2
 
@@ -33,18 +33,22 @@ for gpp in g++ icc; do
     which $gpp || continue
 
     # g++ STL
-    test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' ''       '-DUSE_STD_MAP'
-    test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' '-lJudy' '-DUSE_JUDY_HASH'
-    test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' ''       '-DUSE_HASH_MAP'
+    test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' \
+        ''                     '-DUSE_STD_MAP'
+    test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' \
+        '-lJudy'               '-DUSE_JUDY_HASH'
+    test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' \
+        ''                     '-DUSE_HASH_MAP'
 
     # just file reading 
-    test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' ''       '-DEMPTY_LOOP'
+    test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' \
+        ''                     '-DEMPTY_LOOP'
 
     # STLPORT STL
-    test_judyhash $gpp '-I/usr/include/boost -I/usr/include/stlport' '-O3 -march=i586' \
-	'-lstlport -lm'        '-DUSE_STD_MAP'
-    test_judyhash $gpp '-I/usr/include/boost -I/usr/include/stlport' '-O3 -march=i586' \
-	'-lstlport -lm -lJudy' '-DUSE_JUDY_HASH'
-#    test_judyhash $gpp '-I/usr/include/boost -I/usr/include/stlport' '-O3 -march=i586' \
-#	'-lstlport -lm'        '-DUSE_HASH_MAP'
+    test_judyhash $gpp '-I/usr/include/stlport -I/usr/include/boost' \
+        '-O3 -march=i586'  '-lstlport -lm'        '-DUSE_STD_MAP'
+    test_judyhash $gpp '-I/usr/include/stlport -I/usr/include/boost' \
+        '-O3 -march=i586' '-lstlport -lm -lJudy' '-DUSE_JUDY_HASH'
+    test_judyhash $gpp '-I/usr/include/stlport -I/usr/include/boost' \
+        '-O3 -march=i586' '-lstlport -lm'        '-DUSE_HASH_MAP'
 done
