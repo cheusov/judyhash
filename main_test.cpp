@@ -5,6 +5,7 @@
 #include <assert.h>
 //#include <utility>
 #include <pool/pool_alloc.hpp>
+#include <map>
 
 #include "judyhash.h"
 
@@ -114,6 +115,9 @@ struct cmp_string_lt {
 	}
 };
 
+typedef std::map <
+	const char *, int, cmp_string_lt
+	> std_map0;
 typedef judyhash_map <
 	const char *, int, hsh_string_hash1, cmp_string_eq
 	> my_hash1;
@@ -149,25 +153,28 @@ static const my_hash1::value_type init_values [] = {
          ++iter)
 
 template <typename judyhash_type, typename judyhash_iterator_type>
-void print_uni (judyhash_type &ht, int num)
+void print_uni (judyhash_type &ht, const char * name)
 {
 	typedef std::pair <
 		typename judyhash_type::key_type,
-		typename judyhash_type::data_type> pair_type;
+		typename judyhash_type::mapped_type> pair_type;
 	typedef std::vector <pair_type> vec_type;
 
-#if 1
+	// test for forward_iterator?
 	vec_type vec (ht.begin (), ht.end ());
-#else
-	vec_type vec;
 
+	vec.clear ();
+
+	// test for judyhash_map::const_iterator
+	// test for judyhash_map::iterator
 	ITERATE_OVER (judyhash_iterator_type, ht, v){
 		vec.push_back (*v);
 	}
-#endif
 
+	// actually, pointers are sorted here
 	std::sort (vec.begin (), vec.end ());
 
+	std::cout << name << ":\n";
 	ITERATE_OVER (typename vec_type::const_iterator, vec, v){
 		std::cout << "key=`" << (*v).first << "` ";
 		std::cout << "value=" << (*v).second << "\n";
@@ -177,17 +184,34 @@ void print_uni (judyhash_type &ht, int num)
 }
 
 template <typename judyhash_type>
-void print_hash_it (judyhash_type &ht, int num)
+void print_hash_it (judyhash_type &ht, const char *name)
 {
 	print_uni <judyhash_type, typename judyhash_type::iterator>
-		(ht, num);
+		(ht, name);
 }
 
 template <typename judyhash_type>
-void print_hash_const_it (judyhash_type &ht, int num)
+void print_hash_const_it (judyhash_type &ht, const char *name)
 {
 	print_uni <judyhash_type, typename judyhash_type::const_iterator>
-		(ht, num);
+		(ht, name);
+}
+
+template <typename judyhash_type, typename judyhash_iterator_type>
+void print_iterator (
+	const char *array_name,
+	const judyhash_type& ht,
+	const judyhash_iterator_type& it)
+{
+	std::cout << array_name << "[" << (*it).first << "]";
+
+	if (ht.end () == it){
+		std::cout << " not found\n";
+	}else{
+		std::cout << "=" << (*it).second << '\n';
+	}
+
+	std::cout << '\n';
 }
 
 template <typename judyhash_type>
@@ -198,51 +222,83 @@ void test (judyhash_type &ht, int num)
 	typedef typename judyhash_type::value_type hash_value_type;
 
 	// initializing 2
+	// test for constructor
 	judyhash_type ht2 (
 		init_values,
-		init_values + sizeof (init_values)/sizeof (init_values [0]),
-		0,
-		typename judyhash_type::hasher (),
-		typename judyhash_type::key_equal (),
-		typename judyhash_type::allocator_type ());
+		init_values + sizeof (init_values)/sizeof (init_values [0]));
+	print_hash_it (ht2, "ht2 initial");
 
-	// ne skazhu
-	print_hash_it (ht2, num);
+	// test for copy-constructor
+	judyhash_type ht3 (ht2);
+	print_hash_it (ht2, "h2 after ht3(ht2)");
+	print_hash_it (ht3, "h3 after ht3(ht2)");
+	ht3.erase ("record");
+	print_hash_it (ht2, "h2 after ht3.erase (\"record\")");
+	print_hash_it (ht3, "h3 after ht3.erase (\"record\")");
 
-	// initializing 1
+	// test for insert (value_type)
 	ht.insert (hash_value_type ("apple", 7777));
+	print_hash_const_it (ht, "ht initial");
 
 	// swapping 1 and 2
 	ht.swap (ht2);
-	print_hash_it (ht2, num);
-	print_hash_const_it (ht, num);
+	print_hash_it (ht2, "ht2 after swap");
+	print_hash_const_it (ht, "ht after swap");
 
 	// size and count
 	std::cout << "map size: " << ht.size () << '\n';
 	std::cout << "max_count=" << ht.max_size () << '\n';
 
+	// tests for iterator, find, iterator::operator++(),
+	//           iterator::operator*() etc.
 	// finding "layout"
 	hash_iterator layout_iterator = ht.find ("layout");
 	hash_iterator layout_next_iterator;
+	print_iterator ("ht", ht, layout_iterator);
+	(*layout_iterator).second = 75;
+	print_iterator ("ht_layout_to_75 ", ht, ht.find ("layout"));
+
+	// test for iterator::operator ->
+	layout_iterator -> second = 74;
+	print_iterator ("ht_layout_to_74 ", ht, ht.find ("layout"));
+
+	// test for operator []
+	ht ["layout"] = 76;
+	print_iterator ("ht [\"layout\"]=76 ", ht, ht.find ("layout"));
+
 	layout_next_iterator = layout_iterator;
-	std::cout << " `" << (*layout_next_iterator).first << "` found\n";
 	++layout_next_iterator;
 
 	// finding "apple"
 	hash_const_iterator apple_iterator = ht.find ("apple");
 	hash_const_iterator apple_next_iterator = apple_iterator;
-	std::cout << " `" << (*apple_next_iterator).first << "` found\n";
+	print_iterator ("ht", ht, apple_iterator);
 
-	// erase found "layout" by iterator
-//	ht.erase (layout_iterator);
-	ht.erase (layout_iterator, layout_next_iterator);
+	// test for (iterator to const_iterator)
 	apple_iterator  = layout_iterator;
 
-	// erase "apple", "record", "the" and "language"
+	// test for erase (x,y)
+	// erase found "layout" by iterator
+	ht.erase (layout_iterator, layout_next_iterator);
+	print_hash_const_it (ht, "ht after erasing \"layout\"");
+
+	// erase "apple", "record", "not a member" and "language"
+	// tests for erase (x)
 	ht.erase ("apple");
-	ht.erase ("record");
-	ht.erase ("the");
+	print_hash_const_it (
+		ht, "ht after erasing \"apple\"");
+
+	ht.erase (ht.find ("record"));
+	print_hash_const_it (
+		ht, "ht after erasing \"record\"");
+
+	ht.erase ("not a member");
+	print_hash_const_it (
+		ht, "ht after erasing \"not a member\"");
+
 	ht.erase ("language");
+	print_hash_const_it (
+		ht, "ht after erasing \"language\"");
 
 	// finding predefined words
 	for (int i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
@@ -254,34 +310,55 @@ void test (judyhash_type &ht, int num)
 			std::cout << "value[\"" << key << "\"]=" << (*found).second << "\n";
 	}
 
-	print_hash_const_it (ht, num);
+	print_hash_const_it (ht, "ht2 final");
 }
 
 int main (int argc, const char **argv)
 {
 	--argc, ++argv;
 
+	// test for constructor
+	my_hash6 ht777 (
+		init_values,
+		init_values + sizeof (init_values)/sizeof (init_values [0]),
+		0,
+		my_hash6::hasher (),
+		my_hash6::key_equal (),
+		my_hash6::allocator_type ());
+	print_hash_it (ht777, "ht777");
+
 	if (argc == 0){
 		return 10;
-	}if (!strcmp (argv [0], "1")){
+	}else if (!strcmp (argv [0], "0")){
+		// test for constructor
+		std_map0 map0;
+		test (map0, 0);
+	}else if (!strcmp (argv [0], "1")){
+		// test for constructor
 		my_hash1 ht1;
 		test (ht1, 1);
 	}else if (!strcmp (argv [0], "2")){
+		// test for constructor
 		my_hash2 ht2 (0);
 		test (ht2, 2);
 	}else if (!strcmp (argv [0], "3")){
+		// test for constructor
 		my_hash3 ht3 (0, my_hash3::hasher ());
 		test (ht3, 3);
 	}else if (!strcmp (argv [0], "4")){
+		// test for constructor
 		my_hash4 ht4 (0, my_hash4::hasher (), my_hash4::key_equal ());
 		test (ht4, 4);
 	}else if (!strcmp (argv [0], "5")){
+		// test for constructor
 		my_hash5 ht5 (0, my_hash5::hasher (),
 					  my_hash5::key_equal (), my_hash5::allocator_type ());
 		test (ht5, 5);
 	}else if (!strcmp (argv [0], "6")){
+		// test for constructor
 		my_hash6 ht6;
 		test (ht6, 6);
+	}else if (!strcmp (argv [0], "7")){
 	}else{
 		return 11;
 	}
