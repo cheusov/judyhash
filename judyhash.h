@@ -102,9 +102,9 @@ private:
 //
 public:
 	judyhash_map (
-		size_type n        = 0,
-		const hasher& h    = hasher (), 
-		const key_equal& k = key_equal (),
+		size_type n             = 0,
+		const hasher& h         = hasher (), 
+		const key_equal& k      = key_equal (),
 		const allocator_type& a = allocator_type ())
 		:
 		m_hash_func (h),
@@ -118,9 +118,9 @@ public:
 	template <class Tit>
 	judyhash_map (
 		Tit beg, Tit end,
-		size_type          = 0,
-		const hasher& h    = hasher (), 
-		const key_equal& k = key_equal (),
+		size_type               = 0,
+		const hasher& h         = hasher (), 
+		const key_equal& k      = key_equal (),
 		const allocator_type& a = allocator_type ())
 		:
 		m_hash_func (h),
@@ -143,6 +143,18 @@ public:
 	{
 		// optimize me!!!
 		insert (a.begin (), a.end ());
+	}
+
+	judyhash_map& operator = (const judyhash_map& a)
+	{
+		if (this != &a){
+			clear ();
+
+			// optimize me!!!
+			insert (a.begin (), a.end ());
+		}
+
+		return *this;
 	}
 
 	template <class Tit>
@@ -254,6 +266,20 @@ public:
 			m_end = true;
 		}
 
+	protected:
+		reference at () const
+		{
+			if (m_value){
+				if (m_inside_list){
+					return * (*m_list_it);
+				}else{
+					return ** (pointer *) m_value;
+				}
+			}else{
+				throw 123;
+			}
+		}
+
 	public:
 		iterator_base ()
 		{
@@ -331,15 +357,11 @@ public:
 
 		reference operator * ()
 		{
-			if (m_value){
-				if (m_inside_list){
-					return * (*m_list_it);
-				}else{
-					return ** (pointer *) m_value;
-				}
-			}else{
-				throw 123;
-			}
+			return at ();
+		}
+		const_reference operator * () const
+		{
+			return at ();
 		}
 
 		iterator_base operator ++ (int)
@@ -417,10 +439,6 @@ public:
 		{
 			return (iterator &) iterator_base::operator = (a);
 		}
-		reference operator * ()
-		{
-			return iterator_base::operator * ();
-		}
 		iterator operator ++ (int)
 		{
 			iterator ret = *this;
@@ -434,6 +452,10 @@ public:
 		bool operator == (const iterator& i) const
 		{
 			return iterator_base::operator == (i);
+		}
+		pointer operator -> () const
+		{
+			return &(at ());
 		}
 	};
 
@@ -452,6 +474,10 @@ public:
 			: iterator_base (a)
 		{
 		}
+		explicit const_iterator (const iterator_base &a)
+			: iterator_base (a)
+		{
+		}
 		const_iterator & operator = (const const_iterator& a)
 		{
 			return (const_iterator &) iterator_base::operator = (a);
@@ -459,10 +485,6 @@ public:
 		const_iterator & operator = (const iterator& a)
 		{
 			return (const_iterator &) iterator_base::operator = (a);
-		}
-		const_reference operator * ()
-		{
-			return iterator_base::operator * ();
 		}
 		const_iterator operator ++ (int)
 		{
@@ -478,11 +500,17 @@ public:
 		{
 			return iterator_base::operator == (i);
 		}
+		const_pointer operator -> () const
+		{
+			return &(at ());
+		}
 	};
 
 	void erase (const key_type& key)
 	{
-		erase (find (key));
+		iterator e (find (key));
+		if (e != end ())
+			erase (e);
 	}
 
 	void erase (iterator f, iterator l)
@@ -494,8 +522,10 @@ public:
 
 	void erase (iterator it)
 	{
-		if (it.m_end)
-			return;
+		if (it.m_end){
+			// It seems that standard containers work this way :(
+			abort ();
+		}
 
 		assert (m_judy == it.m_judy);
 
@@ -588,6 +618,14 @@ public:
 		}
 
 		return c;
+	}
+
+	mapped_type& operator [] (const key_type& key)
+	{
+		std::pair <iterator, bool> res = insert (
+			value_type (key, mapped_type ()));
+
+		return res.first -> second;
 	}
 
 	std::pair <iterator, bool> insert (const value_type& p)
