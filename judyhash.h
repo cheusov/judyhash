@@ -1,10 +1,13 @@
 #include <list>
-//#include <vector>
 #include <utility>
 #include <assert.h>
 #include <algorithm>
 
 #include "Judy.h"
+
+#if !defined(JUDYHASH_DEBUGINFO) && !defined(NDEBUG)
+#define JUDYHASH_DEBUGINFO
+#endif
 
 template <typename TKey, typename TValue>
 struct __judyhash_types {
@@ -58,8 +61,15 @@ public:
 	__JUDYHASH_REDEFINE_TYPEDEFS
 
 	struct debug_info {
+		// a number of values (actually, pointer to value)
+		// stored in JudyL cells
 		int m_value_count;
+
+		// a number of allocated std::list objects
 		int m_list_count;
+
+		// a number of values (actually, pointer to value)
+		// stored in std::list objects
 		int m_list_item_count;
 
 		debug_info ()
@@ -141,8 +151,24 @@ public:
 		m_eq_func   (a.m_eq_func),
 		m_alloc     (a.m_alloc)
 	{
+		operator = (a);
+	}
+
+	~judyhash_map ()
+	{
+		clear ();
+
+#ifdef JUDYHASH_DEBUGINFO
+		assert (!m_debug_info.m_value_count);
+		assert (!m_debug_info.m_list_count);
+		assert (!m_debug_info.m_list_item_count);
+#endif
+	}
+
+	void clear ()
+	{
 		// optimize me!!!
-		insert (a.begin (), a.end ());
+		erase (begin (), end ());
 	}
 
 	judyhash_map& operator = (const judyhash_map& a)
@@ -169,7 +195,7 @@ public:
 
 	bool empty () const
 	{
-		return ::JudyLCount (m_judy);
+		return m_size == 0;
 	}
 
 	size_type bucket_count () const
@@ -227,13 +253,15 @@ public:
 		__JUDYHASH_REDEFINE_TYPEDEFS
 
 	private:
-		Word_t   m_index;
-		Pvoid_t  m_value;
-		Pvoid_t  m_judy;
-		bool     m_end;
-		bool     m_inside_list;
+		const judyhash_map *m_obj;
+
+		Word_t        m_index;
+		Pvoid_t       m_value;
+		bool          m_end;
+		bool          m_inside_list;
+
 		typename value_list::iterator m_list_it;
-		typename value_list::iterator m_list_end_it;
+//		typename value_list::iterator m_list_end_it;
 
 		friend class judyhash_map;
 
@@ -246,7 +274,8 @@ public:
 				value_list *lst = (value_list *) (ptr -> m_integer & ~1);
 				m_inside_list   = true;
 				m_list_it       = lst -> begin ();
-				m_list_end_it   = lst -> end ();
+
+				assert (m_list_it != lst -> end ());
 			}
 		}
 
@@ -255,7 +284,7 @@ public:
 			m_index = 0;
 			m_value = 0;
 
-			m_judy  = 0;
+			m_obj   = NULL;
 			m_end   = true;
 
 			m_inside_list = false;
@@ -292,29 +321,29 @@ public:
 			operator = (a);
 		}
 
-		iterator_base (Pvoid_t judy, Word_t index, Pvoid_t value)
+		iterator_base (const judyhash_map *obj, Word_t index, Pvoid_t value)
 		{
 			init ();
 
 			m_index = index;
 			m_value = value;
 
-			m_judy  = judy;
-			m_end   = false;
+			m_obj  = obj;
+			m_end  = false;
 
 			init_list_it ();
 		}
 
-		iterator_base (Pvoid_t judy,
-				  Word_t index, Pvoid_t value,
-				  typename value_list::iterator it)
+		iterator_base (const judyhash_map *obj,
+					   Word_t index, Pvoid_t value,
+					   typename value_list::iterator it)
 		{
 			init ();
 
 			m_index = index;
 			m_value = value;
 
-			m_judy  = judy;
+			m_obj   = obj;
 			m_end   = false;
 
 			m_inside_list = true;
@@ -322,15 +351,15 @@ public:
 			m_list_it = it;
 		}
 
-		iterator_base (Pvoid_t judy)
+		iterator_base (const judyhash_map *obj)
 		{
 			init ();
 
 			m_end = false;
 
-			m_judy = judy;
+			m_obj = obj;
 
-			m_value = JudyLFirst(m_judy, &m_index, 0);
+			m_value = JudyLFirst(m_obj -> m_judy, &m_index, 0);
 
 			if (m_value){
 				init_list_it ();
@@ -346,11 +375,11 @@ public:
 
 			m_index       = a.m_index;
 			m_value       = a.m_value;
-			m_judy        = a.m_judy;
+			m_obj         = a.m_obj;
 			m_end         = a.m_end;
 			m_inside_list = a.m_inside_list;
 			m_list_it     = a.m_list_it;
-			m_list_end_it = a.m_list_end_it;
+//			m_list_end_it = a.m_list_end_it;
 
 			return *this;
 		}
@@ -374,8 +403,22 @@ public:
 		iterator_base& operator ++ ()
 		{
 			if (!m_end){
-				if (!m_inside_list || (++m_list_it) == m_list_end_it){
-					m_value = JudyLNext (m_judy, &m_index, 0);
+				bool goto_next_judy_cell = false;
+
+				if (m_inside_list){
+					judy_value *ptr = (judy_value *) m_value;
+					assert ((ptr -> m_integer & 1) == 1);
+
+					value_list *lst = (value_list *) (ptr -> m_integer & ~1);
+
+					goto_next_judy_cell = (lst -> end () == ++m_list_it);
+				}else{
+					goto_next_judy_cell = true;
+				}
+
+				if (goto_next_judy_cell){
+					m_value = JudyLNext (m_obj -> m_judy, &m_index, 0);
+
 					if (m_value){
 						init_list_it ();
 					}else{
@@ -391,13 +434,16 @@ public:
 
 		bool operator == (const iterator_base& i) const
 		{
+			if (this == &i)
+				return true;
+
 			if (m_end ^ i.m_end)
 				return false;
 
 			if (m_end && i.m_end)
 				return true;
 
-			if (m_judy != i.m_judy)
+			if (m_obj != i.m_obj)
 				return false;
 
 			return (m_index       == i.m_index)
@@ -515,7 +561,7 @@ public:
 
 	void erase (iterator f, iterator l)
 	{
-		while (! (f == l)){
+		while (f != l){
 			erase (f++);
 		}
 	}
@@ -527,26 +573,39 @@ public:
 			abort ();
 		}
 
-		assert (m_judy == it.m_judy);
+		assert (this == it.m_obj);
 
 		judy_value *ptr = (judy_value *) it.m_value;
 
 		if (it.m_inside_list){
 			assert ((ptr -> m_integer & 1) == 1);
 
+			m_size -= 1;
+
+			m_alloc.deallocate (*it.m_list_it, 1);
+#ifdef JUDYHASH_DEBUGINFO
+			m_debug_info.m_list_item_count -= 1;
+#endif
+
 			value_list *lst = (value_list *) (ptr -> m_integer & ~1);
 			lst -> erase (it.m_list_it);
 
-#ifndef NDEBUG
-			m_debug_info.m_list_item_count -= 1;
+			if (lst -> empty ()){
+				delete lst;
+				::JudyLDel (&m_judy, it.m_index, 0);
+#ifdef JUDYHASH_DEBUGINFO
+				m_debug_info.m_list_count -= 1;
 #endif
+			}
 		}else{
 			assert ((ptr -> m_integer & 1) == 0);
+
+			m_size -= 1;
 
 			m_alloc.deallocate (ptr -> m_key_data, 1);
 			::JudyLDel (&m_judy, it.m_index, 0);
 
-#ifndef NDEBUG
+#ifdef JUDYHASH_DEBUGINFO
 			m_debug_info.m_value_count -= 1;
 #endif
 		}
@@ -564,9 +623,9 @@ private:
 			if ((ptr -> m_integer & 1) == 0){
 				if (m_eq_func (ptr -> m_key_data -> first, key)){
 					return iterator (iterator_base
-									 (m_judy, h, (PPvoid_t) ptr));
+									 (this, h, (PPvoid_t) ptr));
 				}else{
-					iterator ret (iterator_base (m_judy, h, (PPvoid_t) ptr));
+					iterator ret (iterator_base (this, h, (PPvoid_t) ptr));
 					ret.make_end ();
 					return ret;
 				}
@@ -582,11 +641,11 @@ private:
 				for (; !(beg == end); ++beg){
 					if (m_eq_func ((*beg) -> first, key)){
 						return iterator (iterator_base
-										 (m_judy, h, (PPvoid_t) ptr, beg));
+										 (this, h, (PPvoid_t) ptr, beg));
 					}
 				}
 
-				iterator ret (iterator_base (m_judy, h, (PPvoid_t) ptr, end));
+				iterator ret (iterator_base (this, h, (PPvoid_t) ptr, end));
 				ret.make_end ();
 				return ret;
 			}
@@ -647,16 +706,16 @@ public:
 //					ptr -> m_key_data -> second = p.second;
 
 					return std::make_pair
-						(iterator (iterator_base (m_judy, h, (PPvoid_t) ptr)),
+						(iterator (iterator_base (this, h, (PPvoid_t) ptr)),
 						 false);
 				}else{
 					pointer copy = ptr -> m_key_data;
-#ifndef NDEBUG
+					value_list *lst = ptr -> m_list = new value_list;
+#ifdef JUDYHASH_DEBUGINFO
 					m_debug_info.m_list_count       += 1;
 					m_debug_info.m_list_item_count  += 2;
 					m_debug_info.m_value_count      -= 1;
 #endif
-					value_list *lst = ptr -> m_list = new value_list;
 
 					lst -> insert (
 						lst -> end (), copy);
@@ -670,7 +729,8 @@ public:
 					ptr -> m_integer |= 1;
 
 					return std::make_pair (
-						iterator (iterator_base (m_judy, h, (PPvoid_t) ptr, ret_it)),
+						iterator (iterator_base (
+									  this, h, (PPvoid_t) ptr, ret_it)),
 						true);
 				}
 			}else{
@@ -686,20 +746,27 @@ public:
 					if (m_eq_func ((*beg) -> first, p.first)){
 //						(*beg) -> second = p.second;
 						return std::make_pair (
-							iterator (iterator_base (m_judy, h, (PPvoid_t) ptr, beg)),
+							iterator (iterator_base (
+										  this, h, (PPvoid_t) ptr, beg)),
 							false);
 					}
 				}
 
 				++m_size;
 
+#ifdef JUDYHASH_DEBUGINFO
+				m_debug_info.m_list_item_count += 1;
+#endif
+
 				return std::make_pair (
-					iterator (iterator_base (m_judy, h, (PPvoid_t) ptr,
-							  lst -> insert (lst -> end (), judy_hash_new (p)))),
+					iterator (iterator_base (
+								  this, h, (PPvoid_t) ptr,
+								  lst -> insert (lst -> end (),
+												 judy_hash_new (p)))),
 					true);
 			}
 		}else{
-#ifndef NDEBUG
+#ifdef JUDYHASH_DEBUGINFO
 			m_debug_info.m_value_count += 1;
 #endif
 
@@ -708,18 +775,18 @@ public:
 			++m_size;
 
 			return std::make_pair (
-				iterator (iterator_base (m_judy, h, (PPvoid_t) ptr)),
+				iterator (iterator_base (this, h, (PPvoid_t) ptr)),
 				true);
 		}
 	}
 
 	iterator begin ()
 	{
-		return iterator (iterator_base (m_judy));
+		return iterator (iterator_base (this));
 	}
 	const_iterator begin () const
 	{
-		return const_iterator (iterator_base (m_judy));
+		return const_iterator (iterator_base (this));
 	}
 
 	iterator end ()
