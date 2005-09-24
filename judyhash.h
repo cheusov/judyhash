@@ -1,13 +1,27 @@
+#include <assert.h>
+
 #include <list>
 #include <utility>
-#include <assert.h>
 #include <algorithm>
 
 #include "Judy.h"
 
+////////////////////////////////////////////////////////////
+///  defining JUDYHASH_DEBUGINFO
+#ifdef JUDYHASH_NO_DEBUGINFO
+
+#ifdef JUDYHASH_DEBUGINFO
+#undef JUDYHASH_DEBUGINFO
+#endif // JUDYHASH_DEBUGINFO
+
+#else
+
 #if !defined(JUDYHASH_DEBUGINFO) && !defined(NDEBUG)
 #define JUDYHASH_DEBUGINFO
-#endif
+#endif // JUDYHASH_DEBUGINFO && NDEBUG
+
+#endif // JUDYHASH_NO_DEBUGINFO
+////////////////////////////////////////////////////////////
 
 template <typename TKey, typename TValue>
 struct __judyhash_types {
@@ -93,10 +107,9 @@ public:
 private:
 	Pvoid_t  m_judy;
 	size_type m_size;
-
 	THashFunc m_hash_func;
-
 	TEqualFunc m_eq_func;
+	allocator_type m_alloc;
 
 //	typedef std::vector <value_type*> value_list;
 	typedef std::list <pointer> value_list;
@@ -106,8 +119,6 @@ private:
 		pointer p = m_alloc.allocate (1);
 		return new (p) value_type (v);
 	}
-
-	allocator_type m_alloc;
 
 //
 public:
@@ -162,6 +173,7 @@ public:
 		assert (!m_debug_info.m_value_count);
 		assert (!m_debug_info.m_list_count);
 		assert (!m_debug_info.m_list_item_count);
+		assert (!m_judy);
 #endif
 	}
 
@@ -393,13 +405,6 @@ public:
 			return at ();
 		}
 
-		iterator_base operator ++ (int)
-		{
-			iterator_base ret = *this;
-			operator ++ ();
-			return ret;
-		}
-
 		iterator_base& operator ++ ()
 		{
 			if (!m_end){
@@ -426,7 +431,7 @@ public:
 					}
 				}
 			}else{
-				throw 123;
+				abort ();
 			}
 
 			return *this;
@@ -462,12 +467,11 @@ public:
 
 	class iterator : public iterator_base {
 	private:
+		// prevent conversion from 'const_iterator' to 'iterator'
 		iterator (const const_iterator &a)
 		{
 			abort ();
 		}
-
-		friend class judyhash_map;
 
 	public:
 		iterator ()
@@ -506,8 +510,6 @@ public:
 	};
 
 	class const_iterator : public iterator_base {
-	private:
-		friend class judyhash_map;
 	public:
 		const_iterator ()
 		{
@@ -569,8 +571,10 @@ public:
 	void erase (iterator it)
 	{
 		if (it.m_end){
-			// It seems that standard containers work this way :(
+			// standard says about undefined behaviour in such situations :(
 			abort ();
+
+			// return;
 		}
 
 		assert (this == it.m_obj);
@@ -603,11 +607,11 @@ public:
 			m_size -= 1;
 
 			m_alloc.deallocate (ptr -> m_key_data, 1);
-			::JudyLDel (&m_judy, it.m_index, 0);
-
 #ifdef JUDYHASH_DEBUGINFO
 			m_debug_info.m_value_count -= 1;
 #endif
+
+			::JudyLDel (&m_judy, it.m_index, 0);
 		}
 	}
 
@@ -665,11 +669,11 @@ public:
 
 	size_type count (const key_type& key) const
 	{
-		iterator e = end ();
+		const_iterator e = end ();
 		size_type c = 0;
 
 		for (
-			iterator found = find (key);
+			const_iterator found = find (key);
 			!(found == e) && m_eq_func ((*found).first, key);
 			++found)
 		{
@@ -744,7 +748,6 @@ public:
 
 				for (; !(beg == end); ++beg){
 					if (m_eq_func ((*beg) -> first, p.first)){
-//						(*beg) -> second = p.second;
 						return std::make_pair (
 							iterator (iterator_base (
 										  this, h, (PPvoid_t) ptr, beg)),
