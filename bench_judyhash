@@ -16,20 +16,18 @@ test_judyhash (){
 
     $CXX main.cpp -o judyhash $CPPFLAGS $DEFINES $CFLAGS $LDFLAGS || exit 1
     for i in $lines; do
-	echo 'Extracting...' 1>&2
 	/usr/bin/head -n "$i" < "$TESTFILE" > "$TMPFILE" || exit 2
 
-	echo 'OS-level cache' 1>&2
 	cat "$TMPFILE" > /dev/null || exit 3
 
-	echo 'Test!' 1>&2
 	exe_time=`time -p ./judyhash < "$TMPFILE" 2>&1 > /dev/null` || exit 4
-	echo "$i lines: `echo $exe_time | awk '/user/ {print $2}'`"
-	echo '' 1>&2
+	printf "$i lines: "
+	echo $exe_time | awk '/user/ {print $2}'
     done
+    echo '' 1>&2
 }
 
-for gpp in g++ icc; do
+for gpp in icc; do
     which $gpp || continue
 
     # g++ STL
