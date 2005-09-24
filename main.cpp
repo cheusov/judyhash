@@ -220,6 +220,10 @@ int main (int argc, const char **argv)
 	ht.swap (ht2);
 
 	while (fgets (line, sizeof (line), stdin)){
+		char *NL = strchr (line, '\n');
+		if (NL)
+			*NL = 0;
+
 //		std::pair <my_hash::key_type, my_hash::mapped_type> curr;
 		std::pair <my_hash::iterator, bool> curr
 #ifndef EMPTY_LOOP
@@ -254,6 +258,9 @@ int main (int argc, const char **argv)
 	ht.key_eq ();
 	ht.hash_funct ();
 #endif
+
+//	ht.debug_print (std::cerr);
+//	return 0;
 
 	std::cout << "map size: " << ht.size () << '\n';
 #if defined(USE_JUDY_HASH) || defined(USE_HASH_MAP)
