@@ -169,12 +169,10 @@ public:
 	{
 		clear ();
 
-#ifdef JUDYHASH_DEBUGINFO
 		assert (!m_debug_info.m_value_count);
 		assert (!m_debug_info.m_list_count);
 		assert (!m_debug_info.m_list_item_count);
 		assert (!m_judy);
-#endif
 	}
 
 	void clear ()
@@ -252,6 +250,7 @@ public:
 private:
 	union judy_value {
 		Word_t        m_integer;
+		PWord_t       m_pointer;
 		pointer       m_key_data;
 		value_list   *m_list;
 	};
@@ -268,7 +267,7 @@ public:
 		const judyhash_map *m_obj;
 
 		Word_t        m_index;
-		Pvoid_t       m_value;
+		judy_value    m_value;
 		bool          m_end;
 		bool          m_inside_list;
 
@@ -281,9 +280,8 @@ public:
 		{
 			m_inside_list = false;
 
-			judy_value *ptr = (judy_value *) m_value;
-			if (ptr -> m_integer & 1){
-				value_list *lst = (value_list *) (ptr -> m_integer & ~1);
+			if (m_value.m_integer & 1){
+				value_list *lst = (value_list *) (m_value.m_integer & ~1);
 				m_inside_list   = true;
 				m_list_it       = lst -> begin ();
 
@@ -293,8 +291,8 @@ public:
 
 		void init ()
 		{
-			m_index = 0;
-			m_value = 0;
+			m_index           = 0;
+			m_value.m_integer = 0;
 
 			m_obj   = NULL;
 			m_end   = true;
@@ -310,14 +308,10 @@ public:
 	protected:
 		reference at () const
 		{
-			if (m_value){
-				if (m_inside_list){
-					return * (*m_list_it);
-				}else{
-					return ** (pointer *) m_value;
-				}
+			if (m_inside_list){
+				return * (*m_list_it);
 			}else{
-				throw 123;
+				return * m_value.m_key_data;
 			}
 		}
 
@@ -333,12 +327,12 @@ public:
 			operator = (a);
 		}
 
-		iterator_base (const judyhash_map *obj, Word_t index, Pvoid_t value)
+		iterator_base (const judyhash_map *obj, Word_t index, Word_t value)
 		{
 			init ();
 
-			m_index = index;
-			m_value = value;
+			m_index           = index;
+			m_value.m_integer = value;
 
 			m_obj  = obj;
 			m_end  = false;
@@ -347,13 +341,13 @@ public:
 		}
 
 		iterator_base (const judyhash_map *obj,
-					   Word_t index, Pvoid_t value,
+					   Word_t index, Word_t value,
 					   typename value_list::iterator it)
 		{
 			init ();
 
-			m_index = index;
-			m_value = value;
+			m_index           = index;
+			m_value.m_integer = value;
 
 			m_obj   = obj;
 			m_end   = false;
@@ -371,9 +365,10 @@ public:
 
 			m_obj = obj;
 
-			m_value = JudyLFirst(m_obj -> m_judy, &m_index, 0);
+			m_value.m_pointer = (PWord_t) JudyLFirst(m_obj -> m_judy, &m_index, 0);
 
-			if (m_value){
+			if (m_value.m_pointer){
+				m_value.m_integer = *m_value.m_pointer;
 				init_list_it ();
 			}else{
 				m_end = true;
@@ -411,10 +406,9 @@ public:
 				bool goto_next_judy_cell = false;
 
 				if (m_inside_list){
-					judy_value *ptr = (judy_value *) m_value;
-					assert ((ptr -> m_integer & 1) == 1);
+					assert ((m_value.m_integer & 1) == 1);
 
-					value_list *lst = (value_list *) (ptr -> m_integer & ~1);
+					value_list *lst = (value_list *) (m_value.m_integer & ~1);
 
 					goto_next_judy_cell = (lst -> end () == ++m_list_it);
 				}else{
@@ -422,9 +416,10 @@ public:
 				}
 
 				if (goto_next_judy_cell){
-					m_value = JudyLNext (m_obj -> m_judy, &m_index, 0);
+					m_value.m_pointer = (PWord_t) JudyLNext (m_obj -> m_judy, &m_index, 0);
 
-					if (m_value){
+					if (m_value.m_pointer){
+						m_value.m_integer = *m_value.m_pointer;
 						init_list_it ();
 					}else{
 						m_end = true;
@@ -452,7 +447,7 @@ public:
 				return false;
 
 			return (m_index       == i.m_index)
-				&& (m_value       == i.m_value)
+//				&& (m_value       == i.m_value)
 				&& (m_inside_list == i.m_inside_list)
 				&& (m_list_it     == i.m_list_it);
 		}
@@ -579,10 +574,8 @@ public:
 
 		assert (this == it.m_obj);
 
-		judy_value *ptr = (judy_value *) it.m_value;
-
 		if (it.m_inside_list){
-			assert ((ptr -> m_integer & 1) == 1);
+			assert ((it.m_value.m_integer & 1) == 1);
 
 			m_size -= 1;
 
@@ -591,7 +584,7 @@ public:
 			m_debug_info.m_list_item_count -= 1;
 #endif
 
-			value_list *lst = (value_list *) (ptr -> m_integer & ~1);
+			value_list *lst = (value_list *) (it.m_value.m_integer & ~1);
 			lst -> erase (it.m_list_it);
 
 			if (lst -> empty ()){
@@ -602,11 +595,11 @@ public:
 #endif
 			}
 		}else{
-			assert ((ptr -> m_integer & 1) == 0);
+			assert ((it.m_value.m_integer & 1) == 0);
 
 			m_size -= 1;
 
-			m_alloc.deallocate (ptr -> m_key_data, 1);
+			m_alloc.deallocate (it.m_value.m_key_data, 1);
 #ifdef JUDYHASH_DEBUGINFO
 			m_debug_info.m_value_count -= 1;
 #endif
@@ -624,17 +617,19 @@ private:
 		if (!ptr || !ptr -> m_integer){
 			return iterator ();
 		}else{
-			if ((ptr -> m_integer & 1) == 0){
-				if (m_eq_func (ptr -> m_key_data -> first, key)){
-					return iterator (iterator_base
-									 (this, h, (PPvoid_t) ptr));
+			judy_value value;
+			value.m_integer = ptr -> m_integer;
+
+			if ((value.m_integer & 1) == 0){
+				if (m_eq_func (value.m_key_data -> first, key)){
+					return iterator (iterator_base (this, h, value.m_integer));
 				}else{
-					iterator ret (iterator_base (this, h, (PPvoid_t) ptr));
+					iterator ret (iterator_base (this, h, value.m_integer));
 					ret.make_end ();
 					return ret;
 				}
 			}else{
-				value_list *lst = (value_list *) (ptr -> m_integer & ~1);
+				value_list *lst = (value_list *) (value.m_integer & ~1);
 
 				typename value_list::iterator beg, end;
 				beg = lst -> begin ();
@@ -645,11 +640,11 @@ private:
 				for (; !(beg == end); ++beg){
 					if (m_eq_func ((*beg) -> first, key)){
 						return iterator (iterator_base
-										 (this, h, (PPvoid_t) ptr, beg));
+										 (this, h, value.m_integer, beg));
 					}
 				}
 
-				iterator ret (iterator_base (this, h, (PPvoid_t) ptr, end));
+				iterator ret (iterator_base (this, h, value.m_integer, end));
 				ret.make_end ();
 				return ret;
 			}
@@ -710,7 +705,7 @@ public:
 //					ptr -> m_key_data -> second = p.second;
 
 					return std::make_pair
-						(iterator (iterator_base (this, h, (PPvoid_t) ptr)),
+						(iterator (iterator_base (this, h, ptr -> m_integer)),
 						 false);
 				}else{
 					pointer copy = ptr -> m_key_data;
@@ -734,7 +729,7 @@ public:
 
 					return std::make_pair (
 						iterator (iterator_base (
-									  this, h, (PPvoid_t) ptr, ret_it)),
+									  this, h, ptr -> m_integer, ret_it)),
 						true);
 				}
 			}else{
@@ -750,7 +745,7 @@ public:
 					if (m_eq_func ((*beg) -> first, p.first)){
 						return std::make_pair (
 							iterator (iterator_base (
-										  this, h, (PPvoid_t) ptr, beg)),
+										  this, h, ptr -> m_integer, beg)),
 							false);
 					}
 				}
@@ -763,7 +758,7 @@ public:
 
 				return std::make_pair (
 					iterator (iterator_base (
-								  this, h, (PPvoid_t) ptr,
+								  this, h, ptr -> m_integer,
 								  lst -> insert (lst -> end (),
 												 judy_hash_new (p)))),
 					true);
@@ -778,7 +773,7 @@ public:
 			++m_size;
 
 			return std::make_pair (
-				iterator (iterator_base (this, h, (PPvoid_t) ptr)),
+				iterator (iterator_base (this, h, ptr -> m_integer)),
 				true);
 		}
 	}
