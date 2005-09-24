@@ -241,12 +241,28 @@ void print_iterator (
 	std::cout << '\n';
 }
 
+template <typename insert_ret_type>
+void print_insert_ret (insert_ret_type &i)
+{
+	if (i.second)
+		std::cout << "new item `";
+	else
+		std::cout << "old item `";
+
+	std::cout << (*i.first).first << "` was inserted";
+	std::cout << " value is `" << (*i.first).second << "`\n";
+}
+
 template <typename judyhash_type>
 void test (judyhash_type &ht, int num)
 {
 	typedef typename judyhash_type::iterator         hash_iterator;
 	typedef typename judyhash_type::const_iterator   hash_const_iterator;
 	typedef typename judyhash_type::value_type hash_value_type;
+	typedef std::pair
+		<
+		typename judyhash_type::iterator, bool
+		> hash_insert_ret_type;
 
 	// initializing 2
 	// test for constructor
@@ -258,7 +274,15 @@ void test (judyhash_type &ht, int num)
 	// test for operator =, erase, insert, operator []
 	// test for begin () when container is empty
 	judyhash_type ht4;
-	ht4.insert (hash_value_type ("cool", 10000));
+	hash_insert_ret_type ret = ht4.insert (hash_value_type ("cool", 10000));
+	print_insert_ret (ret);
+	ret = ht4.insert (hash_value_type ("cool", 10002));
+	print_insert_ret (ret);
+	ret = ht4.insert (hash_value_type ("cool", 10003));
+	print_insert_ret (ret);
+	ret = ht4.insert (hash_value_type ("cool", 10004));
+	print_insert_ret (ret);
+
 	ht4 ["cool2"] = 10001;
 	print_hash_it (ht4, "h4 before ht4 = ht2");
 
@@ -273,6 +297,16 @@ void test (judyhash_type &ht, int num)
 	print_hash_it (ht2, "h2 after ht4.erase (\"record\")");
 	print_hash_it (ht4, "h4 after ht4.erase (\"record\")");
 
+	//  test operator = (x, x)
+	ht4 = ht4;
+	print_hash_it (ht4, "h4 after ht4 = ht4");
+
+	// test for empty ()
+	std::cout << "ht4 is empty: " << ht4.empty () << '\n';
+	std::cout << "ht2 is empty: " << ht2.empty () << '\n';
+	ht.clear ();
+	std::cout << "ht4 is empty: " << ht4.empty () << '\n';
+
 	// test for copy-constructor
 	judyhash_type ht3 (ht2);
 	print_hash_it (ht2, "h2 after ht3(ht2)");
@@ -282,10 +316,15 @@ void test (judyhash_type &ht, int num)
 	print_hash_it (ht3, "h3 after ht3.erase (\"record\")");
 
 	// test for insert (value_type)
-	ht.insert (hash_value_type ("apple", 7777));
+	ret = ht4.insert (hash_value_type ("cool", 10005));
+	print_insert_ret (ret);
+	ret = ht.insert (hash_value_type ("apple", 7777));
+	print_insert_ret (ret);
 	print_hash_const_it (ht, "ht initial");
 
 	// swapping 1 and 2
+	print_hash_it (ht2, "ht2 before swap");
+	print_hash_const_it (ht, "ht before swap");
 	ht.swap (ht2);
 	print_hash_it (ht2, "ht2 after swap");
 	print_hash_const_it (ht, "ht after swap");
@@ -307,11 +346,23 @@ void test (judyhash_type &ht, int num)
 	ht ["layout"] = 76;
 	print_iterator ("ht [\"layout\"]=76 ", ht, ht.find ("layout"));
 
-	layout_next_iterator = layout_iterator;
-	++layout_next_iterator;
+	// test for count ()
+	std::cout << "count(\"layout\")=" << ht.count ("layout") << '\n';
 
-	// finding "apple"
-	hash_const_iterator apple_iterator = ht.find ("apple");
+	//
+	layout_next_iterator = layout_iterator;
+	// operator ++ (int)
+	layout_next_iterator++;
+
+	// test for iterators
+	std::cout << "distance: "
+			  << std::distance (layout_iterator, layout_next_iterator)
+			  << '\n';
+
+	// finding "apple", test for 'const_iterator find (k) const'
+	hash_const_iterator apple_iterator
+		= ((const judyhash_type *)(&ht)) -> find ("apple");
+
 	hash_const_iterator apple_next_iterator = apple_iterator;
 	print_iterator ("ht", ht, apple_iterator);
 
