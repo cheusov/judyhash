@@ -3,6 +3,7 @@
 #include <list>
 #include <utility>
 #include <algorithm>
+#include <set>
 
 #include "Judy.h"
 
@@ -113,6 +114,8 @@ private:
 
 //	typedef std::vector <value_type*> value_list;
 	typedef std::list <pointer> value_list;
+	typedef std::set <value_list *> allocated_lists_type;
+	allocated_lists_type m_allocated_lists;
 
 	inline pointer judy_hash_new (const value_type &v)
 	{
@@ -173,54 +176,32 @@ public:
 		assert (!m_debug_info.m_list_count);
 		assert (!m_debug_info.m_list_item_count);
 		assert (!m_judy);
+		assert (m_allocated_lists.empty ());
 	}
 
 	void clear ()
 	{
-#if 1
-//		std::cerr << "zzzzzzzzzzzzzzzzzzzzzzzzz!\n";
-		Word_t index = 0;
-		PWord_t pvalue = (PWord_t) ::JudyLFirst (m_judy, &index, 0);
-//		std::cerr << "zzzzzzzzzzzzzzzzzzzzzzzzz pvalue=" << pvalue << '\n';
+		typename allocated_lists_type::iterator f, l;
 
-		while (pvalue){
-			Word_t value = *pvalue;
+		f = m_allocated_lists.begin ();
+		l = m_allocated_lists.end ();
 
-			if (value & 1){
-//				std::cerr << "zzzzzzzzzzzzzzzzzzzzzzzzz list!\n";
-
-				value_list *lst = (value_list *) (value & ~1);
-				typename value_list::const_iterator f, l;
-				f = lst -> begin ();
-				l = lst -> end ();
-				while (f != l){
-//					std::cerr << "zzzzzzzzzzzzzzzzzzzzzzzzz list item!\n";
-					m_alloc.deallocate (*f++, 1);
 #ifdef JUDYHASH_DEBUGINFO
-					m_debug_info.m_list_item_count -= 1;
+		m_debug_info.m_value_count = 0;
 #endif
-				}
-				delete lst;
-#ifdef JUDYHASH_DEBUGINFO
-				m_debug_info.m_list_count -= 1;
-#endif
-			}else{
-//				std::cerr << "zzzzzzzzzzzzzzzzzzzzzzzzz item!\n";
-#ifdef JUDYHASH_DEBUGINFO
-				m_debug_info.m_value_count -= 1;
-#endif
-				m_alloc.deallocate ((pointer) value, 1);
-			}
 
-			pvalue = (PWord_t) ::JudyLNext (m_judy, &index, 0);
+		for (; f != l; ++f){
+#ifdef JUDYHASH_DEBUGINFO
+			m_debug_info.m_list_count -= 1;
+			m_debug_info.m_list_item_count -= (*f) -> size ();
+#endif
+			delete *f;
 		}
 
-		::JudyLFreeArray (&m_judy, 0);
 		m_size = 0;
-#else
-		// optimize me!!!
-		erase (begin (), end ());
-#endif
+
+		m_allocated_lists.clear ();
+		::JudyLFreeArray (&m_judy, 0);
 	}
 
 	judyhash_map& operator = (const judyhash_map& a)
@@ -262,6 +243,7 @@ public:
 		std::swap (m_hash_func, a.m_hash_func);
 		std::swap (m_debug_info, a.m_debug_info);
 		std::swap (m_alloc, a.m_alloc);
+		std::swap (m_allocated_lists, a.m_allocated_lists);
 	}
 
 	size_type size () const
@@ -631,6 +613,8 @@ public:
 
 			if (lst -> empty ()){
 				delete lst;
+				m_allocated_lists.erase (lst);
+
 				::JudyLDel (&m_judy, it.m_index, 0);
 #ifdef JUDYHASH_DEBUGINFO
 				m_debug_info.m_list_count -= 1;
@@ -752,6 +736,8 @@ public:
 				}else{
 					pointer copy = ptr -> m_key_data;
 					value_list *lst = ptr -> m_list = new value_list;
+					m_allocated_lists.insert (lst);
+
 #ifdef JUDYHASH_DEBUGINFO
 					m_debug_info.m_list_count       += 1;
 					m_debug_info.m_list_item_count  += 2;
