@@ -120,15 +120,14 @@ public:
 
 //
 private:
-	Pvoid_t        m_judy;
-	size_type      m_size;
-	THashFunc      m_hash_func;
-	TEqualFunc     m_eq_func;
-	allocator_type m_alloc;
-
-//	typedef std::vector <value_type*> pointers_list_type;
 	typedef std::list <pointer> pointers_list_type;
 	typedef std::set <pointers_list_type *> allocated_lists_type;
+
+	Pvoid_t              m_judy;
+	size_type            m_size;
+	THashFunc            m_hash_func;
+	TEqualFunc           m_eq_func;
+	allocator_type       m_alloc;
 	allocated_lists_type m_allocated_lists;
 
 	inline pointer judy_hash_new (const value_type &v)
@@ -195,6 +194,12 @@ public:
 
 	void clear ()
 	{
+#ifdef JUDYHASH_DEBUG
+		// Slow implementation which allows better
+		// inconsistency checking
+		erase (begin (), end ());
+#else // JUDYHASH_DEBUG
+		// Much faster implementation
 		typename allocated_lists_type::iterator f, l;
 
 		f = m_allocated_lists.begin ();
@@ -216,6 +221,7 @@ public:
 
 		m_allocated_lists.clear ();
 		::JudyLFreeArray (&m_judy, 0);
+#endif // JUDYHASH_DEBUG
 	}
 
 	judyhash_map& operator = (const judyhash_map& a)
@@ -302,7 +308,7 @@ public:
 		__JUDYHASH_REDEFINE_TYPEDEFS
 
 	private:
-		const judyhash_map *m_obj;
+		const judyhash_map    *m_obj;
 
 		Word_t                 m_index;
 		judyhash_union_type    m_value;
@@ -331,13 +337,11 @@ public:
 
 		void init ()
 		{
+			m_obj              = NULL;
 			m_index            = 0;
 			m_value.m_judy_int = 0;
-
-			m_obj   = NULL;
-			m_end   = true;
-
-			m_inside_list = false;
+			m_end              = true;
+			m_inside_list      = false;
 		}
 
 		void make_end ()
@@ -368,33 +372,26 @@ public:
 		}
 
 		iterator_base (const judyhash_map *obj, Word_t index, Word_t value)
+			:
+			m_obj (obj),
+			m_index (index),
+			m_end (false)
 		{
-			init ();
-
-			m_index            = index;
 			m_value.m_judy_int = value;
-
-			m_obj  = obj;
-			m_end  = false;
-
 			init_list_it ();
 		}
 
 		iterator_base (const judyhash_map *obj,
-					   Word_t index, Word_t value,
-					   typename pointers_list_type::iterator it)
+		               Word_t index, Word_t value,
+		               typename pointers_list_type::iterator it)
+			:
+			m_obj (obj),
+			m_index (index),
+			m_end (false),
+			m_inside_list (true),
+			m_list_it (it)
 		{
-			init ();
-
-			m_index            = index;
 			m_value.m_judy_int = value;
-
-			m_obj   = obj;
-			m_end   = false;
-
-			m_inside_list = true;
-
-			m_list_it = it;
 		}
 
 		iterator_base (const judyhash_map *obj)
@@ -442,33 +439,32 @@ public:
 
 		iterator_base& operator ++ ()
 		{
-			if (!m_end){
-				bool goto_next_judy_cell = false;
-
-				if (m_inside_list){
-					assert ((m_value.m_judy_int & 1) == 1);
-
-					pointers_list_type *lst
-						= (pointers_list_type *) (m_value.m_judy_int & ~1);
-
-					goto_next_judy_cell = (lst -> end () == ++m_list_it);
-				}else{
-					goto_next_judy_cell = true;
-				}
-
-				if (goto_next_judy_cell){
-					m_value.m_judy_ptr
-						= (PWord_t) JudyLNext (m_obj -> m_judy, &m_index, 0);
-
-					if (m_value.m_judy_ptr){
-						m_value.m_judy_int = *m_value.m_judy_ptr;
-						init_list_it ();
-					}else{
-						m_end = true;
-					}
-				}
-			}else{
+			if (m_end)
 				abort ();
+
+			bool goto_next_judy_cell = false;
+
+			if (m_inside_list){
+				assert ((m_value.m_judy_int & 1) == 1);
+
+				pointers_list_type *lst
+					= (pointers_list_type *) (m_value.m_judy_int & ~1);
+
+				goto_next_judy_cell = (lst -> end () == ++m_list_it);
+			}else{
+				goto_next_judy_cell = true;
+			}
+
+			if (goto_next_judy_cell){
+				m_value.m_judy_ptr
+					= (PWord_t) JudyLNext (m_obj -> m_judy, &m_index, 0);
+
+				if (m_value.m_judy_ptr){
+					m_value.m_judy_int = *m_value.m_judy_ptr;
+					init_list_it ();
+				}else{
+					m_end = true;
+				}
 			}
 
 			return *this;
@@ -479,7 +475,7 @@ public:
 			if (this == &i)
 				return true;
 
-			if (m_end ^ i.m_end)
+			if (m_end != i.m_end)
 				return false;
 
 			if (m_end && i.m_end)
@@ -610,7 +606,8 @@ public:
 			// standard says about undefined behaviour in such situations :(
 			abort ();
 
-			// return;
+			// I assume, 'return' is much better
+			//return;
 		}
 
 		assert (this == it.m_obj);
@@ -733,10 +730,9 @@ public:
 		return res.first -> second;
 	}
 
-	std::pair <iterator, bool> insert (const value_type& p)
+	std::pair <iterator, bool> insert (const value_type& value)
 	{
-		const TKey &key   = p.first;
-//		const TValue &val = p.second;
+		const TKey &key   = value.first;
 
 		Word_t h = m_hash_func (key);
 		judyhash_union_type *ptr
@@ -745,16 +741,18 @@ public:
 		assert (ptr);
 
 		if (ptr -> m_judy_int){
+			// JudyL cell was already initialized
 			if ((ptr -> m_judy_int & 1) == 0){
 				if (m_eq_func (
-						ptr -> m_pointer -> first, p.first))
+						ptr -> m_pointer -> first, value.first))
 				{
-//					ptr -> m_pointer -> second = p.second;
-
+					// JudyL cell equal to 'value'
 					return std::make_pair
 						(iterator (iterator_base (this, h, ptr -> m_judy_int)),
 						 false);
 				}else{
+					// collision is detected.
+					// We create list object here
 					pointer copy = ptr -> m_pointer;
 					pointers_list_type *lst
 						= ptr -> m_list = new pointers_list_type;
@@ -772,7 +770,7 @@ public:
 
 					typename pointers_list_type::iterator ret_it
 						= lst -> insert (
-							lst -> end (), judy_hash_new (p));
+							lst -> end (), judy_hash_new (value));
 
 					++m_size;
 
@@ -784,6 +782,8 @@ public:
 						true);
 				}
 			}else{
+				// Collision is detected.
+				// List object is already created.
 				pointers_list_type *lst
 					= (pointers_list_type *) (ptr -> m_judy_int & ~1);
 
@@ -793,8 +793,10 @@ public:
 
 				typename pointers_list_type::iterator found = end;
 
+				// Look for 'value' in the list
 				for (; !(beg == end); ++beg){
-					if (m_eq_func ((*beg) -> first, p.first)){
+					if (m_eq_func ((*beg) -> first, value.first)){
+						// found
 						return std::make_pair (
 							iterator (iterator_base (
 										  this, h, ptr -> m_judy_int, beg)),
@@ -808,19 +810,22 @@ public:
 				m_debug_info.m_list_item_count += 1;
 #endif
 
+				// Add new 'value' to the list
 				return std::make_pair (
 					iterator (iterator_base (
 								  this, h, ptr -> m_judy_int,
 								  lst -> insert (lst -> end (),
-												 judy_hash_new (p)))),
+												 judy_hash_new (value)))),
 					true);
 			}
 		}else{
+			// Created JudyL cell is new one.
+
 #ifdef JUDYHASH_DEBUGINFO
 			m_debug_info.m_value_count += 1;
 #endif
 
-			ptr -> m_pointer = judy_hash_new (p);
+			ptr -> m_pointer = judy_hash_new (value);
 
 			++m_size;
 
