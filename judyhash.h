@@ -120,15 +120,15 @@ public:
 
 //
 private:
-	Pvoid_t  m_judy;
-	size_type m_size;
-	THashFunc m_hash_func;
-	TEqualFunc m_eq_func;
+	Pvoid_t        m_judy;
+	size_type      m_size;
+	THashFunc      m_hash_func;
+	TEqualFunc     m_eq_func;
 	allocator_type m_alloc;
 
-//	typedef std::vector <value_type*> value_list;
-	typedef std::list <pointer> value_list;
-	typedef std::set <value_list *> allocated_lists_type;
+//	typedef std::vector <value_type*> pointers_list_type;
+	typedef std::list <pointer> pointers_list_type;
+	typedef std::set <pointers_list_type *> allocated_lists_type;
 	allocated_lists_type m_allocated_lists;
 
 	inline pointer judy_hash_new (const value_type &v)
@@ -286,11 +286,11 @@ public:
 	}
 
 private:
-	union judy_value {
-		Word_t        m_integer;
-		PWord_t       m_pointer;
-		pointer       m_key_data;
-		value_list   *m_list;
+	union judyhash_union_type {
+		Word_t        m_judy_int;
+		PWord_t       m_judy_ptr;
+		pointer       m_pointer;
+		pointers_list_type   *m_list;
 	};
 
 public:
@@ -304,13 +304,13 @@ public:
 	private:
 		const judyhash_map *m_obj;
 
-		Word_t        m_index;
-		judy_value    m_value;
-		bool          m_end;
-		bool          m_inside_list;
+		Word_t                 m_index;
+		judyhash_union_type    m_value;
+		bool                   m_end;
+		bool                   m_inside_list;
 
-		typename value_list::iterator m_list_it;
-//		typename value_list::iterator m_list_end_it;
+		typename pointers_list_type::iterator m_list_it;
+//		typename pointers_list_type::iterator m_list_end_it;
 
 		friend class judyhash_map;
 
@@ -318,8 +318,10 @@ public:
 		{
 			m_inside_list = false;
 
-			if (m_value.m_integer & 1){
-				value_list *lst = (value_list *) (m_value.m_integer & ~1);
+			if (m_value.m_judy_int & 1){
+				pointers_list_type *lst
+					= (pointers_list_type *) (m_value.m_judy_int & ~1);
+
 				m_inside_list   = true;
 				m_list_it       = lst -> begin ();
 
@@ -329,8 +331,8 @@ public:
 
 		void init ()
 		{
-			m_index           = 0;
-			m_value.m_integer = 0;
+			m_index            = 0;
+			m_value.m_judy_int = 0;
 
 			m_obj   = NULL;
 			m_end   = true;
@@ -349,7 +351,7 @@ public:
 			if (m_inside_list){
 				return * (*m_list_it);
 			}else{
-				return * m_value.m_key_data;
+				return * m_value.m_pointer;
 			}
 		}
 
@@ -369,8 +371,8 @@ public:
 		{
 			init ();
 
-			m_index           = index;
-			m_value.m_integer = value;
+			m_index            = index;
+			m_value.m_judy_int = value;
 
 			m_obj  = obj;
 			m_end  = false;
@@ -380,12 +382,12 @@ public:
 
 		iterator_base (const judyhash_map *obj,
 					   Word_t index, Word_t value,
-					   typename value_list::iterator it)
+					   typename pointers_list_type::iterator it)
 		{
 			init ();
 
-			m_index           = index;
-			m_value.m_integer = value;
+			m_index            = index;
+			m_value.m_judy_int = value;
 
 			m_obj   = obj;
 			m_end   = false;
@@ -403,10 +405,11 @@ public:
 
 			m_obj = obj;
 
-			m_value.m_pointer = (PWord_t) JudyLFirst(m_obj -> m_judy, &m_index, 0);
+			m_value.m_judy_ptr
+				= (PWord_t) JudyLFirst(m_obj -> m_judy, &m_index, 0);
 
-			if (m_value.m_pointer){
-				m_value.m_integer = *m_value.m_pointer;
+			if (m_value.m_judy_ptr){
+				m_value.m_judy_int = *m_value.m_judy_ptr;
 				init_list_it ();
 			}else{
 				m_end = true;
@@ -424,7 +427,6 @@ public:
 			m_end         = a.m_end;
 			m_inside_list = a.m_inside_list;
 			m_list_it     = a.m_list_it;
-//			m_list_end_it = a.m_list_end_it;
 
 			return *this;
 		}
@@ -444,9 +446,10 @@ public:
 				bool goto_next_judy_cell = false;
 
 				if (m_inside_list){
-					assert ((m_value.m_integer & 1) == 1);
+					assert ((m_value.m_judy_int & 1) == 1);
 
-					value_list *lst = (value_list *) (m_value.m_integer & ~1);
+					pointers_list_type *lst
+						= (pointers_list_type *) (m_value.m_judy_int & ~1);
 
 					goto_next_judy_cell = (lst -> end () == ++m_list_it);
 				}else{
@@ -454,10 +457,11 @@ public:
 				}
 
 				if (goto_next_judy_cell){
-					m_value.m_pointer = (PWord_t) JudyLNext (m_obj -> m_judy, &m_index, 0);
+					m_value.m_judy_ptr
+						= (PWord_t) JudyLNext (m_obj -> m_judy, &m_index, 0);
 
-					if (m_value.m_pointer){
-						m_value.m_integer = *m_value.m_pointer;
+					if (m_value.m_judy_ptr){
+						m_value.m_judy_int = *m_value.m_judy_ptr;
 						init_list_it ();
 					}else{
 						m_end = true;
@@ -485,7 +489,6 @@ public:
 				return false;
 
 			return (m_index       == i.m_index)
-//				&& (m_value       == i.m_value)
 				&& (m_inside_list == i.m_inside_list)
 				&& (m_list_it     == i.m_list_it);
 		}
@@ -613,7 +616,7 @@ public:
 		assert (this == it.m_obj);
 
 		if (it.m_inside_list){
-			assert ((it.m_value.m_integer & 1) == 1);
+			assert ((it.m_value.m_judy_int & 1) == 1);
 
 			m_size -= 1;
 
@@ -622,7 +625,9 @@ public:
 			m_debug_info.m_list_item_count -= 1;
 #endif
 
-			value_list *lst = (value_list *) (it.m_value.m_integer & ~1);
+			pointers_list_type *lst
+				= (pointers_list_type *) (it.m_value.m_judy_int & ~1);
+
 			lst -> erase (it.m_list_it);
 
 			if (lst -> empty ()){
@@ -635,11 +640,11 @@ public:
 #endif
 			}
 		}else{
-			assert ((it.m_value.m_integer & 1) == 0);
+			assert ((it.m_value.m_judy_int & 1) == 0);
 
 			m_size -= 1;
 
-			m_alloc.deallocate (it.m_value.m_key_data, 1);
+			m_alloc.deallocate (it.m_value.m_pointer, 1);
 #ifdef JUDYHASH_DEBUGINFO
 			m_debug_info.m_value_count -= 1;
 #endif
@@ -652,39 +657,41 @@ private:
 	iterator find_base (const key_type& key) const
 	{
 		unsigned long h = m_hash_func (key);
-		judy_value *ptr = (judy_value *) ::JudyLGet (m_judy, h, 0);
+		judyhash_union_type *ptr
+			= (judyhash_union_type *) ::JudyLGet (m_judy, h, 0);
 
-		if (!ptr || !ptr -> m_integer){
+		if (!ptr || !ptr -> m_judy_int){
 			return iterator ();
 		}else{
-			judy_value value;
-			value.m_integer = ptr -> m_integer;
+			judyhash_union_type value;
+			value.m_judy_int = ptr -> m_judy_int;
 
-			if ((value.m_integer & 1) == 0){
-				if (m_eq_func (value.m_key_data -> first, key)){
-					return iterator (iterator_base (this, h, value.m_integer));
+			if ((value.m_judy_int & 1) == 0){
+				if (m_eq_func (value.m_pointer -> first, key)){
+					return iterator (iterator_base (this, h, value.m_judy_int));
 				}else{
-					iterator ret (iterator_base (this, h, value.m_integer));
+					iterator ret (iterator_base (this, h, value.m_judy_int));
 					ret.make_end ();
 					return ret;
 				}
 			}else{
-				value_list *lst = (value_list *) (value.m_integer & ~1);
+				pointers_list_type *lst
+					= (pointers_list_type *) (value.m_judy_int & ~1);
 
-				typename value_list::iterator beg, end;
+				typename pointers_list_type::iterator beg, end;
 				beg = lst -> begin ();
 				end = lst -> end ();
 
-				typename value_list::iterator found = end;
+				typename pointers_list_type::iterator found = end;
 
 				for (; !(beg == end); ++beg){
 					if (m_eq_func ((*beg) -> first, key)){
 						return iterator (iterator_base
-										 (this, h, value.m_integer, beg));
+										 (this, h, value.m_judy_int, beg));
 					}
 				}
 
-				iterator ret (iterator_base (this, h, value.m_integer, end));
+				iterator ret (iterator_base (this, h, value.m_judy_int, end));
 				ret.make_end ();
 				return ret;
 			}
@@ -732,24 +739,26 @@ public:
 //		const TValue &val = p.second;
 
 		Word_t h = m_hash_func (key);
-		judy_value *ptr = NULL;
-		ptr = (judy_value *) ::JudyLIns (&m_judy, h, 0);
+		judyhash_union_type *ptr
+			= (judyhash_union_type *) ::JudyLIns (&m_judy, h, 0);
 
 		assert (ptr);
 
-		if (ptr -> m_integer){
-			if ((ptr -> m_integer & 1) == 0){
+		if (ptr -> m_judy_int){
+			if ((ptr -> m_judy_int & 1) == 0){
 				if (m_eq_func (
-						ptr -> m_key_data -> first, p.first))
+						ptr -> m_pointer -> first, p.first))
 				{
-//					ptr -> m_key_data -> second = p.second;
+//					ptr -> m_pointer -> second = p.second;
 
 					return std::make_pair
-						(iterator (iterator_base (this, h, ptr -> m_integer)),
+						(iterator (iterator_base (this, h, ptr -> m_judy_int)),
 						 false);
 				}else{
-					pointer copy = ptr -> m_key_data;
-					value_list *lst = ptr -> m_list = new value_list;
+					pointer copy = ptr -> m_pointer;
+					pointers_list_type *lst
+						= ptr -> m_list = new pointers_list_type;
+
 					m_allocated_lists.insert (lst);
 
 #ifdef JUDYHASH_DEBUGINFO
@@ -761,33 +770,34 @@ public:
 					lst -> insert (
 						lst -> end (), copy);
 
-					typename value_list::iterator ret_it
+					typename pointers_list_type::iterator ret_it
 						= lst -> insert (
 							lst -> end (), judy_hash_new (p));
 
 					++m_size;
 
-					ptr -> m_integer |= 1;
+					ptr -> m_judy_int |= 1;
 
 					return std::make_pair (
 						iterator (iterator_base (
-									  this, h, ptr -> m_integer, ret_it)),
+									  this, h, ptr -> m_judy_int, ret_it)),
 						true);
 				}
 			}else{
-				value_list *lst = (value_list *) (ptr -> m_integer & ~1);
+				pointers_list_type *lst
+					= (pointers_list_type *) (ptr -> m_judy_int & ~1);
 
-				typename value_list::iterator beg, end;
+				typename pointers_list_type::iterator beg, end;
 				beg = lst -> begin ();
 				end = lst -> end ();
 
-				typename value_list::iterator found = end;
+				typename pointers_list_type::iterator found = end;
 
 				for (; !(beg == end); ++beg){
 					if (m_eq_func ((*beg) -> first, p.first)){
 						return std::make_pair (
 							iterator (iterator_base (
-										  this, h, ptr -> m_integer, beg)),
+										  this, h, ptr -> m_judy_int, beg)),
 							false);
 					}
 				}
@@ -800,7 +810,7 @@ public:
 
 				return std::make_pair (
 					iterator (iterator_base (
-								  this, h, ptr -> m_integer,
+								  this, h, ptr -> m_judy_int,
 								  lst -> insert (lst -> end (),
 												 judy_hash_new (p)))),
 					true);
@@ -810,12 +820,12 @@ public:
 			m_debug_info.m_value_count += 1;
 #endif
 
-			ptr -> m_key_data = judy_hash_new (p);
+			ptr -> m_pointer = judy_hash_new (p);
 
 			++m_size;
 
 			return std::make_pair (
-				iterator (iterator_base (this, h, ptr -> m_integer)),
+				iterator (iterator_base (this, h, ptr -> m_judy_int)),
 				true);
 		}
 	}
