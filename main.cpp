@@ -174,7 +174,6 @@ typedef std::hash_map <
 	my_type, int, dinkumware_hash_traits, test_allocator_type
 	> my_hash;
 #else
-
 #if __GNUC__ >= 3 && !defined(_STLP_CONFIG_H)
 typedef __gnu_cxx::hash_map <
 	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
