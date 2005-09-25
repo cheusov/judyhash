@@ -14,7 +14,7 @@ test_judyhash (){
 
     echo "Compiling: $@" 1>&2
 
-    $CXX main.cpp -o judyhash $CPPFLAGS $DEFINES $CFLAGS $LDFLAGS || exit 1
+    $CXX main.cpp -o judyhash $CPPFLAGS $DEFINES $CFLAGS $LDFLAGS 2>log || exit 1
     for i in $lines; do
 	/usr/bin/head -n "$i" < "$TESTFILE" > "$TMPFILE" || exit 2
 
@@ -27,7 +27,7 @@ test_judyhash (){
     echo '' 1>&2
 }
 
-for gpp in g++; do
+for gpp in g++ icpc; do
     which $gpp || continue
 
     # just file reading 
