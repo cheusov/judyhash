@@ -12,7 +12,7 @@
 #include "judyhash.h"
 
 #ifdef USE_HASH_MAP
-#if (__GNUC__ >= 3)
+#if (__GNUC__ >= 3) && !defined(_STLP_CONFIG_H)
 #include <ext/hash_map>
 #else
 #include <hash_map>
@@ -159,7 +159,7 @@ typedef std::hash_map <
 	> my_hash;
 #else
 
-#if __GNUC__ >= 3
+#if __GNUC__ >= 3 && !defined(_STLP_CONFIG_H)
 typedef __gnu_cxx::hash_map <
 	const char *, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
