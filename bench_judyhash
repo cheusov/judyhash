@@ -27,8 +27,12 @@ test_judyhash (){
     echo '' 1>&2
 }
 
-for gpp in icc; do
+for gpp in g++; do
     which $gpp || continue
+
+    # just file reading 
+    test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' \
+        ''                     '-DEMPTY_LOOP'
 
     # g++ STL
     test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' \
@@ -37,10 +41,6 @@ for gpp in icc; do
         '-lJudy'               '-DUSE_JUDY_HASH'
     test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' \
         ''                     '-DUSE_HASH_MAP'
-
-    # just file reading 
-    test_judyhash $gpp '-I/usr/include/boost' '-O3 -march=i586' \
-        ''                     '-DEMPTY_LOOP'
 
     # STLPORT STL
     test_judyhash $gpp '-I/usr/include/stlport -I/usr/include/boost' \
