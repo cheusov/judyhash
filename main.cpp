@@ -12,7 +12,7 @@
 #include "judyhash.h"
 
 #ifdef USE_HASH_MAP
-#if (__GNUC__ >= 3) && !defined(_STLP_CONFIG_H)
+#if ((__GNUC__ >= 3) && !defined(_STLP_CONFIG_H)) || __ICC >= 900
 #include <ext/hash_map>
 #else
 #include <hash_map>
@@ -66,7 +66,15 @@ public:
 	}
 };
 
+//typedef const char * my_type;
+typedef std::string my_type;
+
 struct hsh_string_hash {
+	size_t operator () (const std::string &key) const
+	{
+		return operator () (key.c_str ());
+	}
+
 	size_t operator () (const char *key) const
 	{
 //		const int m = 7U;
@@ -105,16 +113,24 @@ struct hsh_string_hash {
 };
 
 struct cmp_string_eq {
-	bool operator () (const char *a, const char *b) const
+	bool operator () (char const *a, char const *b) const
 	{
 		return !strcmp (a, b);
+	}
+	bool operator () (const std::string &a, const std::string &b) const
+	{
+		return operator () (a.c_str (), b.c_str ());
 	}
 };
 
 struct cmp_string_lt {
-	bool operator () (const char *a, const char *b) const
+	bool operator () (char const *a, char const *b) const
 	{
 		return strcmp (a, b) < 0;
+	}
+	bool operator () (std::string const &a, std::string const &b) const
+	{
+		return operator () (a.c_str (), b.c_str ());
 	}
 };
 
@@ -132,46 +148,46 @@ public:
 	{
 	}
 
-	size_t operator () (const char * key) const
+	size_t operator () (my_type const &key) const
 	{
 		return hsh_string_hash::operator () (key);
 	}
 
-	bool operator () (const char * key1, const char *key2) const
+	bool operator () (my_type const &key1, my_type const &key2) const
 	{
 		return cmp_string_lt::operator () (key1, key2);
 	}
 };
 
-//typedef my_pool < std::pair <const char *, int> > test_allocator_type;
-//typedef std::allocator < std::pair <const char *, int> > test_allocator_type;
-typedef boost::fast_pool_allocator < std::pair <const char *const, int> > test_allocator_type;
+//typedef my_pool < std::pair <my_type const, int> > test_allocator_type;
+//typedef std::allocator < std::pair <my_type const, int> > test_allocator_type;
+typedef boost::fast_pool_allocator < std::pair <my_type const, int> > test_allocator_type;
 
 #ifdef USE_JUDY_HASH
 typedef judyhash_map <
-	const char *, int, hsh_string_hash, cmp_string_eq, test_allocator_type
+	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
 #else
 #ifdef USE_HASH_MAP
 #ifdef __ICC
 typedef std::hash_map <
-	const char *, int, dinkumware_hash_traits, test_allocator_type
+	my_type, int, dinkumware_hash_traits, test_allocator_type
 	> my_hash;
 #else
 
 #if __GNUC__ >= 3 && !defined(_STLP_CONFIG_H)
 typedef __gnu_cxx::hash_map <
-	const char *, int, hsh_string_hash, cmp_string_eq, test_allocator_type
+	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
 #else
 typedef std::hash_map <
-	const char *, int, hsh_string_hash, cmp_string_eq, test_allocator_type
+	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
 #endif
 
 #endif
 #else
-typedef std::map <const char *, int, cmp_string_lt> my_hash;
+typedef std::map <my_type, int, cmp_string_lt> my_hash;
 #endif
 #endif
 
@@ -229,10 +245,10 @@ int main (int argc, const char **argv)
 #ifndef EMPTY_LOOP
 			= ht.insert (
 				my_hash::value_type (
-					strdup (line), line_count));
+					line, line_count));
 #else
 		;
-		strdup (line);
+//		strdup (line);
 #endif
 
 		bool new_item = curr.second;
@@ -285,7 +301,7 @@ int main (int argc, const char **argv)
 	ht.erase ("record");
 	ht.erase ("the");
 	for (int i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
-		const char *key = init_values [i].first;
+		my_type key = init_values [i].first;
 		my_hash::iterator found = ht.find (key);
 		if (found == ht.end ())
 			std::cout << "value[\"" << key << "\"]=(not found)\n";
