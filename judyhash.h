@@ -177,8 +177,50 @@ public:
 
 	void clear ()
 	{
+#if 1
+//		std::cerr << "zzzzzzzzzzzzzzzzzzzzzzzzz!\n";
+		Word_t index = 0;
+		PWord_t pvalue = (PWord_t) ::JudyLFirst (m_judy, &index, 0);
+//		std::cerr << "zzzzzzzzzzzzzzzzzzzzzzzzz pvalue=" << pvalue << '\n';
+
+		while (pvalue){
+			Word_t value = *pvalue;
+
+			if (value & 1){
+//				std::cerr << "zzzzzzzzzzzzzzzzzzzzzzzzz list!\n";
+
+				value_list *lst = (value_list *) (value & ~1);
+				typename value_list::const_iterator f, l;
+				f = lst -> begin ();
+				l = lst -> end ();
+				while (f != l){
+//					std::cerr << "zzzzzzzzzzzzzzzzzzzzzzzzz list item!\n";
+					m_alloc.deallocate (*f++, 1);
+#ifdef JUDYHASH_DEBUGINFO
+					m_debug_info.m_list_item_count -= 1;
+#endif
+				}
+				delete lst;
+#ifdef JUDYHASH_DEBUGINFO
+				m_debug_info.m_list_count -= 1;
+#endif
+			}else{
+//				std::cerr << "zzzzzzzzzzzzzzzzzzzzzzzzz item!\n";
+#ifdef JUDYHASH_DEBUGINFO
+				m_debug_info.m_value_count -= 1;
+#endif
+				m_alloc.deallocate ((pointer) value, 1);
+			}
+
+			pvalue = (PWord_t) ::JudyLNext (m_judy, &index, 0);
+		}
+
+		::JudyLFreeArray (&m_judy, 0);
+		m_size = 0;
+#else
 		// optimize me!!!
 		erase (begin (), end ());
+#endif
 	}
 
 	judyhash_map& operator = (const judyhash_map& a)
