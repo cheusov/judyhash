@@ -16,7 +16,6 @@
 
 #include <list>
 #include <utility>
-#include <algorithm>
 #include <set>
 
 #include "Judy.h"
@@ -55,7 +54,7 @@ struct __judyhash_types {
 	typedef _value_type             const & _const_reference;
 };
 
-#define __JUDYHASH_REDEFINE_TYPEDEFS                                      \
+#define __JUDYHASH_TYPEDEFS                                               \
 	typedef typename __base::_key_type                key_type;           \
 	typedef typename __base::_data_type               data_type;          \
 	typedef typename __base::_mapped_type             mapped_type;        \
@@ -87,7 +86,7 @@ public:
 	typedef THashFunc                       hasher;
 	typedef TAllocator                      allocator_type;
 
-	__JUDYHASH_REDEFINE_TYPEDEFS
+	__JUDYHASH_TYPEDEFS
 
 	struct debug_info {
 		// a number of values (actually, pointer to value)
@@ -305,7 +304,7 @@ public:
 		typedef __judyhash_types <TKey, TValue> __base;
 		typedef std::forward_iterator_tag iterator_category;
 
-		__JUDYHASH_REDEFINE_TYPEDEFS
+		__JUDYHASH_TYPEDEFS
 
 	private:
 		const judyhash_map    *m_obj;
@@ -711,6 +710,7 @@ public:
 		const_iterator e = end ();
 		size_type c = 0;
 
+		// optimize me!!!
 		for (
 			const_iterator found = find (key);
 			!(found == e) && m_eq_func ((*found).first, key);
