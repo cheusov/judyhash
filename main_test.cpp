@@ -163,6 +163,10 @@ typedef judyhash_map <
 	std::string, int, hsh_string_hash4
 	> my_hash102;
 
+typedef std::multimap <
+	const char *, int, cmp_string_lt
+	> std_multimap20;
+
 static const my_hash1::value_type init_values [] = {
 	my_hash1::value_type ("record", 1000),
 	my_hash1::value_type ("access", 1001),
@@ -242,7 +246,7 @@ void print_iterator (
 }
 
 template <typename insert_ret_type>
-void print_insert_ret (insert_ret_type &i)
+void print_insert_ret (const insert_ret_type &i)
 {
 	if (i.second)
 		std::cout << "new item `";
@@ -251,6 +255,13 @@ void print_insert_ret (insert_ret_type &i)
 
 	std::cout << (*i.first).first << "` was inserted";
 	std::cout << " value is `" << (*i.first).second << "`\n";
+}
+
+//template <typename T>
+void print_insert_ret (const std_multimap20::iterator &i)
+{
+	std::cout << (*i).first << "` was inserted";
+	std::cout << " value is `" << (*i).second << "`\n";
 }
 
 template <typename judyhash_type>
@@ -274,18 +285,18 @@ void test (judyhash_type &ht, int num)
 	// test for operator =, erase, insert, operator []
 	// test for begin () when container is empty
 	judyhash_type ht4;
-	hash_insert_ret_type ret = ht4.insert (hash_value_type ("cool", 10000));
-	print_insert_ret (ret);
-	ret = ht4.insert (hash_value_type ("cool", 10002));
-	print_insert_ret (ret);
-	ret = ht4.insert (hash_value_type ("cool", 10003));
-	print_insert_ret (ret);
-	ret = ht4.insert (hash_value_type ("cool", 10004));
-	print_insert_ret (ret);
+	print_insert_ret (ht4.insert (hash_value_type ("cool", 10000)));
+	print_insert_ret (ht4.insert (hash_value_type ("cool", 10002)));
+	print_insert_ret (ht4.insert (hash_value_type ("cool", 10003)));
+	print_insert_ret (ht4.insert (hash_value_type ("cool", 10004)));
 
-	ht4 ["cool2"] = 10001;
-	print_hash_it (ht4, "h4 before ht4 = ht2");
+//	ht4 ["cool2"] = 10001;
+//	print_hash_it (ht4, "h4 before ht4 = ht2");
 
+	// test for count ()
+	std::cout << "count(\"cool\")=" << ht.count ("cool") << '\n';
+
+	//
 	ht4.clear ();
 	print_hash_it (ht4, "h4 is empty");
 
@@ -316,10 +327,8 @@ void test (judyhash_type &ht, int num)
 	print_hash_it (ht3, "h3 after ht3.erase (\"record\")");
 
 	// test for insert (value_type)
-	ret = ht4.insert (hash_value_type ("cool", 10005));
-	print_insert_ret (ret);
-	ret = ht.insert (hash_value_type ("apple", 7777));
-	print_insert_ret (ret);
+	print_insert_ret (ht4.insert (hash_value_type ("cool", 10005)));
+	print_insert_ret (ht.insert (hash_value_type ("apple", 7777)));
 	print_hash_const_it (ht, "ht initial");
 
 	// swapping 1 and 2
@@ -343,8 +352,8 @@ void test (judyhash_type &ht, int num)
 	print_iterator ("ht_layout_to_74 ", ht, ht.find ("layout"));
 
 	// test for operator []
-	ht ["layout"] = 76;
-	print_iterator ("ht [\"layout\"]=76 ", ht, ht.find ("layout"));
+//	ht ["layout"] = 76;
+//	print_iterator ("ht [\"layout\"]=76 ", ht, ht.find ("layout"));
 
 	// test for count ()
 	std::cout << "count(\"layout\")=" << ht.count ("layout") << '\n';
@@ -461,18 +470,22 @@ int main (int argc, const char **argv)
 		// test for constructor
 		my_hash6 ht6;
 		test (ht6, 6);
-	}else if (!strcmp (argv [0], "100")){
+	}else if (!strcmp (argv [0], "10")){
 		// test for constructor
 		std_map100 ht100;
 		test (ht100, 100);
-	}else if (!strcmp (argv [0], "101")){
+	}else if (!strcmp (argv [0], "11")){
 		// test for constructor
 		my_hash101 ht101;
 		test (ht101, 101);
-	}else if (!strcmp (argv [0], "102")){
+	}else if (!strcmp (argv [0], "12")){
 		// test for constructor
 		my_hash102 ht102;
 		test (ht102, 102);
+	}else if (!strcmp (argv [0], "20")){
+		// test for constructor
+		std_multimap20 ht20;
+		test (ht20, 20);
 	}else{
 		return 11;
 	}
