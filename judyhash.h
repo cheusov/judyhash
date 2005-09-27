@@ -52,6 +52,8 @@ struct __judyhash_types {
 	typedef _value_type             const * _const_pointer;
 	typedef _value_type                   & _reference;
 	typedef _value_type             const & _const_reference;
+
+	typedef __judyhash_types <TKey, TValue> __base;
 };
 
 #define __JUDYHASH_TYPEDEFS                                               \
@@ -75,10 +77,11 @@ template <
 	typename TValue,
 	typename THashFunc /* = std::hash<Key>*/,
 	typename TEqualFunc = std::equal_to <TKey>,
-	typename TAllocator = std::allocator< std::pair < TKey const, TValue > > >
+	typename TAllocator = std::allocator < std::pair < TKey const, TValue > > >
+//	typename TMultimap_flag>
 class judyhash_map : private __judyhash_types <TKey, TValue> {
 private:
-	typedef __judyhash_types <TKey, TValue> __base;
+//	enum {multimap_flag = TMultimap_flag};
 
 // types
 public:
@@ -177,7 +180,8 @@ public:
 		m_eq_func   (a.m_eq_func),
 		m_alloc     (a.m_alloc)
 	{
-		operator = (a);
+		// optimize me!!!
+		insert (a.begin (), a.end ());
 	}
 
 	~judyhash_map ()
@@ -225,11 +229,13 @@ public:
 
 	judyhash_map& operator = (const judyhash_map& a)
 	{
+		// exception-less implementation
 		if (this != &a){
 			clear ();
 
-			// optimize me!!!
-			insert (a.begin (), a.end ());
+			judyhash_map temp (a);
+
+			swap (temp);
 		}
 
 		return *this;
@@ -298,16 +304,12 @@ private:
 		pointers_list_type   *m_list;
 	};
 
-public:
 	class iterator_base : public __judyhash_types <TKey, TValue> {
 	public:
-		typedef __judyhash_types <TKey, TValue> __base;
-		typedef std::forward_iterator_tag iterator_category;
-
 		__JUDYHASH_TYPEDEFS
 
-	private:
-		const judyhash_map    *m_obj;
+//	private:
+		const judyhash_map *m_obj;
 
 		Word_t                 m_index;
 		judyhash_union_type    m_value;
@@ -316,8 +318,6 @@ public:
 
 		typename pointers_list_type::iterator m_list_it;
 //		typename pointers_list_type::iterator m_list_end_it;
-
-		friend class judyhash_map;
 
 		void init_list_it ()
 		{
@@ -348,7 +348,7 @@ public:
 			m_end = true;
 		}
 
-	protected:
+//	protected:
 		reference at () const
 		{
 			if (m_inside_list){
@@ -358,7 +358,7 @@ public:
 			}
 		}
 
-	public:
+//	public:
 		iterator_base ()
 		{
 			init ();
@@ -370,7 +370,8 @@ public:
 			operator = (a);
 		}
 
-		iterator_base (const judyhash_map *obj, Word_t index, Word_t value)
+		iterator_base (const judyhash_map *obj,
+					   Word_t index, Word_t value)
 			:
 			m_obj (obj),
 			m_index (index),
@@ -487,38 +488,49 @@ public:
 				&& (m_inside_list == i.m_inside_list)
 				&& (m_list_it     == i.m_list_it);
 		}
-
-		bool operator != (const iterator_base& i) const
-		{
-			return ! (*this == i);
-		}
 	};
 
+public:
 	class const_iterator;
 
-	class iterator : public iterator_base {
+	class iterator : public __judyhash_types <TKey, TValue> {
 	private:
-		// prevent conversion from 'const_iterator' to 'iterator'
-		iterator (const const_iterator &a)
-		{
-			abort ();
-		}
+		iterator_base m_it;
+		friend class const_iterator;
+		friend class judyhash_map;
 
 	public:
+		__JUDYHASH_TYPEDEFS
+
+		typedef std::forward_iterator_tag iterator_category;
+
 		iterator ()
 		{
 		}
-		iterator (const iterator &a)
-			: iterator_base (a)
+		iterator (const iterator_base &a)
+			: m_it (a)
 		{
 		}
-		explicit iterator (const iterator_base &a)
-			: iterator_base (a)
+		iterator (const iterator &a)
+			: m_it (a.m_it)
+		{
+		}
+		iterator (const judyhash_map *obj)
+			: m_it (obj)
 		{
 		}
 		iterator & operator = (const iterator& a)
 		{
-			return (iterator &) iterator_base::operator = (a);
+			m_it = a.m_it;
+			return *this;
+		}
+		reference operator * ()
+		{
+			return m_it.operator * ();
+		}
+		const_reference operator * () const
+		{
+			return m_it.operator * ();
 		}
 		iterator operator ++ (int)
 		{
@@ -528,42 +540,66 @@ public:
 		}
 		iterator& operator ++ ()
 		{
-			return (iterator &) iterator_base::operator++ ();
+			m_it.operator ++ ();
+			return *this;
 		}
-		bool operator == (const iterator& i) const
+		bool operator == (const iterator& a) const
 		{
-			return iterator_base::operator == (i);
+			return m_it == a.m_it;
 		}
-		pointer operator -> () const
+		bool operator != (const iterator& a) const
 		{
-			return &(at ());
+			return !(m_it == a.m_it);
+		}
+		pointer operator -> ()
+		{
+			return &m_it.operator * ();
+		}
+		const_pointer operator -> () const
+		{
+			return &m_it.operator * ();
 		}
 	};
 
-	class const_iterator : public iterator_base {
+	class const_iterator : public __judyhash_types <TKey, TValue> {
+	private:
+		iterator_base m_it;
+		friend class judyhash_map;
+
 	public:
+		__JUDYHASH_TYPEDEFS
+
 		const_iterator ()
 		{
 		}
+		const_iterator (const iterator_base &a)
+			: m_it (a)
+		{
+		}
 		const_iterator (const const_iterator &a)
-			: iterator_base (a)
+			: m_it (a.m_it)
 		{
 		}
 		const_iterator (const iterator &a)
-			: iterator_base (a)
+			: m_it (a.m_it)
 		{
 		}
-		explicit const_iterator (const iterator_base &a)
-			: iterator_base (a)
+		const_iterator (const judyhash_map *obj)
+			: m_it (obj)
 		{
 		}
 		const_iterator & operator = (const const_iterator& a)
 		{
-			return (const_iterator &) iterator_base::operator = (a);
+			m_it = a.m_it;
+			return *this;
 		}
-		const_iterator & operator = (const iterator& a)
+		reference operator * ()
 		{
-			return (const_iterator &) iterator_base::operator = (a);
+			return m_it.operator * ();
+		}
+		const_reference operator * () const
+		{
+			return m_it.operator * ();
 		}
 		const_iterator operator ++ (int)
 		{
@@ -573,15 +609,24 @@ public:
 		}
 		const_iterator& operator ++ ()
 		{
-			return (const_iterator &) iterator_base::operator++ ();
+			m_it.operator ++ ();
+			return *this;
 		}
-		bool operator == (const const_iterator& i) const
+		bool operator == (const const_iterator& a) const
 		{
-			return iterator_base::operator == (i);
+			return m_it == a.m_it;
+		}
+		bool operator != (const const_iterator& a) const
+		{
+			return !(m_it == a.m_it);
+		}
+		pointer operator -> ()
+		{
+			return &m_it.operator * ();
 		}
 		const_pointer operator -> () const
 		{
-			return &(at ());
+			return &m_it.operator * ();
 		}
 	};
 
@@ -601,7 +646,7 @@ public:
 
 	void erase (iterator it)
 	{
-		if (it.m_end){
+		if (it.m_it.m_end){
 			// standard says about undefined behaviour in such situations :(
 			abort ();
 
@@ -609,43 +654,43 @@ public:
 			//return;
 		}
 
-		assert (this == it.m_obj);
+		assert (this == it.m_it.m_obj);
 
-		if (it.m_inside_list){
-			assert ((it.m_value.m_judy_int & 1) == 1);
+		if (it.m_it.m_inside_list){
+			assert ((it.m_it.m_value.m_judy_int & 1) == 1);
 
 			m_size -= 1;
 
-			m_alloc.deallocate (*it.m_list_it, 1);
+			m_alloc.deallocate (*it.m_it.m_list_it, 1);
 #ifdef JUDYHASH_DEBUGINFO
 			m_debug_info.m_list_item_count -= 1;
 #endif
 
 			pointers_list_type *lst
-				= (pointers_list_type *) (it.m_value.m_judy_int & ~1);
+				= (pointers_list_type *) (it.m_it.m_value.m_judy_int & ~1);
 
-			lst -> erase (it.m_list_it);
+			lst -> erase (it.m_it.m_list_it);
 
 			if (lst -> empty ()){
 				delete lst;
 				m_allocated_lists.erase (lst);
 
-				::JudyLDel (&m_judy, it.m_index, 0);
+				::JudyLDel (&m_judy, it.m_it.m_index, 0);
 #ifdef JUDYHASH_DEBUGINFO
 				m_debug_info.m_list_count -= 1;
 #endif
 			}
 		}else{
-			assert ((it.m_value.m_judy_int & 1) == 0);
+			assert ((it.m_it.m_value.m_judy_int & 1) == 0);
 
 			m_size -= 1;
 
-			m_alloc.deallocate (it.m_value.m_pointer, 1);
+			m_alloc.deallocate (it.m_it.m_value.m_pointer, 1);
 #ifdef JUDYHASH_DEBUGINFO
 			m_debug_info.m_value_count -= 1;
 #endif
 
-			::JudyLDel (&m_judy, it.m_index, 0);
+			::JudyLDel (&m_judy, it.m_it.m_index, 0);
 		}
 	}
 
@@ -667,7 +712,7 @@ private:
 					return iterator (iterator_base (this, h, value.m_judy_int));
 				}else{
 					iterator ret (iterator_base (this, h, value.m_judy_int));
-					ret.make_end ();
+					ret.m_it.make_end ();
 					return ret;
 				}
 			}else{
@@ -688,7 +733,7 @@ private:
 				}
 
 				iterator ret (iterator_base (this, h, value.m_judy_int, end));
-				ret.make_end ();
+				ret.m_it.make_end ();
 				return ret;
 			}
 		}
@@ -853,3 +898,4 @@ public:
 		return const_iterator ();
 	}
 };
+
