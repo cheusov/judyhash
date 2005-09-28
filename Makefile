@@ -1,8 +1,8 @@
 ############################################################
 
 # Examples
-CXX=icpc
-#CXX=icc
+CXX=icpc -no-gcc
+#CXX=g++
 
 # Examples
 CPPFLAGS=-I/usr/include/boost
@@ -37,7 +37,7 @@ judyhash_test : judyhash_test.o
 .PHONY : clean
 clean:
 	rm -f *.o judyhash_bench judyhash_test expected.txt
-	rm -f *.tmp core* *~ semantic.cache
+	rm -f *.tmp core* *~ semantic.cache judyhash
 
 .PHONY : test
 test : judyhash_test
@@ -55,9 +55,9 @@ test : judyhash_test
 	./judyhash_test "6" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "test6 done" && \
 	\
-	./judyhash_test "100" >expected.txt && \
-	./judyhash_test "101" >res.tmp && diff -u expected.txt res.tmp && \
-	echo "test101 done" && \
-	./judyhash_test "102" >res.tmp && diff -u expected.txt res.tmp && \
-	echo "test102 done" && \
+	./judyhash_test "10" >expected.txt && \
+	./judyhash_test "11" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test11 done" && \
+	./judyhash_test "12" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test12 done" && \
 	true
