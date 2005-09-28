@@ -5,21 +5,76 @@
 #include <assert.h>
 #include <pool/pool_alloc.hpp>
 
-#if !defined(USE_STD_MAP) && !defined(USE_JUDY_HASH) && !defined(USE_HASH_MAP) && !defined(EMPTY_LOOP)
+#if !defined(USE_GOOGLE_DENSE_MAP) && !defined(USE_STD_MAP) && !defined(USE_JUDY_HASH) && !defined(USE_HASH_MAP) && !defined(EMPTY_LOOP)
 #error Opps
+#endif
+
+#ifdef EMPTY_LOOP
+#define USE_STD_MAP
 #endif
 
 #include "judyhash.h"
 
+#ifdef USE_GOOGLE_DENSE_MAP
+#include <google/dense_hash_map>
+
+template <
+	typename TKey,
+	typename TValue,
+	typename THashFunc /* = std::hash<Key>*/,
+	typename TEqualFunc = std::equal_to <TKey>,
+	typename TAllocator = std::allocator < std::pair < TKey const, TValue > > >
+class google_dense_hash_map : public google::dense_hash_map
+	 <TKey, TValue, THashFunc, TEqualFunc, TAllocator>
+{
+private:
+	typedef google::dense_hash_map
+	<TKey, TValue, THashFunc, TEqualFunc, TAllocator> __base;
+
+public:
+	google_dense_hash_map ()
+	{
+		set_deleted_key (key_type (1));
+		set_empty_key (key_type (2));
+	}
+
+	template <class Tit>
+	google_dense_hash_map (
+		Tit beg, Tit end)
+		:
+		__base (beg, end)
+	{
+		set_deleted_key (key_type (1));
+		set_empty_key (key_type (2));
+	}
+
+	google_dense_hash_map (
+		size_type n             = 0,
+		const hasher& h         = hasher (), 
+		const key_equal& k      = key_equal ())
+		:
+		__base (n, h, k)
+	{
+		set_deleted_key (key_type (1));
+		set_empty_key (key_type (2));
+	}
+
+	~google_dense_hash_map ()
+	{
+	}
+};
+
+#endif
+
 #ifdef USE_HASH_MAP
-#if ((__GNUC__ >= 3) && !defined(_STLP_CONFIG_H)) || __ICC >= 900
+#if ((__GNUC__ >= 3) && !defined(_STLP_CONFIG_H)) || __INTEL_COMPILER >= 900
 #include <ext/hash_map>
 #else
 #include <hash_map>
 #endif
 #endif
 
-#if defined(USE_STD_MAP) || defined(EMPTY_LOOP)
+#ifdef USE_STD_MAP
 #include <map>
 #endif
 
@@ -66,8 +121,8 @@ public:
 	}
 };
 
-//typedef const char * my_type;
-typedef std::string my_type;
+typedef const char * my_type;
+//typedef std::string my_type;
 
 struct hsh_string_hash {
 	size_t operator () (const std::string &key) const
@@ -113,24 +168,44 @@ struct hsh_string_hash {
 };
 
 struct cmp_string_eq {
-	bool operator () (char const *a, char const *b) const
+	bool operator () (char const *s1, char const *s2) const
 	{
-		return !strcmp (a, b);
+		if (s1 == s2)
+			return true;
+		else if (!!s1 ^ !!s2)
+			return false;
+		else if (s1 == (const char *)1)
+			return false;
+		else if (s1 == (const char *)2)
+			return false;
+		else if (s2 == (const char *)1)
+			return false;
+		else if (s2 == (const char *)2)
+			return false;
+		else
+			return strcmp(s1, s2) == 0;
 	}
-	bool operator () (const std::string &a, const std::string &b) const
+	bool operator () (const std::string &s1, const std::string &s2) const
 	{
-		return operator () (a.c_str (), b.c_str ());
+		return operator () (s1.c_str (), s2.c_str ());
 	}
 };
 
 struct cmp_string_lt {
-	bool operator () (char const *a, char const *b) const
+	bool operator () (char const *s1, char const *s2) const
 	{
-		return strcmp (a, b) < 0;
+		if (s1 == s2)
+			return false;
+		else if (s1 && !s2)
+			return true;
+		else if (!s1 && s2)
+			return false;
+		else
+			return strcmp(s1, s2) < 0;
 	}
-	bool operator () (std::string const &a, std::string const &b) const
+	bool operator () (std::string const &s1, std::string const &s2) const
 	{
-		return operator () (a.c_str (), b.c_str ());
+		return operator () (s1.c_str (), s2.c_str ());
 	}
 };
 
@@ -163,31 +238,38 @@ public:
 //typedef std::allocator < std::pair <my_type const, int> > test_allocator_type;
 typedef boost::fast_pool_allocator < std::pair <my_type const, int> > test_allocator_type;
 
-#ifdef USE_JUDY_HASH
-typedef judyhash_map <
-	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
-	> my_hash;
-#else
-#ifdef USE_HASH_MAP
-#ifdef __ICC
-typedef std::hash_map <
-	my_type, int, dinkumware_hash_traits, test_allocator_type
-	> my_hash;
-#else
-#if __GNUC__ >= 3 && !defined(_STLP_CONFIG_H)
-typedef __gnu_cxx::hash_map <
-	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
-	> my_hash;
-#else
-typedef std::hash_map <
+#ifdef USE_GOOGLE_DENSE_MAP
+typedef google_dense_hash_map <
 	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
 #endif
 
-#endif
-#else
+#ifdef USE_JUDY_HASH
+typedef judyhash_map <
+	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
+	> my_hash;
+#endif // USE_JUDY_HASH
+
+#ifdef USE_HASH_MAP
+#ifdef __INTEL_COMPILER
+typedef std::hash_map <
+	my_type, int, dinkumware_hash_traits, test_allocator_type
+	> my_hash;
+#else // !__INTEL_COMPILER
+#if __GNUC__ >= 3 && !defined(_STLP_CONFIG_H)
+typedef __gnu_cxx::hash_map <
+	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
+	> my_hash;
+#else // __GNUC__ >= 3
+typedef std::hash_map <
+	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
+	> my_hash;
+#endif // __GNUC__ < 3
+#endif // __INTEL_COMPILER
+#endif // USE_HASH_MAP
+
+#ifdef USE_STD_MAP
 typedef std::map <my_type, int, cmp_string_lt> my_hash;
-#endif
 #endif
 
 int main (int argc, const char **argv)
@@ -201,38 +283,22 @@ int main (int argc, const char **argv)
 
 #ifdef USE_JUDY_HASH
 	std::cout << "JudyHash!!!\n";
-#else
+#endif
 #ifdef USE_HASH_MAP
 	std::cout << "std::hash_map!!!\n";
-#else
+#endif
+#ifdef USE_STD_MAP
 	std::cout << "std::map!!!\n";
 #endif
+#ifdef USE_GOOGLE_DENSE_MAP
+	std::cout << "Google Dense Hash Map!!!\n";
 #endif
 
-	my_hash::value_type init_values [] = {
-		my_hash::value_type ("record", 1000),
-		my_hash::value_type ("access", 1001),
-		my_hash::value_type ("the", 1002),
-		my_hash::value_type ("27562356273562036503276502560265", 1003),
-		my_hash::value_type ("layout", 1004),
-		my_hash::value_type ("layout", 99999999)
-	};
-
-	my_hash ht2 (
-		init_values,
-		init_values + sizeof (init_values)/sizeof (init_values [0]));
-
-#if defined(USE_JUDY_HASH)
-	my_hash ht (0, hsh_string_hash (), cmp_string_eq ());
-#else
-#if defined(USE_HASH_MAP) && !defined(__ICC)
+#if defined(USE_JUDY_HASH) || (defined(USE_HASH_MAP) && !defined(__ICC)) || defined(USE_GOOGLE_DENSE_MAP)
 	my_hash ht (0, hsh_string_hash (), cmp_string_eq ());
 #else
 	my_hash ht;
 #endif
-#endif
-
-	ht.swap (ht2);
 
 	while (fgets (line, sizeof (line), stdin)){
 		char *NL = strchr (line, '\n');
@@ -244,10 +310,10 @@ int main (int argc, const char **argv)
 #ifndef EMPTY_LOOP
 			= ht.insert (
 				my_hash::value_type (
-					line, line_count));
+					strdup (line), line_count));
 #else
 		;
-//		strdup (line);
+		strdup (line);
 #endif
 
 		bool new_item = curr.second;
@@ -274,49 +340,14 @@ int main (int argc, const char **argv)
 	ht.hash_funct ();
 #endif
 
-//	ht.debug_print (std::cerr);
-//	return 0;
-
-	std::cout << "map size: " << ht.size () << '\n';
-#if defined(USE_JUDY_HASH) || defined(USE_HASH_MAP)
-	std::cout << "max_count=" << ht.max_size () << '\n';
-#endif
-
-	my_hash::iterator layout_iterator = ht.find ("layout");
-	my_hash::iterator layout_next_iterator = layout_iterator;
-	++layout_next_iterator;
-
-#ifdef JUDYHASH_ERASE_RETURN_IT
-	{
-		layout_next_iterator = ht.erase (layout_iterator, layout_next_iterator);
-		std::cout << "key after removed \"layout\"=" << (*layout_next_iterator).first << '\n';
-		std::cout << "value after removed \"layout\"=" << (*layout_next_iterator).second << '\n';
-	}
-#else
-	ht.erase (layout_iterator, layout_next_iterator);
-#endif
-
-	ht.erase ("apple");
-	ht.erase ("record");
-	ht.erase ("the");
-	for (int i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
-		my_type key = init_values [i].first;
-		my_hash::iterator found = ht.find (key);
-		if (found == ht.end ())
-			std::cout << "value[\"" << key << "\"]=(not found)\n";
-		else
-			std::cout << "value[\"" << key << "\"]=" << (*ht.find (key)).second << "\n";
-
-//		std::cout << "count[\"" << key << "\"]=" << ht.count (key) << "\n";
-	}
-
-//	while (1);
+#if 0
 	my_hash::iterator beg, end;
 	beg = ht.begin ();
 	end = ht.end ();
 
-//	for (; !(beg == end); ++beg){
-//		std::cout << "key2=`" << (*beg).first << "`\n";
-//		std::cout << "value2=" << (*beg).second << "\n";
-//	}
+	for (; !(beg == end); ++beg){
+		std::cout << "key2=`" << (*beg).first << "`\n";
+		std::cout << "value2=" << (*beg).second << "\n";
+	}
+#endif
 }
