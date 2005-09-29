@@ -7,6 +7,7 @@
 //#include <utility>
 #include <pool/pool_alloc.hpp>
 #include <map>
+#include <set>
 
 //#define JUDYHASH_NO_CONST
 #include "judyhash.h"
@@ -157,21 +158,24 @@ typedef judyhash_map <
 
 typedef std::map <
 	std::string, int
-	> std_map100;
+	> std_map10;
 typedef judyhash_map <
 	std::string, int, hsh_string_hash3
-	> my_hash101;
+	> my_hash11;
 typedef judyhash_map <
 	std::string, int, hsh_string_hash4
-	> my_hash102;
+	> my_hash12;
 
 typedef std::multimap <
 	const char *, int, cmp_string_lt
 	> std_multimap20;
 
+typedef std::set <
+	const char *, cmp_string_lt
+	> std_set30;
 typedef judyhash_set <
 	std::string, hsh_string_hash3
-	> my_set1;
+	> my_set31;
 
 static const my_hash1::value_type init_values [] = {
 	my_hash1::value_type ("record", 1000),
@@ -181,6 +185,16 @@ static const my_hash1::value_type init_values [] = {
 	my_hash1::value_type ("layout", 1004),
 	my_hash1::value_type ("apple", 1005),
 	my_hash1::value_type ("layout", 99999999)
+};
+
+static const std_set30::value_type init_values_set [] = {
+	std_set30::value_type ("record"),
+	std_set30::value_type ("access"),
+	std_set30::value_type ("the"),
+	std_set30::value_type ("27562356273562036503276502560265"),
+	std_set30::value_type ("layout"),
+	std_set30::value_type ("apple"),
+	std_set30::value_type ("layout")
 };
 
 template <typename T>
@@ -197,16 +211,16 @@ value2data_ (const T &v)
 	return v.second;
 }
 
-const my_set1::value_type &
-value2key_ (const my_set1::value_type &v)
+const my_set31::value_type &
+value2key_ (const my_set31::value_type &v)
 {
 	return v;
 }
 
-my_set1::value_type
-value2data_ (const my_set1::value_type &v)
+my_set31::value_type
+value2data_ (const my_set31::value_type &v)
 {
-	return my_set1::value_type ("(true)");
+	return my_set31::value_type ("(true)");
 }
 
 #define ITERATE_OVER(it_t, array, iter)                        \
@@ -253,19 +267,19 @@ void print_iterator (
 	const judyhash_type& ht,
 	const judyhash_iterator_type& it)
 {
-	std::cout << array_name << "[" << (*it).first << "]";
+	std::cout << array_name << "[" << value2key_ (*it) << "]";
 
 	if (ht.end () == it){
 		std::cout << " not found\n";
 	}else{
-		std::cout << "=" << (*it).second << '\n';
+		std::cout << "=" << value2data_ (*it) << '\n';
 	}
 
 	std::cout << '\n';
 }
 
-template <typename insert_ret_type>
-void print_insert_ret (const insert_ret_type &i)
+template <typename T>
+void print_insert_ret (const T &i)
 {
 	if (i.second)
 		std::cout << "new item `";
@@ -276,11 +290,15 @@ void print_insert_ret (const insert_ret_type &i)
 	std::cout << " value is `" << (*i.first).second << "`\n";
 }
 
-//template <typename T>
-void print_insert_ret (const std_multimap20::iterator &i)
+template <typename T>
+void print_insert_ret_set (const T &i)
 {
-	std::cout << (*i).first << "` was inserted";
-	std::cout << " value is `" << (*i).second << "`\n";
+	if (i.second)
+		std::cout << "new item `";
+	else
+		std::cout << "old item `";
+
+	std::cout << *(i.first) << "` was inserted";
 }
 
 template <typename judyhash_type>
@@ -309,8 +327,8 @@ void test (judyhash_type &ht, int num)
 	print_insert_ret (ht4.insert (hash_value_type ("cool", 10003)));
 	print_insert_ret (ht4.insert (hash_value_type ("cool", 10004)));
 
-//	ht4 ["cool2"] = 10001;
-//	print_hash_it (ht4, "h4 before ht4 = ht2");
+	ht4 ["cool2"] = 10001;
+	print_hash_it (ht4, "h4 before ht4 = ht2");
 
 	// test for count ()
 	std::cout << "count(\"cool\")=" << ht.count ("cool") << '\n';
@@ -368,6 +386,154 @@ void test (judyhash_type &ht, int num)
 
 	// test for iterator::operator ->
 	layout_iterator -> second = 74;
+	print_iterator ("ht_layout_to_74 ", ht, ht.find ("layout"));
+
+	// test for operator []
+	ht ["layout"] = 76;
+	print_iterator ("ht [\"layout\"]=76 ", ht, ht.find ("layout"));
+
+	// test for count ()
+	std::cout << "count(\"layout\")=" << ht.count ("layout") << '\n';
+
+	//
+	layout_next_iterator = layout_iterator;
+	// operator ++ (int)
+	layout_next_iterator++;
+
+	// test for iterators
+	std::cout << "distance: "
+			  << std::distance (layout_iterator, layout_next_iterator)
+			  << '\n';
+
+	// finding "apple", test for 'const_iterator find (k) const'
+	hash_const_iterator apple_iterator
+		= ((const judyhash_type *)(&ht)) -> find ("apple");
+
+	hash_const_iterator apple_next_iterator = apple_iterator;
+	print_iterator ("ht", ht, apple_iterator);
+
+	// test for (iterator to const_iterator)
+	apple_iterator  = layout_iterator;
+
+	// test for erase (x,y)
+	// erase found "layout" by iterator
+	ht.erase (layout_iterator, layout_next_iterator);
+	print_hash_const_it (ht, "ht after erasing \"layout\"");
+
+	// erase "apple", "record", "not a member" and "language"
+	// tests for erase (x)
+	ht.erase ("apple");
+	print_hash_const_it (
+		ht, "ht after erasing \"apple\"");
+
+	ht.erase (ht.find ("record"));
+	print_hash_const_it (
+		ht, "ht after erasing \"record\"");
+
+	ht.erase ("not a member");
+	print_hash_const_it (
+		ht, "ht after erasing \"not a member\"");
+
+	ht.erase ("language");
+	print_hash_const_it (
+		ht, "ht after erasing \"language\"");
+
+	// finding predefined words
+	for (int i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
+		const char *key = init_values [i].first;
+		hash_iterator found = ht.find (key);
+		if (found == ht.end ())
+			std::cout << "value[\"" << key << "\"]=(not found)\n";
+		else
+			std::cout << "value[\"" << key << "\"]=" << value2data_ (*found) << "\n";
+	}
+
+	print_hash_const_it (ht, "ht2 final");
+}
+
+template <typename judyhash_type>
+void test_set (judyhash_type &ht, int num)
+{
+	typedef typename judyhash_type::iterator         hash_iterator;
+	typedef typename judyhash_type::const_iterator   hash_const_iterator;
+	typedef typename judyhash_type::value_type hash_value_type;
+	typedef hash_iterator                      hash_insert_ret_type;
+
+	// initializing 2
+	// test for constructor
+	judyhash_type ht2 (
+		init_values_set,
+		init_values_set
+		+ sizeof (init_values_set)/sizeof (init_values_set [0]));
+	print_hash_it (ht2, "ht2 initial");
+
+	// test for operator =, erase, insert, operator []
+	// test for begin () when container is empty
+	judyhash_type ht4;
+	print_insert_ret_set (ht4.insert (hash_value_type ("cool")));
+	print_insert_ret_set (ht4.insert (hash_value_type ("cool")));
+	print_insert_ret_set (ht4.insert (hash_value_type ("cool")));
+	print_insert_ret_set (ht4.insert (hash_value_type ("cool")));
+
+//	ht4 ["cool2"] = 10001;
+//	print_hash_it (ht4, "h4 before ht4 = ht2");
+
+	// test for count ()
+	std::cout << "count(\"cool\")=" << ht.count ("cool") << '\n';
+
+	//
+	ht4.clear ();
+	print_hash_it (ht4, "h4 is empty");
+
+	ht4 = ht2;
+
+	print_hash_it (ht2, "h2 after ht4(ht2)");
+	print_hash_it (ht4, "h4 after ht4(ht2)");
+	ht4.erase ("record");
+	print_hash_it (ht2, "h2 after ht4.erase (\"record\")");
+	print_hash_it (ht4, "h4 after ht4.erase (\"record\")");
+
+	//  test operator = (x, x)
+	ht4 = ht4;
+	print_hash_it (ht4, "h4 after ht4 = ht4");
+
+	// test for empty ()
+	std::cout << "ht4 is empty: " << ht4.empty () << '\n';
+	std::cout << "ht2 is empty: " << ht2.empty () << '\n';
+	ht.clear ();
+	std::cout << "ht4 is empty: " << ht4.empty () << '\n';
+
+	// test for copy-constructor
+	judyhash_type ht3 (ht2);
+	print_hash_it (ht2, "h2 after ht3(ht2)");
+	print_hash_it (ht3, "h3 after ht3(ht2)");
+	ht3.erase ("record");
+	print_hash_it (ht2, "h2 after ht3.erase (\"record\")");
+	print_hash_it (ht3, "h3 after ht3.erase (\"record\")");
+
+	// test for insert (value_type)
+	print_insert_ret_set (ht4.insert (hash_value_type ("cool")));
+	print_insert_ret_set (ht.insert (hash_value_type ("apple")));
+	print_hash_const_it (ht, "ht initial");
+
+	// swapping 1 and 2
+	print_hash_it (ht2, "ht2 before swap");
+	print_hash_const_it (ht, "ht before swap");
+	ht.swap (ht2);
+	print_hash_it (ht2, "ht2 after swap");
+	print_hash_const_it (ht, "ht after swap");
+
+	// tests for iterator, find, iterator::operator++(),
+	//           iterator::operator*() etc.
+	// finding "layout"
+	hash_iterator layout_iterator = ht.find ("layout");
+	hash_iterator layout_next_iterator;
+	print_iterator ("ht", ht, layout_iterator);
+//	(*layout_iterator).second = 75;
+	print_iterator ("ht_layout_to_75 ", ht, ht.find ("layout"));
+
+	// test for iterator::operator ->
+//	layout_iterator -> second = 74;
 	print_iterator ("ht_layout_to_74 ", ht, ht.find ("layout"));
 
 	// test for operator []
@@ -491,25 +657,29 @@ int main (int argc, const char **argv)
 		test (ht6, 6);
 	}else if (!strcmp (argv [0], "10")){
 		// test for constructor
-		std_map100 ht100;
-		test (ht100, 100);
+		std_map10 ht10;
+		test (ht10, 10);
 	}else if (!strcmp (argv [0], "11")){
 		// test for constructor
-		my_hash101 ht101;
-		test (ht101, 101);
+		my_hash11 ht11;
+		test (ht11, 11);
 	}else if (!strcmp (argv [0], "12")){
 		// test for constructor
-		my_hash102 ht102;
-		test (ht102, 102);
-	}else if (!strcmp (argv [0], "20")){
+		my_hash12 ht12;
+		test (ht12, 12);
+//	}else if (!strcmp (argv [0], "20")){
+//		// test for constructor
+//		std_multimap20 ht20;
+//		test (ht20, 20);
+	}else if (!strcmp (argv [0], "30")){
 		// test for constructor
-		std_multimap20 ht20;
-		test (ht20, 20);
+		std_set30 ht30;
+		test_set (ht30, 30);
+	}else if (!strcmp (argv [0], "31")){
+		// test for constructor
+		my_set31 ht31;
+//		test_set (ht31, 31);
 	}else{
 		return 11;
 	}
-
-//	my_set1 set1;
-	
-//	test (set1, 0);
 }
