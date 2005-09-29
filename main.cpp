@@ -1,8 +1,11 @@
+//#include <sys/time.h>
+//#include <time.h>
+#include <string.h>
+#include <assert.h>
+
 #include <iostream>
 #include <string>
 #include <vector>
-#include <string.h>
-#include <assert.h>
 #include <pool/pool_alloc.hpp>
 
 #if !defined(USE_GOOGLE_DENSE_MAP) && !defined(USE_STD_MAP) && !defined(USE_JUDY_HASH) && !defined(USE_HASH_MAP) && !defined(EMPTY_LOOP)
@@ -34,8 +37,8 @@ private:
 public:
 	google_dense_hash_map ()
 	{
-		set_deleted_key (key_type (1));
-		set_empty_key (key_type (2));
+		set_deleted_key ("\1");
+		set_empty_key ("\2");
 	}
 
 	template <class Tit>
@@ -44,8 +47,8 @@ public:
 		:
 		__base (beg, end)
 	{
-		set_deleted_key (key_type (1));
-		set_empty_key (key_type (2));
+		set_deleted_key ("\1");
+		set_empty_key ("\2");
 	}
 
 	google_dense_hash_map (
@@ -55,8 +58,8 @@ public:
 		:
 		__base (n, h, k)
 	{
-		set_deleted_key (key_type (1));
-		set_empty_key (key_type (2));
+		set_deleted_key ("\1");
+		set_empty_key ("\2");
 	}
 
 	~google_dense_hash_map ()
@@ -121,8 +124,8 @@ public:
 	}
 };
 
-typedef const char * my_type;
-//typedef std::string my_type;
+//typedef const char * my_type;
+typedef std::string my_type;
 
 struct hsh_string_hash {
 	size_t operator () (const std::string &key) const
@@ -272,26 +275,47 @@ typedef std::hash_map <
 typedef std::map <my_type, int, cmp_string_lt> my_hash;
 #endif
 
+void usage ()
+{
+	std::cerr << "usage: judyhash <num> < <filename>";
+}
+
 int main (int argc, const char **argv)
 {
+//	struct timeval tv_begin, tv_end;
+//	memset (&tv_begin, 0, sizeof (tv_begin));
+//	memset (&tv_end,   0, sizeof (tv_end));
+
+//	if (gettimeofday (&tv_begin, NULL)){
+//		std::cerr << strerror (errno) << '\n';
+//		return 9;
+//	}
+
 	char line [2048];
-	int line_count = 100;
 
 	int dups = 0;
 
 	--argc, ++argv;
 
+	if (argc == 0){
+		usage ();
+		return 1;
+	}
+
+	unsigned long threshold = strtoul (argv [0], NULL, 10);
+	std::cout << "threshold: " << threshold << '\n';
+
 #ifdef USE_JUDY_HASH
-	std::cout << "JudyHash!!!\n";
+	std::cout << "JudyHash: ";
 #endif
 #ifdef USE_HASH_MAP
-	std::cout << "std::hash_map!!!\n";
+	std::cout << "hash_map: ";
 #endif
 #ifdef USE_STD_MAP
-	std::cout << "std::map!!!\n";
+	std::cout << "std::map: ";
 #endif
 #ifdef USE_GOOGLE_DENSE_MAP
-	std::cout << "Google Dense Hash Map!!!\n";
+	std::cout << "google::dense_hash_map: ";
 #endif
 
 #if defined(USE_JUDY_HASH) || (defined(USE_HASH_MAP) && !defined(__ICC)) || defined(USE_GOOGLE_DENSE_MAP)
@@ -300,33 +324,29 @@ int main (int argc, const char **argv)
 	my_hash ht;
 #endif
 
+	unsigned long line_count = 0;
 	while (fgets (line, sizeof (line), stdin)){
+		++line_count;
+		if ((line_count % threshold) == 0){
+			ht.clear ();
+		}
+
 		char *NL = strchr (line, '\n');
 		if (NL)
 			*NL = 0;
 
-//		std::pair <my_hash::key_type, my_hash::mapped_type> curr;
-		std::pair <my_hash::iterator, bool> curr
 #ifndef EMPTY_LOOP
-			= ht.insert (
-				my_hash::value_type (
-					strdup (line), line_count));
-#else
-		;
-		strdup (line);
-#endif
+		std::pair <my_hash::iterator, bool> curr = ht.insert (
+			my_hash::value_type (
+				strdup (line), line_count));
 
 		bool new_item = curr.second;
 		if (!new_item){
 			++dups;
 		}
-
-//		std::cout << "new=`" << curr.second << "`\n";
-//		std::cout << "key=`" << (*curr.first).first << "`\n";
-//		std::cout << "value=" << (*curr.first).second << '\n';
-//		std::cout << '\n';
-
-		++line_count;
+#else
+		strdup (line);
+#endif
 	}
 
 	std::cout << "duplicates count: " << dups << '\n';
@@ -350,4 +370,12 @@ int main (int argc, const char **argv)
 		std::cout << "value2=" << (*beg).second << "\n";
 	}
 #endif
+
+//	if (gettimeofday (&tv_end, NULL)){
+//		std::cerr << strerror (errno) << '\n';
+//		return 9;
+//	}
+
+//	std::cerr << tv_end.tv_usec - tv_begin.tv_usec << " microseconds\n";
+//	std::cerr << tv_end.tv_sec - tv_begin.tv_sec << " seconds\n";
 }

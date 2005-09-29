@@ -5,9 +5,8 @@ STLPORT_INCLUDE_DIR=/usr/include/stlport
 ADDON_INCLUDE_DIR=/usr/local/include
 
 TESTFILE=$HOME/texts/5000.out
-TMPFILE=temp.tmp
 
-LINES='100000 300000 600000 1000000 3000000 6000000 10000000'
+LINES='1 10 100 1000 10000 100000 1000000'
 
 test_judyhash (){
     CXX=$1
@@ -20,12 +19,7 @@ test_judyhash (){
     echo "Compile: $compile_cmd"
     $compile_cmd 2>log || exit 1
     for i in $LINES; do
-	/usr/bin/head -n "$i" < "$TESTFILE" > "$TMPFILE" || exit 2
-
-	cat "$TMPFILE" > /dev/null || exit 3
-
-	exe_time=`time -p ./judyhash < $TMPFILE 2>&1 > log_stdout` || exit 4
-#	exe_time=`cat log_stderr`
+	exe_time=`time -p ./judyhash $i < $TESTFILE 2>&1 > log_stdout` || exit 4
 	printf "$i LINES: "
 	echo $exe_time | awk '/user/ {print $2}'
     done
