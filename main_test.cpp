@@ -8,6 +8,7 @@
 #include <pool/pool_alloc.hpp>
 #include <map>
 
+//#define JUDYHASH_NO_CONST
 #include "judyhash.h"
 
 template <typename T>
@@ -52,10 +53,6 @@ public:
 		assert (count == 1);
 	}
 };
-
-typedef my_pool < std::pair <const char *const, int> > test_allocator_type1;
-//typedef std::allocator < std::pair <const char *const, int> > test_allocator_type2;
-typedef boost::fast_pool_allocator < std::pair <const char *const, int> > test_allocator_type2;
 
 struct hsh_string_hash1 {
 	size_t operator () (const char *key) const
@@ -140,6 +137,11 @@ typedef judyhash_map <
 typedef judyhash_map <
 	const char *, int, hsh_string_hash2, cmp_string_eq
 	> my_hash2;
+
+typedef my_pool <my_hash2::value_type> test_allocator_type1;
+//typedef std::allocator <my_hash2::value_type> test_allocator_type2;
+typedef boost::fast_pool_allocator <my_hash2::value_type> test_allocator_type2;
+
 typedef judyhash_map <
 	const char *, int, hsh_string_hash1, cmp_string_eq, test_allocator_type1
 	> my_hash3;
@@ -167,6 +169,10 @@ typedef std::multimap <
 	const char *, int, cmp_string_lt
 	> std_multimap20;
 
+typedef judyhash_set <
+	std::string, hsh_string_hash3
+	> my_set1;
+
 static const my_hash1::value_type init_values [] = {
 	my_hash1::value_type ("record", 1000),
 	my_hash1::value_type ("access", 1001),
@@ -177,6 +183,32 @@ static const my_hash1::value_type init_values [] = {
 	my_hash1::value_type ("layout", 99999999)
 };
 
+template <typename T>
+const typename T::first_type &
+value2key_ (const T &v)
+{
+	return v.first;
+}
+
+template <typename T>
+const typename T::second_type &
+value2data_ (const T &v)
+{
+	return v.second;
+}
+
+const my_set1::value_type &
+value2key_ (const my_set1::value_type &v)
+{
+	return v;
+}
+
+my_set1::value_type
+value2data_ (const my_set1::value_type &v)
+{
+	return my_set1::value_type ("(true)");
+}
+
 #define ITERATE_OVER(it_t, array, iter)                        \
     for (it_t iter = (array).begin (), iter##_end = (array).end (); \
          !(iter == iter##_end);                                \
@@ -185,30 +217,17 @@ static const my_hash1::value_type init_values [] = {
 template <typename judyhash_type, typename judyhash_iterator_type>
 void print_uni (judyhash_type &ht, const char * name)
 {
-	typedef std::pair <
-		typename judyhash_type::key_type,
-		typename judyhash_type::mapped_type> pair_type;
-	typedef std::vector <pair_type> vec_type;
+	typedef typename judyhash_type::value_type pair_type;
+	typedef std::set <pair_type> vec_type;
 
 	// test for forward_iterator?
 	vec_type vec (ht.begin (), ht.end ());
 
-	vec.clear ();
-
-	// test for judyhash_map::const_iterator
-	// test for judyhash_map::iterator
-	ITERATE_OVER (judyhash_iterator_type, ht, v){
-		vec.push_back (*v);
-	}
-
-	// actually, pointers are sorted here
-	std::sort (vec.begin (), vec.end ());
-
 	std::cout << name << ":\n";
 	std::cout << "size:" << ht.size () << '\n';
 	ITERATE_OVER (typename vec_type::const_iterator, vec, v){
-		std::cout << "key=`" << (*v).first << "` ";
-		std::cout << "value=" << (*v).second << "\n";
+		std::cout << "key=`" << value2key_ (*v) << "` ";
+		std::cout << "value=" << value2key_ (*v) << "\n";
 	}
 
 	std::cout << '\n';
@@ -408,7 +427,7 @@ void test (judyhash_type &ht, int num)
 		if (found == ht.end ())
 			std::cout << "value[\"" << key << "\"]=(not found)\n";
 		else
-			std::cout << "value[\"" << key << "\"]=" << (*found).second << "\n";
+			std::cout << "value[\"" << key << "\"]=" << value2data_ (*found) << "\n";
 	}
 
 	print_hash_const_it (ht, "ht2 final");
@@ -489,4 +508,8 @@ int main (int argc, const char **argv)
 	}else{
 		return 11;
 	}
+
+//	my_set1 set1;
+	
+//	test (set1, 0);
 }

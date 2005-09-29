@@ -1,8 +1,8 @@
 ############################################################
 
 # Examples
-CXX=icpc -no-gcc
-#CXX=g++
+#CXX=icpc -no-gcc
+CXX=g++
 
 # Examples
 CPPFLAGS=-I/usr/include/boost

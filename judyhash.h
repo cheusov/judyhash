@@ -13,6 +13,7 @@
  */
 
 #include <assert.h>
+#include <stddef.h>
 
 #include <list>
 #include <utility>
@@ -39,35 +40,65 @@
 
 template <typename TKey, typename TValue>
 struct __judyhash_map_traits {
-	typedef TKey                            _key_type;
-	typedef TValue                          _data_type;
-	typedef TValue                          _mapped_type;
-	typedef std::pair <const TKey, TValue>  _value_type;
-	typedef size_t                          _size_type;
-	typedef ptrdiff_t                       _difference_type;
+	typedef TKey                            key_type;
+	typedef TValue                          data_type;
+	typedef TValue                          mapped_type;
+#ifdef JUDYHASH_NO_CONST
+	typedef std::pair <      TKey, TValue>  value_type;
+#else
+	typedef std::pair <const TKey, TValue>  value_type;
+#endif
+
+	typedef size_t                          size_type;
+	typedef ptrdiff_t                       difference_type;
 
 	// It is not possible to derive 'pointer' and 'reference' types from
 	// TAllocator
-	typedef _value_type                   * _pointer;
-	typedef _value_type             const * _const_pointer;
-	typedef _value_type                   & _reference;
-	typedef _value_type             const & _const_reference;
+	typedef value_type                   * pointer;
+	typedef value_type             const * const_pointer;
+	typedef value_type                   & reference;
+	typedef value_type             const & const_reference;
 
-	typedef __judyhash_map_traits <TKey, TValue> __base;
+	const key_type &value2key (const value_type& value) const
+	{
+		return value.first;
+	}
+};
+
+template <typename TKey>
+struct __judyhash_set_traits {
+	typedef TKey                            key_type;
+	typedef TKey                            data_type;
+	typedef TKey                            mapped_type;
+	typedef TKey                            value_type;
+	typedef size_t                          size_type;
+	typedef ptrdiff_t                       difference_type;
+
+	// It is not possible to derive 'pointer' and 'reference' types from
+	// TAllocator
+	typedef value_type                   * pointer;
+	typedef value_type             const * const_pointer;
+	typedef value_type                   & reference;
+	typedef value_type             const & const_reference;
+
+	const key_type &value2key (const value_type& value) const
+	{
+		return value;
+	}
 };
 
 #define __JUDYHASH_TYPEDEFS                                               \
-	typedef typename __base::_key_type                key_type;           \
-	typedef typename __base::_data_type               data_type;          \
-	typedef typename __base::_mapped_type             mapped_type;        \
-	typedef typename __base::_value_type              value_type;         \
-	typedef typename __base::_size_type               size_type;          \
-	typedef typename __base::_difference_type         difference_type;    \
+	typedef typename __base::key_type                key_type;           \
+	typedef typename __base::data_type               data_type;          \
+	typedef typename __base::mapped_type             mapped_type;        \
+	typedef typename __base::value_type              value_type;         \
+	typedef typename __base::size_type               size_type;          \
+	typedef typename __base::difference_type         difference_type;    \
     \
-	typedef typename __base::_pointer                 pointer;            \
-	typedef typename __base::_const_pointer           const_pointer;      \
-	typedef typename __base::_reference               reference;          \
-	typedef typename __base::_const_reference         const_reference;
+	typedef typename __base::pointer                 pointer;            \
+	typedef typename __base::const_pointer           const_pointer;      \
+	typedef typename __base::reference               reference;          \
+	typedef typename __base::const_reference         const_reference;
 
     // It is not possible to derive 'pointer' and 'reference' types from  \
     // TAllocator                                                         \
@@ -75,13 +106,15 @@ struct __judyhash_map_traits {
 template <
 	typename TKey,
 	typename TValue,
-	typename THashFunc, /* = std::hash<Key>,*/
-	typename TEqualFunc, //= std::equal_to <TKey>,
-	typename TAllocator, //= std::allocator < std::pair < TKey const, TValue > >,
+	typename THashFunc,
+	typename TEqualFunc,
+	typename TAllocator,
 	typename TTraits>
 class __judyhash_map : private TTraits
 {
 private:
+	typedef TTraits __base;
+
 //	enum {multimap_flag = TMultimap_flag};
 
 // types
@@ -711,7 +744,7 @@ private:
 			value.m_judy_int = ptr -> m_judy_int;
 
 			if ((value.m_judy_int & 1) == 0){
-				if (m_eq_func (value.m_pointer -> first, key)){
+				if (m_eq_func (value2key (*value.m_pointer), key)){
 					return iterator (iterator_base (this, h, value.m_judy_int));
 				}else{
 					iterator ret (iterator_base (this, h, value.m_judy_int));
@@ -726,10 +759,8 @@ private:
 				beg = lst -> begin ();
 				end = lst -> end ();
 
-				typename pointers_list_type::iterator found = end;
-
 				for (; !(beg == end); ++beg){
-					if (m_eq_func ((*beg) -> first, key)){
+					if (m_eq_func (value2key (**beg), key)){
 						return iterator (iterator_base
 										 (this, h, value.m_judy_int, beg));
 					}
@@ -780,7 +811,7 @@ public:
 
 	std::pair <iterator, bool> insert (const value_type& value)
 	{
-		const TKey &key   = value.first;
+		const TKey &key = value2key (value);
 
 		Word_t h = m_hash_func (key);
 		judyhash_union_type *ptr
@@ -792,7 +823,7 @@ public:
 			// JudyL cell was already initialized
 			if ((ptr -> m_judy_int & 1) == 0){
 				if (m_eq_func (
-						ptr -> m_pointer -> first, value.first))
+						value2key (*ptr -> m_pointer), value.first))
 				{
 					// JudyL cell equal to 'value'
 					return std::make_pair
@@ -839,11 +870,9 @@ public:
 				beg = lst -> begin ();
 				end = lst -> end ();
 
-				typename pointers_list_type::iterator found = end;
-
 				// Look for 'value' in the list
 				for (; !(beg == end); ++beg){
-					if (m_eq_func ((*beg) -> first, value.first)){
+					if (m_eq_func (value2key (**beg), value.first)){
 						// found
 						return std::make_pair (
 							iterator (iterator_base (
@@ -907,20 +936,31 @@ template <
 	typename TValue,
 	typename THashFunc, // = std::hash <Key>,
 	typename TEqualFunc = std::equal_to <TKey>,
-	typename TAllocator = std::allocator < std::pair < TKey const, TValue > > >
+	typename TAllocator = std::allocator < typename __judyhash_map_traits <TKey, TValue>::value_type > >
 class judyhash_map
 :
 public __judyhash_map <TKey, TValue, THashFunc, TEqualFunc, TAllocator,
 	__judyhash_map_traits <TKey, TValue> >
 {
+private:
+	typedef __judyhash_map <TKey, TValue, THashFunc, TEqualFunc, TAllocator,
+		__judyhash_map_traits <TKey, TValue> > __base;
+	typedef judyhash_map <TKey, TValue, THashFunc, TEqualFunc, TAllocator> __this_type;
+
 public:
+	typedef typename __base::key_equal               key_equal;
+	typedef typename __base::hasher                  hasher;
+	typedef typename __base::allocator_type          allocator_type;
+
+	__JUDYHASH_TYPEDEFS
+
 	judyhash_map (
 		size_type n             = 0,
 		const hasher& h         = hasher (), 
 		const key_equal& k      = key_equal (),
 		const allocator_type& a = allocator_type ())
 		:
-		__this_type (n, h, k, a)
+		__base (n, h, k, a)
 	{
 	}
 
@@ -932,17 +972,72 @@ public:
 		const key_equal& k      = key_equal (),
 		const allocator_type& a = allocator_type ())
 		:
-		__this_type (beg, end, n, h, k, a)
+		__base (beg, end, n, h, k, a)
 	{
 	}
 
 	judyhash_map (const __this_type& a)
 		:
-		__this_type (a)
+		__base (a)
 	{
 	}
 
 	~judyhash_map ()
+	{
+	}
+};
+
+template <
+	typename TKey,
+	typename THashFunc, // = std::hash <Key>,
+	typename TEqualFunc = std::equal_to <TKey>,
+	typename TAllocator = std::allocator < TKey> >
+class judyhash_set
+:
+public __judyhash_map <TKey, char, THashFunc, TEqualFunc, TAllocator,
+	__judyhash_set_traits <TKey> >
+{
+private:
+	typedef __judyhash_map <TKey, char, THashFunc, TEqualFunc, TAllocator,
+		__judyhash_set_traits <TKey> > __base;
+	typedef judyhash_set <TKey, THashFunc, TEqualFunc, TAllocator> __this_type;
+
+public:
+	typedef typename __base::key_equal               key_equal;
+	typedef typename __base::hasher                  hasher;
+	typedef typename __base::allocator_type          allocator_type;
+
+	__JUDYHASH_TYPEDEFS
+
+	judyhash_set (
+		size_type n             = 0,
+		const hasher& h         = hasher (), 
+		const key_equal& k      = key_equal (),
+		const allocator_type& a = allocator_type ())
+		:
+		__base (n, h, k, a)
+	{
+	}
+
+	template <class Tit>
+	judyhash_set (
+		Tit beg, Tit end,
+		size_type n             = 0,
+		const hasher& h         = hasher (), 
+		const key_equal& k      = key_equal (),
+		const allocator_type& a = allocator_type ())
+		:
+		__base (beg, end, n, h, k, a)
+	{
+	}
+
+	judyhash_set (const __this_type& a)
+		:
+		__base (a)
+	{
+	}
+
+	~judyhash_set ()
 	{
 	}
 };
