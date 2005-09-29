@@ -38,7 +38,7 @@
 ////////////////////////////////////////////////////////////
 
 template <typename TKey, typename TValue>
-struct __judyhash_types {
+struct __judyhash_map_traits {
 	typedef TKey                            _key_type;
 	typedef TValue                          _data_type;
 	typedef TValue                          _mapped_type;
@@ -53,7 +53,7 @@ struct __judyhash_types {
 	typedef _value_type                   & _reference;
 	typedef _value_type             const & _const_reference;
 
-	typedef __judyhash_types <TKey, TValue> __base;
+	typedef __judyhash_map_traits <TKey, TValue> __base;
 };
 
 #define __JUDYHASH_TYPEDEFS                                               \
@@ -75,11 +75,12 @@ struct __judyhash_types {
 template <
 	typename TKey,
 	typename TValue,
-	typename THashFunc /* = std::hash<Key>*/,
-	typename TEqualFunc = std::equal_to <TKey>,
-	typename TAllocator = std::allocator < std::pair < TKey const, TValue > > >
-//	typename TMultimap_flag>
-class judyhash_map : private __judyhash_types <TKey, TValue> {
+	typename THashFunc, /* = std::hash<Key>,*/
+	typename TEqualFunc, //= std::equal_to <TKey>,
+	typename TAllocator, //= std::allocator < std::pair < TKey const, TValue > >,
+	typename TTraits>
+class __judyhash_map : private TTraits
+{
 private:
 //	enum {multimap_flag = TMultimap_flag};
 
@@ -88,6 +89,8 @@ public:
 	typedef TEqualFunc                      key_equal;
 	typedef THashFunc                       hasher;
 	typedef TAllocator                      allocator_type;
+
+	typedef __judyhash_map <TKey, TValue, THashFunc, TEqualFunc, TAllocator, TTraits> __this_type;
 
 	__JUDYHASH_TYPEDEFS
 
@@ -140,11 +143,11 @@ private:
 
 //
 public:
-	judyhash_map (
-		size_type n             = 0,
-		const hasher& h         = hasher (), 
-		const key_equal& k      = key_equal (),
-		const allocator_type& a = allocator_type ())
+	__judyhash_map (
+		size_type n,
+		const hasher& h, 
+		const key_equal& k,
+		const allocator_type& a)
 		:
 		m_hash_func (h),
 		m_eq_func   (k),
@@ -155,12 +158,12 @@ public:
 	}
 
 	template <class Tit>
-	judyhash_map (
+	__judyhash_map (
 		Tit beg, Tit end,
-		size_type               = 0,
-		const hasher& h         = hasher (), 
-		const key_equal& k      = key_equal (),
-		const allocator_type& a = allocator_type ())
+		size_type,
+		const hasher& h, 
+		const key_equal& k,
+		const allocator_type& a)
 		:
 		m_hash_func (h),
 		m_eq_func   (k),
@@ -172,7 +175,7 @@ public:
 		insert (beg, end);
 	}
 
-	judyhash_map (const judyhash_map& a)
+	__judyhash_map (const __this_type& a)
 		:
 		m_judy (0),
 		m_size (0),
@@ -184,7 +187,7 @@ public:
 		insert (a.begin (), a.end ());
 	}
 
-	~judyhash_map ()
+	~__judyhash_map ()
 	{
 		clear ();
 
@@ -227,13 +230,13 @@ public:
 #endif // JUDYHASH_DEBUG
 	}
 
-	judyhash_map& operator = (const judyhash_map& a)
+	__judyhash_map& operator = (const __this_type& a)
 	{
 		// exception-less implementation
 		if (this != &a){
 			clear ();
 
-			judyhash_map temp (a);
+			__this_type temp (a);
 
 			swap (temp);
 		}
@@ -261,7 +264,7 @@ public:
 		return m_size;
 	}
 
-	void swap (judyhash_map& a)
+	void swap (__this_type& a)
 	{
 		std::swap (m_judy, a.m_judy);
 		std::swap (m_size, a.m_size);
@@ -304,12 +307,12 @@ private:
 		pointers_list_type   *m_list;
 	};
 
-	class iterator_base : public __judyhash_types <TKey, TValue> {
+	class iterator_base : private TTraits {
 	public:
 		__JUDYHASH_TYPEDEFS
 
 //	private:
-		const judyhash_map *m_obj;
+		const __this_type *m_obj;
 
 		Word_t                 m_index;
 		judyhash_union_type    m_value;
@@ -370,7 +373,7 @@ private:
 			operator = (a);
 		}
 
-		iterator_base (const judyhash_map *obj,
+		iterator_base (const __this_type *obj,
 					   Word_t index, Word_t value)
 			:
 			m_obj (obj),
@@ -381,7 +384,7 @@ private:
 			init_list_it ();
 		}
 
-		iterator_base (const judyhash_map *obj,
+		iterator_base (const __this_type *obj,
 		               Word_t index, Word_t value,
 		               typename pointers_list_type::iterator it)
 			:
@@ -394,7 +397,7 @@ private:
 			m_value.m_judy_int = value;
 		}
 
-		iterator_base (const judyhash_map *obj)
+		iterator_base (const __this_type *obj)
 		{
 			init ();
 
@@ -493,11 +496,11 @@ private:
 public:
 	class const_iterator;
 
-	class iterator : public __judyhash_types <TKey, TValue> {
+	class iterator : private TTraits {
 	private:
 		iterator_base m_it;
 		friend class const_iterator;
-		friend class judyhash_map;
+		friend class __judyhash_map;
 
 	public:
 		__JUDYHASH_TYPEDEFS
@@ -515,7 +518,7 @@ public:
 			: m_it (a.m_it)
 		{
 		}
-		iterator (const judyhash_map *obj)
+		iterator (const __this_type *obj)
 			: m_it (obj)
 		{
 		}
@@ -561,10 +564,10 @@ public:
 		}
 	};
 
-	class const_iterator : public __judyhash_types <TKey, TValue> {
+	class const_iterator : private TTraits {
 	private:
 		iterator_base m_it;
-		friend class judyhash_map;
+		friend class __judyhash_map;
 
 	public:
 		__JUDYHASH_TYPEDEFS
@@ -584,7 +587,7 @@ public:
 			: m_it (a.m_it)
 		{
 		}
-		const_iterator (const judyhash_map *obj)
+		const_iterator (const __this_type *obj)
 			: m_it (obj)
 		{
 		}
@@ -899,3 +902,47 @@ public:
 	}
 };
 
+template <
+	typename TKey,
+	typename TValue,
+	typename THashFunc, // = std::hash <Key>,
+	typename TEqualFunc = std::equal_to <TKey>,
+	typename TAllocator = std::allocator < std::pair < TKey const, TValue > > >
+class judyhash_map
+:
+public __judyhash_map <TKey, TValue, THashFunc, TEqualFunc, TAllocator,
+	__judyhash_map_traits <TKey, TValue> >
+{
+public:
+	judyhash_map (
+		size_type n             = 0,
+		const hasher& h         = hasher (), 
+		const key_equal& k      = key_equal (),
+		const allocator_type& a = allocator_type ())
+		:
+		__this_type (n, h, k, a)
+	{
+	}
+
+	template <class Tit>
+	judyhash_map (
+		Tit beg, Tit end,
+		size_type n             = 0,
+		const hasher& h         = hasher (), 
+		const key_equal& k      = key_equal (),
+		const allocator_type& a = allocator_type ())
+		:
+		__this_type (beg, end, n, h, k, a)
+	{
+	}
+
+	judyhash_map (const __this_type& a)
+		:
+		__this_type (a)
+	{
+	}
+
+	~judyhash_map ()
+	{
+	}
+};
