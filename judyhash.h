@@ -792,7 +792,7 @@ public:
 		// optimize me!!!
 		for (
 			const_iterator found = find (key);
-			!(found == e) && m_eq_func ((*found).first, key);
+			!(found == e) && m_eq_func (value2key (*found), key);
 			++found)
 		{
 			++c;
@@ -823,7 +823,7 @@ public:
 			// JudyL cell was already initialized
 			if ((ptr -> m_judy_int & 1) == 0){
 				if (m_eq_func (
-						value2key (*ptr -> m_pointer), value.first))
+						value2key (*ptr -> m_pointer), key))
 				{
 					// JudyL cell equal to 'value'
 					return std::make_pair
@@ -872,7 +872,7 @@ public:
 
 				// Look for 'value' in the list
 				for (; !(beg == end); ++beg){
-					if (m_eq_func (value2key (**beg), value.first)){
+					if (m_eq_func (value2key (**beg), key)){
 						// found
 						return std::make_pair (
 							iterator (iterator_base (

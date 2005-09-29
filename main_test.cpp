@@ -678,7 +678,7 @@ int main (int argc, const char **argv)
 	}else if (!strcmp (argv [0], "31")){
 		// test for constructor
 		my_set31 ht31;
-//		test_set (ht31, 31);
+		test_set (ht31, 31);
 	}else{
 		return 11;
 	}

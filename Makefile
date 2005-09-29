@@ -1,8 +1,8 @@
 ############################################################
 
 # Examples
-#CXX=icpc -no-gcc
-CXX=g++
+CXX=icpc -no-gcc
+#CXX=g++
 
 # Examples
 CPPFLAGS=-I/usr/include/boost
@@ -60,4 +60,9 @@ test : judyhash_test
 	echo "test11 done" && \
 	./judyhash_test "12" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "test12 done" && \
+	\
+	./judyhash_test "30" >expected.txt && \
+	./judyhash_test "31" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test31 done" && \
+	\
 	true
