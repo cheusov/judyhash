@@ -6,7 +6,8 @@ ADDON_INCLUDE_DIR=/usr/local/include
 
 TESTFILE=$HOME/texts/5000.out
 
-LINES='1 10 100 1000 10000 100000 1000000'
+#LINES='1 5 10 50 100 500 1000 5000 10000 50000 100000 500000 1000000'
+LINES='1 2 3 4 5 6 7 8 9 10'
 
 test_judyhash (){
     CXX=$1
@@ -30,25 +31,25 @@ for gpp in g++ icpc; do
     which $gpp || continue
 
     # just file reading 
-    test_judyhash $gpp "-I$BOOST_INCLUDE_DIR" "-O3 -march=i586" \
-        ""                     "-DEMPTY_LOOP"
+     test_judyhash $gpp "-I$BOOST_INCLUDE_DIR" "-O3 -march=i586" \
+         ""                     "-DEMPTY_LOOP"
 
-    # g++ STL
-    test_judyhash $gpp         \
-	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
-	"-O3 -march=i586"      \
-	""                     \
-	"-DUSE_GOOGLE_DENSE_MAP"
-    test_judyhash $gpp         \
-	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
-	"-O3 -march=i586"      \
-        ""                     \
-	"-DUSE_STD_MAP"
-    test_judyhash $gpp         \
-	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
-	"-O3 -march=i586"      \
-        "-lJudy"               \
-	"-DUSE_JUDY_HASH"
+     # g++ STL
+     test_judyhash $gpp         \
+ 	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+ 	"-O3 -march=i586"      \
+ 	""                     \
+ 	"-DUSE_GOOGLE_DENSE_MAP"
+     test_judyhash $gpp         \
+ 	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+ 	"-O3 -march=i586"      \
+         ""                     \
+ 	"-DUSE_STD_MAP"
+     test_judyhash $gpp         \
+ 	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+ 	"-O3 -march=i586"      \
+         "-lJudy"               \
+ 	"-DUSE_JUDY_HASH"
     test_judyhash $gpp         \
 	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
 	"-O3 -march=i586"      \
@@ -57,7 +58,7 @@ for gpp in g++ icpc; do
 
     # STLPORT STL
     test_judyhash $gpp         \
-	"-I$ADDON_INCLUDE_DIR -I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"-I$STLPORT_INCLUDE_DIR -I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
 	"-O3 -march=i586"      \
 	"-lstlport -lm "       \
 	"-DUSE_GOOGLE_DENSE_MAP"

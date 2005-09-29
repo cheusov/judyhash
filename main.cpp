@@ -70,10 +70,14 @@ public:
 #endif
 
 #ifdef USE_HASH_MAP
-#if ((__GNUC__ >= 3) && !defined(_STLP_CONFIG_H)) || __INTEL_COMPILER >= 900
+#if ((__GNUC__ >= 3) && !defined(_STLP_CONFIG_H))
+#include <ext/hash_map>
+#else
+#if defined(__INTEL_COMPILER)
 #include <ext/hash_map>
 #else
 #include <hash_map>
+#endif
 #endif
 #endif
 
@@ -255,19 +259,22 @@ typedef judyhash_map <
 
 #ifdef USE_HASH_MAP
 #ifdef __INTEL_COMPILER
-typedef std::hash_map <
-	my_type, int, dinkumware_hash_traits, test_allocator_type
+//typedef std::hash_map <
+//	my_type, int, dinkumware_hash_traits, test_allocator_type
+//	> my_hash;
+typedef __gnu_cxx::hash_map <
+	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
 #else // !__INTEL_COMPILER
 #if __GNUC__ >= 3 && !defined(_STLP_CONFIG_H)
 typedef __gnu_cxx::hash_map <
 	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
-#else // __GNUC__ >= 3
+#else // __GNUC__ < 3
 typedef std::hash_map <
 	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
-#endif // __GNUC__ < 3
+#endif // __GNUC__ >= 3
 #endif // __INTEL_COMPILER
 #endif // USE_HASH_MAP
 
@@ -327,9 +334,12 @@ int main (int argc, const char **argv)
 	unsigned long line_count = 0;
 	while (fgets (line, sizeof (line), stdin)){
 		++line_count;
+
+#ifndef EMPTY_LOOP
 		if ((line_count % threshold) == 0){
 			ht.clear ();
 		}
+#endif
 
 		char *NL = strchr (line, '\n');
 		if (NL)
@@ -337,15 +347,15 @@ int main (int argc, const char **argv)
 
 #ifndef EMPTY_LOOP
 		std::pair <my_hash::iterator, bool> curr = ht.insert (
-			my_hash::value_type (
-				strdup (line), line_count));
+			my_hash::value_type (line, line_count));
+//				strdup (line), line_count));
 
 		bool new_item = curr.second;
 		if (!new_item){
 			++dups;
 		}
 #else
-		strdup (line);
+//		strdup (line);
 #endif
 	}
 
