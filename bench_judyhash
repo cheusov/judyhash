@@ -45,7 +45,7 @@ test_judyhash (){
     echo '' 1>&2
 }
 
-for gpp in g++ icpc; do
+for gpp in icpc; do
     which $gpp || continue
 
     # just file reading 
@@ -56,25 +56,25 @@ for gpp in g++ icpc; do
 	"-DTYPE_CHAR_PTR -DEMPTY_LOOP"
 
      # g++ STL
-     test_judyhash $gpp         \
+    test_judyhash $gpp         \
 	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"             \
 	""                      \
- 	"-DTYPE_CHAR_PTR -DUSE_GOOGLE_DENSE_MAP"
-     test_judyhash $gpp         \
- 	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
- 	"$OPTFLAGS"             \
-        ""                     \
- 	"-DTYPE_CHAR_PTR -DUSE_STD_MAP"
+	"-DTYPE_CHAR_PTR -DUSE_GOOGLE_DENSE_MAP"
     test_judyhash $gpp         \
- 	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
- 	"$OPTFLAGS"             \
-         "-lJudy"               \
- 	"-DTYPE_CHAR_PTR -DUSE_JUDY_HASH"
+	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$OPTFLAGS"             \
+	""                     \
+	"-DTYPE_CHAR_PTR -DUSE_STD_MAP"
+    test_judyhash $gpp         \
+	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$OPTFLAGS"             \
+	"-lJudy"               \
+	"-DTYPE_CHAR_PTR -DUSE_JUDY_HASH"
     test_judyhash $gpp         \
 	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"            \
-        ""                     \
+	""                     \
 	"-DTYPE_CHAR_PTR -DUSE_HASH_MAP"
 
     # STLPORT STL
