@@ -696,11 +696,11 @@ int main (int argc, const char **argv)
 	std::cout << "max_count=" << ht777.max_size () << '\n';
 
 	std::cout << "single item count:"
-			  << ht777.m_debug_info.m_value_count << '\n';
+			  << ht777.get_debug_info ().m_value_count << '\n';
 	std::cout << "list item count:  "
-			  << ht777.m_debug_info.m_list_item_count << '\n';
+			  << ht777.get_debug_info ().m_list_item_count << '\n';
 	std::cout << "list count:       "
-			  << ht777.m_debug_info.m_list_count << '\n';
+			  << ht777.get_debug_info ().m_list_count << '\n';
 
 	print_hash_it (ht777, "ht777");
 
