@@ -103,12 +103,68 @@ struct __judyhash_set_traits {
     // It is not possible to derive 'pointer' and 'reference' types from  \
     // TAllocator                                                         \
 
+template <typename TKey, typename TEqualFunc>
+class __judyhash_list_map : public std::list <TKey *>
+{
+private:
+	TEqualFunc m_eq_func;
+public:
+	__judyhash_list_map ()
+	{
+	}
+	~__judyhash_list_map ()
+	{
+	}
+	typename std::list <TKey *>::iterator find (
+		const typename TKey::first_type &key)
+	{
+		typename std::list <TKey *>::iterator beg
+			= std::list <TKey *>::begin ();
+		typename std::list <TKey *>::iterator end
+			= std::list <TKey *>::end ();
+
+		for (; !(beg == end); ++beg){
+			if (m_eq_func ((**beg).first, key)){
+				return beg;
+			}
+		}
+	}
+};
+
+template <typename TKey, typename TEqualFunc>
+class __judyhash_list_set : public std::list <TKey *>
+{
+private:
+	TEqualFunc m_eq_func;
+public:
+	__judyhash_list_set ()
+	{
+	}
+	~__judyhash_list_set ()
+	{
+	}
+	typename std::list <TKey *>::iterator find (const TKey &key)
+	{
+		typename std::list <TKey *>::iterator beg
+			= std::list <TKey *>::begin ();
+		typename std::list <TKey *>::iterator end
+			= std::list <TKey *>::end ();
+
+		for (; !(beg == end); ++beg){
+			if (m_eq_func (**beg, key)){
+				return beg;
+			}
+		}
+	}
+};
+
 template <
 	typename TKey,
 	typename TValue,
 	typename THashFunc,
 	typename TEqualFunc,
 	typename TAllocator,
+	typename TList,
 	typename TTraits>
 class __judyhash_map : private TTraits
 {
@@ -123,7 +179,7 @@ public:
 	typedef THashFunc                       hasher;
 	typedef TAllocator                      allocator_type;
 
-	typedef __judyhash_map <TKey, TValue, THashFunc, TEqualFunc, TAllocator, TTraits> __this_type;
+	typedef __judyhash_map <TKey, TValue, THashFunc, TEqualFunc, TAllocator, TList, TTraits> __this_type;
 
 	__JUDYHASH_TYPEDEFS
 
@@ -132,11 +188,11 @@ public:
 		// stored in JudyL cells
 		int m_value_count;
 
-		// a number of allocated std::list objects
+		// a number of allocated TList objects
 		int m_list_count;
 
 		// a number of values (actually, pointer to value)
-		// stored in std::list objects
+		// stored in TList objects
 		int m_list_item_count;
 
 		debug_info ()
@@ -158,7 +214,8 @@ public:
 
 //
 private:
-	typedef std::list <pointer> pointers_list_type;
+	typedef TList pointers_list_type;
+//	typedef std::list <pointer> pointers_list_type;
 	typedef std::set <pointers_list_type *> allocated_lists_type;
 
 	Pvoid_t              m_judy;
@@ -760,10 +817,19 @@ private:
 			}else{
 				pointers_list_type *lst
 					= (pointers_list_type *) (value.m_judy_int & ~1);
+				typename pointers_list_type::iterator end
+					= lst -> end ();
 
-				typename pointers_list_type::iterator beg, end;
+#if 1
+				typename pointers_list_type::iterator found
+					= lst -> find (key);
+				if (found != lst -> end ()){
+					return iterator (iterator_base
+									 (this, h, value.m_judy_int, found));
+				}
+#else
+				typename pointers_list_type::iterator beg;
 				beg = lst -> begin ();
-				end = lst -> end ();
 
 				for (; !(beg == end); ++beg){
 					if (m_eq_func (value2key (**beg), key)){
@@ -771,6 +837,7 @@ private:
 										 (this, h, value.m_judy_int, beg));
 					}
 				}
+#endif
 
 				iterator ret (iterator_base (this, h, value.m_judy_int, end));
 				ret.m_it.make_end ();
@@ -850,8 +917,7 @@ public:
 					m_debug_info.m_value_count      -= 1;
 #endif
 
-					lst -> insert (
-						lst -> end (), copy);
+					lst -> insert (lst -> end (), copy);
 
 					typename pointers_list_type::iterator ret_it
 						= lst -> insert (
@@ -945,13 +1011,21 @@ template <
 	typename TAllocator = std::allocator < typename __judyhash_map_traits <TKey, TValue>::value_type > >
 class judyhash_map
 :
-public __judyhash_map <TKey, TValue, THashFunc, TEqualFunc, TAllocator,
+public __judyhash_map <
+	TKey, TValue, THashFunc, TEqualFunc, TAllocator,
+	__judyhash_list_map
+		<typename __judyhash_map_traits <TKey, TValue>::value_type, TEqualFunc>,
 	__judyhash_map_traits <TKey, TValue> >
 {
 private:
-	typedef __judyhash_map <TKey, TValue, THashFunc, TEqualFunc, TAllocator,
+	typedef __judyhash_map <
+		TKey, TValue, THashFunc, TEqualFunc, TAllocator,
+		__judyhash_list_map
+			<typename __judyhash_map_traits <TKey, TValue>::value_type, TEqualFunc>,
 		__judyhash_map_traits <TKey, TValue> > __base;
-	typedef judyhash_map <TKey, TValue, THashFunc, TEqualFunc, TAllocator> __this_type;
+	typedef judyhash_map <
+		TKey, TValue, THashFunc, TEqualFunc, TAllocator
+		> __this_type;
 
 public:
 	typedef typename __base::key_equal               key_equal;
@@ -1004,13 +1078,20 @@ template <
 	typename TAllocator = std::allocator < TKey> >
 class judyhash_set
 :
-public __judyhash_map <TKey, char, THashFunc, TEqualFunc, TAllocator,
+public __judyhash_map <
+	TKey, char, THashFunc, TEqualFunc, TAllocator,
+	__judyhash_list_set
+		<typename __judyhash_set_traits <TKey>::value_type, TEqualFunc>,
 	__judyhash_set_traits <TKey> >
 {
 private:
-	typedef __judyhash_map <TKey, char, THashFunc, TEqualFunc, TAllocator,
+	typedef __judyhash_map <
+		TKey, char, THashFunc, TEqualFunc, TAllocator,
+		__judyhash_list_set
+			<typename __judyhash_set_traits <TKey>::value_type, TEqualFunc>,
 		__judyhash_set_traits <TKey> > __base;
-	typedef judyhash_set <TKey, THashFunc, TEqualFunc, TAllocator> __this_type;
+	typedef judyhash_set <
+		TKey, THashFunc, TEqualFunc, TAllocator> __this_type;
 
 public:
 	typedef typename __base::key_equal               key_equal;

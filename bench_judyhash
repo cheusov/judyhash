@@ -5,13 +5,13 @@
 BOOST_INCLUDE_DIR=/usr/include/boost
 STLPORT_INCLUDE_DIR=/usr/include/stlport
 ADDON_INCLUDE_DIR=/usr/local/include
-OPTFLAGS='-O3 -march=pentium4'
+OPTFLAGS='-O3 -march=i586'
 
 TESTFILE=$HOME/texts/5000.out
 
 #MCOUNT=15 # a number of measurements
 #MAX_LINE=10000000
-MCOUNT=14 # a number of measurements
+MCOUNT=4 # a number of measurements
 MAX_LINE=3162277
 
 ###############################################################
