@@ -176,6 +176,12 @@ private:
 
 //
 public:
+	__judyhash_map ()
+	{
+		m_judy = 0;
+		m_size = 0;
+	}
+
 	__judyhash_map (
 		size_type n,
 		const hasher& h, 
@@ -954,8 +960,12 @@ public:
 
 	__JUDYHASH_TYPEDEFS
 
+	judyhash_map ()
+	{
+	}
+
 	judyhash_map (
-		size_type n             = 0,
+		size_type n,
 		const hasher& h         = hasher (), 
 		const key_equal& k      = key_equal (),
 		const allocator_type& a = allocator_type ())
@@ -1009,8 +1019,12 @@ public:
 
 	__JUDYHASH_TYPEDEFS
 
+	judyhash_set ()
+	{
+	}
+
 	judyhash_set (
-		size_type n             = 0,
+		size_type n,
 		const hasher& h         = hasher (), 
 		const key_equal& k      = key_equal (),
 		const allocator_type& a = allocator_type ())
