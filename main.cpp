@@ -128,8 +128,11 @@ public:
 	}
 };
 
-//typedef const char * my_type;
+#ifdef TYPE_CHAR_PTR
+typedef const char * my_type;
+#else
 typedef std::string my_type;
+#endif
 
 struct hsh_string_hash {
 	size_t operator () (const std::string &key) const
@@ -346,16 +349,22 @@ int main (int argc, const char **argv)
 			*NL = 0;
 
 #ifndef EMPTY_LOOP
+#ifdef TYPE_CHAR_PTR
+		std::pair <my_hash::iterator, bool> curr = ht.insert (
+			my_hash::value_type (strdup (line), line_count));
+#else
 		std::pair <my_hash::iterator, bool> curr = ht.insert (
 			my_hash::value_type (line, line_count));
-//				strdup (line), line_count));
+#endif
 
 		bool new_item = curr.second;
 		if (!new_item){
 			++dups;
 		}
 #else
-//		strdup (line);
+#ifdef TYPE_CHAR_PTR
+		strdup (line);
+#endif
 #endif
 	}
 
