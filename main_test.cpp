@@ -91,6 +91,10 @@ struct hsh_string_hash1 {
 
 		return h ; 
 	}
+	size_t operator () (const std::string &key) const
+	{
+		return operator () (key.c_str ());
+	}
 };
 
 struct hsh_string_hash2 {
@@ -98,17 +102,17 @@ struct hsh_string_hash2 {
 	{
 		return 0;
 	}
-};
-
-struct hsh_string_hash3 {
 	size_t operator () (const std::string &key) const
 	{
-		hsh_string_hash1 h;
-		return h (key.c_str ());
+		return 0;
 	}
 };
 
-struct hsh_string_hash4 {
+struct hsh_string_hash3 {
+	size_t operator () (const char *key) const
+	{
+		return 1000;
+	}
 	size_t operator () (const std::string &key) const
 	{
 		return 1000;
@@ -120,12 +124,27 @@ struct cmp_string_eq {
 	{
 		return !strcmp (a, b);
 	}
+	bool operator () (const std::string a, const std::string &b) const
+	{
+		return a == b;
+	}
 };
 
 struct cmp_string_lt {
 	bool operator () (const char *a, const char *b) const
 	{
 		return strcmp (a, b) < 0;
+	}
+	bool operator () (const std::string &a, const std::string &b) const
+	{
+		return a < b;
+	}
+
+	template <typename K, typename D>
+	bool operator () (
+		const std::pair <K, D> &a, const std::pair <K, D> &b)
+	{
+		return a.first < b.first;
 	}
 };
 
@@ -138,33 +157,48 @@ typedef judyhash_map <
 typedef judyhash_map <
 	const char *, int, hsh_string_hash2, cmp_string_eq
 	> my_hash2;
-
-typedef my_pool <my_hash2::value_type> test_allocator_type1;
-//typedef std::allocator <my_hash2::value_type> test_allocator_type2;
-typedef boost::fast_pool_allocator <my_hash2::value_type> test_allocator_type2;
-
 typedef judyhash_map <
-	const char *, int, hsh_string_hash1, cmp_string_eq, test_allocator_type1
+	const char *, int, hsh_string_hash3, cmp_string_eq,
+	my_pool <my_hash1::value_type>
 	> my_hash3;
 typedef judyhash_map <
-	const char *, int, hsh_string_hash2, cmp_string_eq, test_allocator_type1
+	const char *, int, hsh_string_hash1, cmp_string_eq,
+	std::allocator <my_hash1::value_type>
 	> my_hash4;
 typedef judyhash_map <
-	const char *, int, hsh_string_hash1, cmp_string_eq, test_allocator_type2
+	const char *, int, hsh_string_hash2, cmp_string_eq,
+	boost::fast_pool_allocator <my_hash1::value_type>
 	> my_hash5;
 typedef judyhash_map <
-	const char *, int, hsh_string_hash2, cmp_string_eq, test_allocator_type2
+	const char *, int, hsh_string_hash3, cmp_string_eq,
+	boost::fast_pool_allocator <my_hash1::value_type>
 	> my_hash6;
 
 typedef std::map <
 	std::string, int
 	> std_map10;
 typedef judyhash_map <
-	std::string, int, hsh_string_hash3
+	std::string, int, hsh_string_hash1
 	> my_hash11;
 typedef judyhash_map <
-	std::string, int, hsh_string_hash4
+	std::string, int, hsh_string_hash2
 	> my_hash12;
+typedef judyhash_map <
+	std::string, int, hsh_string_hash3, cmp_string_eq,
+	my_pool <my_hash11::value_type>
+	> my_hash13;
+typedef judyhash_map <
+	std::string, int, hsh_string_hash1, cmp_string_eq,
+	std::allocator <my_hash11::value_type>
+	> my_hash14;
+typedef judyhash_map <
+	std::string, int, hsh_string_hash2, cmp_string_eq,
+	boost::fast_pool_allocator <my_hash11::value_type>
+	> my_hash15;
+typedef judyhash_map <
+	std::string, int, hsh_string_hash3, cmp_string_eq,
+	std::allocator <my_hash11::value_type>
+	> my_hash16;
 
 typedef std::multimap <
 	const char *, int, cmp_string_lt
@@ -176,6 +210,25 @@ typedef std::set <
 typedef judyhash_set <
 	std::string, hsh_string_hash3
 	> my_set31;
+typedef judyhash_set <
+	std::string, hsh_string_hash2
+	> my_set32;
+typedef judyhash_set <
+	std::string, hsh_string_hash3, cmp_string_eq,
+	my_pool <my_set31::value_type>
+	> my_set33;
+typedef judyhash_set <
+	std::string, hsh_string_hash1, cmp_string_eq,
+	std::allocator <my_set31::value_type>
+	> my_set34;
+typedef judyhash_set <
+	std::string, hsh_string_hash2, cmp_string_eq,
+	boost::fast_pool_allocator <my_set31::value_type>
+	> my_set35;
+typedef judyhash_set <
+	std::string, hsh_string_hash3, cmp_string_eq,
+	std::allocator <my_set31::value_type>
+	> my_set36;
 
 static const my_hash1::value_type init_values [] = {
 	my_hash1::value_type ("record", 1000),
@@ -231,8 +284,9 @@ value2data_ (const my_set31::value_type &v)
 template <typename judyhash_type, typename judyhash_iterator_type>
 void print_uni (judyhash_type &ht, const char * name)
 {
-	typedef typename judyhash_type::value_type pair_type;
-	typedef std::set <pair_type> vec_type;
+	typedef std::set <
+		typename judyhash_type::value_type,
+		cmp_string_lt> vec_type;
 
 	// test for forward_iterator?
 	vec_type vec (ht.begin (), ht.end ());
@@ -655,6 +709,9 @@ int main (int argc, const char **argv)
 		// test for constructor
 		my_hash6 ht6;
 		test (ht6, 6);
+
+
+
 	}else if (!strcmp (argv [0], "10")){
 		// test for constructor
 		std_map10 ht10;
@@ -667,10 +724,32 @@ int main (int argc, const char **argv)
 		// test for constructor
 		my_hash12 ht12;
 		test (ht12, 12);
+	}else if (!strcmp (argv [0], "13")){
+		// test for constructor
+		my_hash13 ht13;
+		test (ht13, 13);
+	}else if (!strcmp (argv [0], "14")){
+		// test for constructor
+		my_hash14 ht14;
+		test (ht14, 14);
+	}else if (!strcmp (argv [0], "15")){
+		// test for constructor
+		my_hash15 ht15;
+		test (ht15, 15);
+	}else if (!strcmp (argv [0], "16")){
+		// test for constructor
+		my_hash16 ht16;
+		test (ht16, 16);
+
+
+
 //	}else if (!strcmp (argv [0], "20")){
 //		// test for constructor
 //		std_multimap20 ht20;
 //		test (ht20, 20);
+
+
+
 	}else if (!strcmp (argv [0], "30")){
 		// test for constructor
 		std_set30 ht30;
@@ -679,6 +758,26 @@ int main (int argc, const char **argv)
 		// test for constructor
 		my_set31 ht31;
 		test_set (ht31, 31);
+	}else if (!strcmp (argv [0], "32")){
+		// test for constructor
+		my_set32 ht32;
+		test_set (ht32, 32);
+	}else if (!strcmp (argv [0], "33")){
+		// test for constructor
+		my_set33 ht33;
+		test_set (ht33, 33);
+	}else if (!strcmp (argv [0], "34")){
+		// test for constructor
+		my_set34 ht34;
+		test_set (ht34, 34);
+	}else if (!strcmp (argv [0], "35")){
+		// test for constructor
+		my_set35 ht35;
+		test_set (ht35, 35);
+	}else if (!strcmp (argv [0], "36")){
+		// test for constructor
+		my_set36 ht36;
+		test_set (ht36, 36);
 	}else{
 		return 11;
 	}

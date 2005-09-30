@@ -1,8 +1,8 @@
 ############################################################
 
 # Examples
-CXX=icpc -no-gcc
-#CXX=g++
+#CXX=icpc -no-gcc
+CXX=g++
 
 # Examples
 CPPFLAGS=-I/usr/include/boost
@@ -60,9 +60,29 @@ test : judyhash_test
 	echo "test11 done" && \
 	./judyhash_test "12" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "test12 done" && \
+	./judyhash_test "13" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test13 done" && \
+	./judyhash_test "14" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test14 done" && \
+	./judyhash_test "15" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test15 done" && \
+	./judyhash_test "16" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test16 done" && \
 	\
 	./judyhash_test "30" >expected.txt && \
 	./judyhash_test "31" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "test31 done" && \
+	./judyhash_test "31" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test32 done" && \
+	./judyhash_test "32" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test33 done" && \
+	./judyhash_test "33" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test34 done" && \
+	./judyhash_test "34" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test35 done" && \
+	./judyhash_test "35" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test35 done" && \
+	./judyhash_test "36" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test36 done" && \
 	\
 	true
