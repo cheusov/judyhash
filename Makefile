@@ -69,6 +69,20 @@ test : judyhash_test
 	./judyhash_test "16" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "test16 done" && \
 	\
+	./judyhash_test "20" >expected.txt && \
+	./judyhash_test "21" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test21 done" && \
+	./judyhash_test "22" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test22 done" && \
+	./judyhash_test "23" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test23 done" && \
+	./judyhash_test "24" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test24 done" && \
+	./judyhash_test "25" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test25 done" && \
+	./judyhash_test "26" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "test26 done" && \
+	\
 	./judyhash_test "30" >expected.txt && \
 	./judyhash_test "31" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "test31 done" && \

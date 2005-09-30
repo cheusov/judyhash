@@ -153,59 +153,81 @@ typedef std::map <
 	> std_map0;
 typedef judyhash_map <
 	const char *, int, hsh_string_hash1, cmp_string_eq
-	> my_hash1;
+	> my_map1;
 typedef judyhash_map <
 	const char *, int, hsh_string_hash2, cmp_string_eq
-	> my_hash2;
+	> my_map2;
 typedef judyhash_map <
 	const char *, int, hsh_string_hash3, cmp_string_eq,
-	my_pool <my_hash1::value_type>
-	> my_hash3;
+	my_pool <my_map1::value_type>
+	> my_map3;
 typedef judyhash_map <
 	const char *, int, hsh_string_hash1, cmp_string_eq,
-	std::allocator <my_hash1::value_type>
-	> my_hash4;
+	std::allocator <my_map1::value_type>
+	> my_map4;
 typedef judyhash_map <
 	const char *, int, hsh_string_hash2, cmp_string_eq,
-	boost::fast_pool_allocator <my_hash1::value_type>
-	> my_hash5;
+	boost::fast_pool_allocator <my_map1::value_type>
+	> my_map5;
 typedef judyhash_map <
 	const char *, int, hsh_string_hash3, cmp_string_eq,
-	boost::fast_pool_allocator <my_hash1::value_type>
-	> my_hash6;
+	boost::fast_pool_allocator <my_map1::value_type>
+	> my_map6;
 
 typedef std::map <
 	std::string, int
 	> std_map10;
 typedef judyhash_map <
 	std::string, int, hsh_string_hash1
-	> my_hash11;
+	> my_map11;
 typedef judyhash_map <
 	std::string, int, hsh_string_hash2
-	> my_hash12;
+	> my_map12;
 typedef judyhash_map <
 	std::string, int, hsh_string_hash3, cmp_string_eq,
-	my_pool <my_hash11::value_type>
-	> my_hash13;
+	my_pool <my_map11::value_type>
+	> my_map13;
 typedef judyhash_map <
 	std::string, int, hsh_string_hash1, cmp_string_eq,
-	std::allocator <my_hash11::value_type>
-	> my_hash14;
+	std::allocator <my_map11::value_type>
+	> my_map14;
 typedef judyhash_map <
 	std::string, int, hsh_string_hash2, cmp_string_eq,
-	boost::fast_pool_allocator <my_hash11::value_type>
-	> my_hash15;
+	boost::fast_pool_allocator <my_map11::value_type>
+	> my_map15;
 typedef judyhash_map <
 	std::string, int, hsh_string_hash3, cmp_string_eq,
-	std::allocator <my_hash11::value_type>
-	> my_hash16;
-
-typedef std::multimap <
-	const char *, int, cmp_string_lt
-	> std_multimap20;
+	std::allocator <my_map11::value_type>
+	> my_map16;
 
 typedef std::set <
 	const char *, cmp_string_lt
+	> std_set20;
+typedef judyhash_set <
+	const char *, hsh_string_hash3
+	> my_set21;
+typedef judyhash_set <
+	const char *, hsh_string_hash2
+	> my_set22;
+typedef judyhash_set <
+	const char *, hsh_string_hash3, cmp_string_eq,
+	my_pool <my_set21::value_type>
+	> my_set23;
+typedef judyhash_set <
+	const char *, hsh_string_hash1, cmp_string_eq,
+	std::allocator <my_set21::value_type>
+	> my_set24;
+typedef judyhash_set <
+	const char *, hsh_string_hash2, cmp_string_eq,
+	boost::fast_pool_allocator <my_set21::value_type>
+	> my_set25;
+typedef judyhash_set <
+	const char *, hsh_string_hash3, cmp_string_eq,
+	std::allocator <my_set21::value_type>
+	> my_set26;
+
+typedef std::set <
+	std::string, cmp_string_lt
 	> std_set30;
 typedef judyhash_set <
 	std::string, hsh_string_hash3
@@ -230,24 +252,28 @@ typedef judyhash_set <
 	std::allocator <my_set31::value_type>
 	> my_set36;
 
-static const my_hash1::value_type init_values [] = {
-	my_hash1::value_type ("record", 1000),
-	my_hash1::value_type ("access", 1001),
-	my_hash1::value_type ("the", 1002),
-	my_hash1::value_type ("27562356273562036503276502560265", 1003),
-	my_hash1::value_type ("layout", 1004),
-	my_hash1::value_type ("apple", 1005),
-	my_hash1::value_type ("layout", 99999999)
+typedef std::multimap <
+	const char *, int, cmp_string_lt
+	> std_multimap40;
+
+static const my_map1::value_type init_values [] = {
+	my_map1::value_type ("record", 1000),
+	my_map1::value_type ("access", 1001),
+	my_map1::value_type ("the", 1002),
+	my_map1::value_type ("27562356273562036503276502560265", 1003),
+	my_map1::value_type ("layout", 1004),
+	my_map1::value_type ("apple", 1005),
+	my_map1::value_type ("layout", 99999999)
 };
 
-static const std_set30::value_type init_values_set [] = {
-	std_set30::value_type ("record"),
-	std_set30::value_type ("access"),
-	std_set30::value_type ("the"),
-	std_set30::value_type ("27562356273562036503276502560265"),
-	std_set30::value_type ("layout"),
-	std_set30::value_type ("apple"),
-	std_set30::value_type ("layout")
+static char const *const init_values_set [] = {
+	"record",
+	"access",
+	"the",
+	"27562356273562036503276502560265",
+	"layout",
+	"apple",
+	"layout"
 };
 
 template <typename T>
@@ -658,13 +684,13 @@ int main (int argc, const char **argv)
 	--argc, ++argv;
 
 	// test for constructor
-	my_hash6 ht777 (
+	my_map6 ht777 (
 		init_values,
 		init_values + sizeof (init_values)/sizeof (init_values [0]),
 		0,
-		my_hash6::hasher (),
-		my_hash6::key_equal (),
-		my_hash6::allocator_type ());
+		my_map6::hasher (),
+		my_map6::key_equal (),
+		my_map6::allocator_type ());
 
 	//max_count
 	std::cout << "max_count=" << ht777.max_size () << '\n';
@@ -686,28 +712,28 @@ int main (int argc, const char **argv)
 		test (map0, 0);
 	}else if (!strcmp (argv [0], "1")){
 		// test for constructor
-		my_hash1 ht1;
+		my_map1 ht1;
 		test (ht1, 1);
 	}else if (!strcmp (argv [0], "2")){
 		// test for constructor
-		my_hash2 ht2 (0);
+		my_map2 ht2 (0);
 		test (ht2, 2);
 	}else if (!strcmp (argv [0], "3")){
 		// test for constructor
-		my_hash3 ht3 (0, my_hash3::hasher ());
+		my_map3 ht3 (0, my_map3::hasher ());
 		test (ht3, 3);
 	}else if (!strcmp (argv [0], "4")){
 		// test for constructor
-		my_hash4 ht4 (0, my_hash4::hasher (), my_hash4::key_equal ());
+		my_map4 ht4 (0, my_map4::hasher (), my_map4::key_equal ());
 		test (ht4, 4);
 	}else if (!strcmp (argv [0], "5")){
 		// test for constructor
-		my_hash5 ht5 (0, my_hash5::hasher (),
-					  my_hash5::key_equal (), my_hash5::allocator_type ());
+		my_map5 ht5 (0, my_map5::hasher (),
+					  my_map5::key_equal (), my_map5::allocator_type ());
 		test (ht5, 5);
 	}else if (!strcmp (argv [0], "6")){
 		// test for constructor
-		my_hash6 ht6;
+		my_map6 ht6;
 		test (ht6, 6);
 
 
@@ -718,35 +744,66 @@ int main (int argc, const char **argv)
 		test (ht10, 10);
 	}else if (!strcmp (argv [0], "11")){
 		// test for constructor
-		my_hash11 ht11;
+		my_map11 ht11;
 		test (ht11, 11);
 	}else if (!strcmp (argv [0], "12")){
 		// test for constructor
-		my_hash12 ht12;
+		my_map12 ht12;
 		test (ht12, 12);
 	}else if (!strcmp (argv [0], "13")){
 		// test for constructor
-		my_hash13 ht13;
+		my_map13 ht13;
 		test (ht13, 13);
 	}else if (!strcmp (argv [0], "14")){
 		// test for constructor
-		my_hash14 ht14;
+		my_map14 ht14;
 		test (ht14, 14);
 	}else if (!strcmp (argv [0], "15")){
 		// test for constructor
-		my_hash15 ht15;
+		my_map15 ht15;
 		test (ht15, 15);
 	}else if (!strcmp (argv [0], "16")){
 		// test for constructor
-		my_hash16 ht16;
+		my_map16 ht16;
 		test (ht16, 16);
 
 
 
-//	}else if (!strcmp (argv [0], "20")){
+//	}else if (!strcmp (argv [0], "40")){
 //		// test for constructor
-//		std_multimap20 ht20;
-//		test (ht20, 20);
+//		std_multimap40 ht40;
+//		test (ht40, 40);
+
+
+
+	}else if (!strcmp (argv [0], "20")){
+		// test for constructor
+		std_set20 ht20;
+		test_set (ht20, 20);
+	}else if (!strcmp (argv [0], "21")){
+		// test for constructor
+		my_set21  ht21;
+		test_set (ht21, 21);
+	}else if (!strcmp (argv [0], "22")){
+		// test for constructor
+		my_set22  ht22;
+		test_set (ht22, 22);
+	}else if (!strcmp (argv [0], "23")){
+		// test for constructor
+		my_set23  ht23;
+		test_set (ht23, 23);
+	}else if (!strcmp (argv [0], "24")){
+		// test for constructor
+		my_set24  ht24;
+		test_set (ht24, 24);
+	}else if (!strcmp (argv [0], "25")){
+		// test for constructor
+		my_set25  ht25;
+		test_set (ht25, 25);
+	}else if (!strcmp (argv [0], "26")){
+		// test for constructor
+		my_set26  ht26;
+		test_set (ht26, 26);
 
 
 
