@@ -95,21 +95,21 @@ struct __judyhash_set_traits_base {
 	}
 };
 
-#define __JUDYHASH_TYPEDEFS                                               \
-	typedef typename __base::key_type                key_type;           \
-	typedef typename __base::data_type               data_type;          \
-	typedef typename __base::mapped_type             mapped_type;        \
-	typedef typename __base::value_type              value_type;         \
-	typedef typename __base::size_type               size_type;          \
-	typedef typename __base::difference_type         difference_type;    \
+#define __JUDYHASH_TYPEDEFS(macrosarg_from)                              \
+	typedef typename macrosarg_from::key_type        key_type;           \
+	typedef typename macrosarg_from::data_type       data_type;          \
+	typedef typename macrosarg_from::mapped_type     mapped_type;        \
+	typedef typename macrosarg_from::value_type      value_type;         \
+	typedef typename macrosarg_from::size_type       size_type;          \
+	typedef typename macrosarg_from::difference_type difference_type;    \
     \
-	typedef typename __base::pointer                 pointer;            \
-	typedef typename __base::const_pointer           const_pointer;      \
-	typedef typename __base::reference               reference;          \
-	typedef typename __base::const_reference         const_reference;
+	typedef typename macrosarg_from::pointer         pointer;            \
+	typedef typename macrosarg_from::const_pointer   const_pointer;      \
+	typedef typename macrosarg_from::reference       reference;          \
+	typedef typename macrosarg_from::const_reference const_reference;
 
-    // It is not possible to derive 'pointer' and 'reference' types from  \
-    // TAllocator                                                         \
+    // It is not possible to derive 'pointer' and 'reference' types from
+    // TAllocator
 
 template <typename TKey, typename TValue, typename TEqualFunc, typename TTraits>
 class __judyhash_list_traits_base
@@ -184,7 +184,7 @@ public:
 
 	typedef __judyhash_base <TKey, TValue, THashFunc, TEqualFunc, TAllocator, TTraits> __this_type;
 
-	__JUDYHASH_TYPEDEFS
+	__JUDYHASH_TYPEDEFS(__base)
 
 	struct debug_info {
 		// a number of values (actually, pointer to value)
@@ -403,7 +403,7 @@ private:
 
 	class iterator_base : private TTraits {
 	public:
-		__JUDYHASH_TYPEDEFS
+		__JUDYHASH_TYPEDEFS(TTraits)
 
 //	private:
 		const __this_type *m_obj;
@@ -595,10 +595,8 @@ public:
 		friend class const_iterator;
 		friend class __judyhash_base;
 
-		typedef iterator_base __base;
-
 	public:
-		__JUDYHASH_TYPEDEFS
+		__JUDYHASH_TYPEDEFS(iterator_base)
 		typedef std::forward_iterator_tag iterator_category;
 
 		iterator ()
@@ -663,10 +661,8 @@ public:
 		iterator_base m_it;
 		friend class __judyhash_base;
 
-		typedef iterator_base __base;
-
 	public:
-		__JUDYHASH_TYPEDEFS
+		__JUDYHASH_TYPEDEFS(iterator_base)
 		typedef std::forward_iterator_tag iterator_category;
 
 		const_iterator ()
@@ -1001,15 +997,15 @@ public:
 //            typedef std::pair <T1, char> pair_first_is_char;
 // This is why this loooong macros is used here.
 
-#define REMAP_FUNCALLS(macrosarg__class_name, macrosarg__to_member)\
-		typedef typename __base::key_equal               key_equal;\
-		typedef typename __base::hasher                  hasher;\
-		typedef typename __base::allocator_type          allocator_type;\
+#define REMAP_FUNCALLS(macrosarg__base, macrosarg__class_name, macrosarg__to_member)\
+		typedef typename macrosarg__base::key_equal      key_equal;\
+		typedef typename macrosarg__base::hasher         hasher;\
+		typedef typename macrosarg__base::allocator_type allocator_type;\
 	\
-		typedef typename __base::iterator                iterator;\
-		typedef typename __base::const_iterator          const_iterator;\
+		typedef typename macrosarg__base::iterator       iterator;\
+		typedef typename macrosarg__base::const_iterator const_iterator;\
 	\
-		typedef typename __base::debug_info              debug_info;\
+		typedef typename macrosarg__base::debug_info     debug_info;\
 	\
 		macrosarg__class_name ()\
 		{\
@@ -1169,19 +1165,19 @@ class judyhash_map
 private:
 	typedef __judyhash_base <
 		TKey, TValue, THashFunc, TEqualFunc, TAllocator,
-		__judyhash_list_map <TKey, TValue, TEqualFunc> > __base;
+		__judyhash_list_map <TKey, TValue, TEqualFunc> > __impl;
 	typedef judyhash_map <
 		TKey, TValue, THashFunc, TEqualFunc, TAllocator
 		> __this_type;
 
-	__base m_hash_base;
+	__impl m_hash_base;
 
 public:
 
-	__JUDYHASH_TYPEDEFS
+	__JUDYHASH_TYPEDEFS(__impl)
 
 // rempping judyhash_map/judyhash_set common members
-	REMAP_FUNCALLS(judyhash_map, m_hash_base)
+	REMAP_FUNCALLS(__impl, judyhash_map, m_hash_base)
 
 // judyhash_mem unique members
 	mapped_type& operator [] (const key_type& key)
@@ -1203,18 +1199,18 @@ class judyhash_set
 private:
 	typedef __judyhash_base <
 		TKey, char, THashFunc, TEqualFunc, TAllocator,
-		__judyhash_list_set <TKey, TEqualFunc> > __base;
+		__judyhash_list_set <TKey, TEqualFunc> > __impl;
 	typedef judyhash_set <
 		TKey, THashFunc, TEqualFunc, TAllocator> __this_type;
 
-	__base m_hash_base;
+	__impl m_hash_base;
 
 public:
 
-	__JUDYHASH_TYPEDEFS
+	__JUDYHASH_TYPEDEFS(__impl)
 
 // rempping judyhash_map/judyhash_set common members
-	REMAP_FUNCALLS(judyhash_set, m_hash_base)
+	REMAP_FUNCALLS(__impl, judyhash_set, m_hash_base)
 
 // judyhash_mem unique members
 };
