@@ -9,8 +9,9 @@
 #include <map>
 #include <set>
 
-//#define JUDYHASH_NO_CONST
-#include "judyhash.h"
+//#define JUDYARRAY_NO_CONST
+#include "judy_map.h"
+#include "judy_set.h"
 
 template <typename T>
 class my_pool {
@@ -151,25 +152,25 @@ struct cmp_string_lt {
 typedef std::map <
 	const char *, int, cmp_string_lt
 	> std_map0;
-typedef judyhash_map <
+typedef judy_map_l <
 	const char *, int, hsh_string_hash1, cmp_string_eq
 	> my_map1;
-typedef judyhash_map <
+typedef judy_map_l <
 	const char *, int, hsh_string_hash2, cmp_string_eq
 	> my_map2;
-typedef judyhash_map <
+typedef judy_map_l <
 	const char *, int, hsh_string_hash3, cmp_string_eq,
 	my_pool <my_map1::value_type>
 	> my_map3;
-typedef judyhash_map <
+typedef judy_map_l <
 	const char *, int, hsh_string_hash1, cmp_string_eq,
 	std::allocator <my_map1::value_type>
 	> my_map4;
-typedef judyhash_map <
+typedef judy_map_l <
 	const char *, int, hsh_string_hash2, cmp_string_eq,
 	boost::fast_pool_allocator <my_map1::value_type>
 	> my_map5;
-typedef judyhash_map <
+typedef judy_map_l <
 	const char *, int, hsh_string_hash3, cmp_string_eq,
 	boost::fast_pool_allocator <my_map1::value_type>
 	> my_map6;
@@ -177,25 +178,25 @@ typedef judyhash_map <
 typedef std::map <
 	std::string, int
 	> std_map10;
-typedef judyhash_map <
+typedef judy_map_l <
 	std::string, int, hsh_string_hash1
 	> my_map11;
-typedef judyhash_map <
+typedef judy_map_l <
 	std::string, int, hsh_string_hash2
 	> my_map12;
-typedef judyhash_map <
+typedef judy_map_l <
 	std::string, int, hsh_string_hash3, cmp_string_eq,
 	my_pool <my_map11::value_type>
 	> my_map13;
-typedef judyhash_map <
+typedef judy_map_l <
 	std::string, int, hsh_string_hash1, cmp_string_eq,
 	std::allocator <my_map11::value_type>
 	> my_map14;
-typedef judyhash_map <
+typedef judy_map_l <
 	std::string, int, hsh_string_hash2, cmp_string_eq,
 	boost::fast_pool_allocator <my_map11::value_type>
 	> my_map15;
-typedef judyhash_map <
+typedef judy_map_l <
 	std::string, int, hsh_string_hash3, cmp_string_eq,
 	std::allocator <my_map11::value_type>
 	> my_map16;
@@ -203,25 +204,25 @@ typedef judyhash_map <
 typedef std::set <
 	const char *, cmp_string_lt
 	> std_set20;
-typedef judyhash_set <
+typedef judy_set_l <
 	const char *, hsh_string_hash3
 	> my_set21;
-typedef judyhash_set <
+typedef judy_set_l <
 	const char *, hsh_string_hash2
 	> my_set22;
-typedef judyhash_set <
+typedef judy_set_l <
 	const char *, hsh_string_hash3, cmp_string_eq,
 	my_pool <my_set21::value_type>
 	> my_set23;
-typedef judyhash_set <
+typedef judy_set_l <
 	const char *, hsh_string_hash1, cmp_string_eq,
 	std::allocator <my_set21::value_type>
 	> my_set24;
-typedef judyhash_set <
+typedef judy_set_l <
 	const char *, hsh_string_hash2, cmp_string_eq,
 	boost::fast_pool_allocator <my_set21::value_type>
 	> my_set25;
-typedef judyhash_set <
+typedef judy_set_l <
 	const char *, hsh_string_hash3, cmp_string_eq,
 	std::allocator <my_set21::value_type>
 	> my_set26;
@@ -229,25 +230,25 @@ typedef judyhash_set <
 typedef std::set <
 	std::string, cmp_string_lt
 	> std_set30;
-typedef judyhash_set <
+typedef judy_set_l <
 	std::string, hsh_string_hash3
 	> my_set31;
-typedef judyhash_set <
+typedef judy_set_l <
 	std::string, hsh_string_hash2
 	> my_set32;
-typedef judyhash_set <
+typedef judy_set_l <
 	std::string, hsh_string_hash3, cmp_string_eq,
 	my_pool <my_set31::value_type>
 	> my_set33;
-typedef judyhash_set <
+typedef judy_set_l <
 	std::string, hsh_string_hash1, cmp_string_eq,
 	std::allocator <my_set31::value_type>
 	> my_set34;
-typedef judyhash_set <
+typedef judy_set_l <
 	std::string, hsh_string_hash2, cmp_string_eq,
 	boost::fast_pool_allocator <my_set31::value_type>
 	> my_set35;
-typedef judyhash_set <
+typedef judy_set_l <
 	std::string, hsh_string_hash3, cmp_string_eq,
 	std::allocator <my_set31::value_type>
 	> my_set36;

@@ -16,7 +16,7 @@
 #define USE_STD_MAP
 #endif
 
-#include "judyhash.h"
+#include "judy_map.h"
 
 #ifdef USE_GOOGLE_DENSE_MAP
 #include <google/dense_hash_map>
@@ -255,7 +255,7 @@ typedef google_dense_hash_map <
 #endif
 
 #ifdef USE_JUDY_HASH
-typedef judyhash_map <
+typedef judy_map_l <
 	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
 #endif // USE_JUDY_HASH
@@ -287,7 +287,7 @@ typedef std::map <my_type, int, cmp_string_lt> my_hash;
 
 void usage ()
 {
-	std::cerr << "usage: judyhash <num> < <filename>";
+	std::cerr << "usage: judyarray <num> < <filename>";
 }
 
 int main (int argc, const char **argv)
@@ -316,7 +316,7 @@ int main (int argc, const char **argv)
 	std::cout << "threshold: " << threshold << '\n';
 
 #ifdef USE_JUDY_HASH
-	std::cout << "JudyHash: ";
+	std::cout << "JudyArray: ";
 #endif
 #ifdef USE_HASH_MAP
 	std::cout << "hash_map: ";

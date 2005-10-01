@@ -24,19 +24,14 @@ LDFLAGS_TEST=
 .PHONY : all
 all : judyhash_test #judyhash_bench
 
-judyhash_test.o : main_test.cpp judyhash.h
+judyhash_test.o : main_test.cpp judy_map.h judy_set.h
 	$(CXX) -o $@ -I. $(CPPFLAGS) $(CFLAGS_TEST) -c main_test.cpp
 judyhash_test : judyhash_test.o
 	$(CXX) $(LDFLAGS_TEST) -o $@ judyhash_test.o -L. -lJudy
 
-#judyhash_bench.o : main.cpp judyhash.h
-#	$(CXX) -o $@ -I. $(CPPFLAGS) $(CFLAGS) -c main.cpp
-#judyhash_bench : judyhash_bench.o
-#	$(CXX) $(LDFLAGS) -o $@ judyhash.o -L. -lJudy
-
 .PHONY : clean
 clean:
-	rm -f *.o judyhash_bench judyhash_test expected.txt
+	rm -f *.o judyhash_bench judytest expected.txt
 	rm -f *.tmp core* *~ semantic.cache judyhash
 
 .PHONY : test

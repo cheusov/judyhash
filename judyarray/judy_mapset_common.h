@@ -12,6 +12,9 @@
  *
  */
 
+#ifndef _JUDY_MAPSET_COMMON_H_
+#define _JUDY_MAPSET_COMMON_H_
+
 #include <assert.h>
 #include <stddef.h>
 
@@ -19,148 +22,7 @@
 #include <utility>
 #include <set>
 
-#include "Judy.h"
-
-////////////////////////////////////////////////////////////
-///  defining JUDYHASH_DEBUGINFO
-#ifdef JUDYHASH_NO_DEBUGINFO
-
-#ifdef JUDYHASH_DEBUGINFO
-#undef JUDYHASH_DEBUGINFO
-#endif // JUDYHASH_DEBUGINFO
-
-#else
-
-#if !defined(JUDYHASH_DEBUGINFO) && !defined(NDEBUG)
-#define JUDYHASH_DEBUGINFO
-#endif // JUDYHASH_DEBUGINFO && NDEBUG
-
-#endif // JUDYHASH_NO_DEBUGINFO
-////////////////////////////////////////////////////////////
-
-template <typename TKey, typename TValue>
-struct __judyhash_map_traits_base {
-	typedef TKey                            key_type;
-	typedef TValue                          data_type;
-	typedef TValue                          mapped_type;
-#ifdef JUDYHASH_NO_CONST
-	typedef std::pair <      TKey, TValue>  value_type;
-#else
-	typedef std::pair <const TKey, TValue>  value_type;
-#endif
-
-	typedef size_t                          size_type;
-	typedef ptrdiff_t                       difference_type;
-
-	// It is not possible to derive 'pointer' and 'reference' types from
-	// TAllocator
-	typedef value_type                   * pointer;
-	typedef value_type             const * const_pointer;
-	typedef value_type                   & reference;
-	typedef value_type             const & const_reference;
-
-	static const key_type &value2key (const value_type& value)
-	{
-		return value.first;
-	}
-	static value_type key2value (const key_type& key)
-	{
-		return value_type (key, mapped_type ());
-	}
-};
-
-template <typename TKey>
-struct __judyhash_set_traits_base {
-	typedef TKey                            key_type;
-	typedef TKey                            data_type;
-	typedef TKey                            mapped_type;
-	typedef TKey                            value_type;
-	typedef size_t                          size_type;
-	typedef ptrdiff_t                       difference_type;
-
-	// It is not possible to derive 'pointer' and 'reference' types from
-	// TAllocator
-	typedef value_type                   * pointer;
-	typedef value_type             const * const_pointer;
-	typedef value_type                   & reference;
-	typedef value_type             const & const_reference;
-
-	static const key_type &value2key (const value_type& value)
-	{
-		return value;
-	}
-	static const value_type &key2value (const key_type& key)
-	{
-		return key;
-	}
-};
-
-#define __JUDYHASH_TYPEDEFS(macrosarg_from)                              \
-	typedef typename macrosarg_from::key_type        key_type;           \
-	typedef typename macrosarg_from::data_type       data_type;          \
-	typedef typename macrosarg_from::mapped_type     mapped_type;        \
-	typedef typename macrosarg_from::value_type      value_type;         \
-	typedef typename macrosarg_from::size_type       size_type;          \
-	typedef typename macrosarg_from::difference_type difference_type;    \
-    \
-	typedef typename macrosarg_from::pointer         pointer;            \
-	typedef typename macrosarg_from::const_pointer   const_pointer;      \
-	typedef typename macrosarg_from::reference       reference;          \
-	typedef typename macrosarg_from::const_reference const_reference;
-
-    // It is not possible to derive 'pointer' and 'reference' types from
-    // TAllocator
-
-template <typename TKey, typename TValue, typename TEqualFunc, typename TTraits>
-class __judyhash_list_traits_base
-:
-public TTraits
-{
-public:
-	class pointers_list_type
-	: public std::list <typename TTraits::pointer>
-	{
-	private:
-		TEqualFunc m_eq_func;
-	public:
-		typedef typename TTraits::pointer pointer;
-
-		pointers_list_type ()
-		{
-		}
-		~pointers_list_type ()
-		{
-		}
-		typename std::list <pointer>::iterator find (
-			const TKey &key)
-		{
-			typename std::list <pointer>::iterator beg
-				= std::list <pointer>::begin ();
-			typename std::list <pointer>::iterator end
-				= std::list <pointer>::end ();
-
-			for (; !(beg == end); ++beg){
-				if (m_eq_func (TTraits::value2key (**beg), key)){
-					return beg;
-				}
-			}
-		}
-	};
-};
-
-template <typename TKey, typename TValue, typename TEqualFunc>
-class __judyhash_list_map
-:
-public __judyhash_list_traits_base <TKey, TValue, TEqualFunc, __judyhash_map_traits_base <TKey, TValue> >
-{
-};
-
-template <typename TKey, typename TEqualFunc>
-class __judyhash_list_set
-:
-public __judyhash_list_traits_base <TKey, char, TEqualFunc, __judyhash_set_traits_base <TKey> >
-{
-};
+#include "judy_common.h"
 
 template <
 	typename TKey,
@@ -169,7 +31,7 @@ template <
 	typename TEqualFunc,
 	typename TAllocator,
 	typename TTraits>
-class __judyhash_base : private TTraits
+class __judy_base : private TTraits
 {
 private:
 	typedef TTraits __base;
@@ -182,9 +44,9 @@ public:
 	typedef THashFunc                       hasher;
 	typedef TAllocator                      allocator_type;
 
-	typedef __judyhash_base <TKey, TValue, THashFunc, TEqualFunc, TAllocator, TTraits> __this_type;
+	typedef __judy_base <TKey, TValue, THashFunc, TEqualFunc, TAllocator, TTraits> __this_type;
 
-	__JUDYHASH_TYPEDEFS(__base)
+	__JUDYARRAY_TYPEDEFS(__base)
 
 	struct debug_info {
 		// a number of values (actually, pointer to value)
@@ -236,13 +98,13 @@ private:
 
 //
 public:
-	__judyhash_base ()
+	__judy_base ()
 	{
 		m_judy = 0;
 		m_size = 0;
 	}
 
-	__judyhash_base (
+	__judy_base (
 		size_type n,
 		const hasher& h, 
 		const key_equal& k,
@@ -257,7 +119,7 @@ public:
 	}
 
 	template <class Tit>
-	__judyhash_base (
+	__judy_base (
 		Tit beg, Tit end,
 		size_type,
 		const hasher& h, 
@@ -274,7 +136,7 @@ public:
 		insert (beg, end);
 	}
 
-	__judyhash_base (const __this_type& a)
+	__judy_base (const __this_type& a)
 		:
 		m_judy (0),
 		m_size (0),
@@ -286,7 +148,7 @@ public:
 		insert (a.begin (), a.end ());
 	}
 
-	~__judyhash_base ()
+	~__judy_base ()
 	{
 		clear ();
 
@@ -299,23 +161,23 @@ public:
 
 	void clear ()
 	{
-#ifdef JUDYHASH_DEBUG
+#ifdef JUDYARRAY_DEBUG
 		// Slow implementation which allows better
 		// inconsistency checking
 		erase (begin (), end ());
-#else // JUDYHASH_DEBUG
+#else // JUDYARRAY_DEBUG
 		// Much faster implementation
 		typename allocated_lists_type::iterator f, l;
 
 		f = m_allocated_lists.begin ();
 		l = m_allocated_lists.end ();
 
-#ifdef JUDYHASH_DEBUGINFO
+#ifdef JUDYARRAY_DEBUGINFO
 		m_debug_info.m_value_count = 0;
 #endif
 
 		for (; f != l; ++f){
-#ifdef JUDYHASH_DEBUGINFO
+#ifdef JUDYARRAY_DEBUGINFO
 			m_debug_info.m_list_count -= 1;
 			m_debug_info.m_list_item_count -= (*f) -> size ();
 #endif
@@ -326,10 +188,10 @@ public:
 
 		m_allocated_lists.clear ();
 		::JudyLFreeArray (&m_judy, 0);
-#endif // JUDYHASH_DEBUG
+#endif // JUDYARRAY_DEBUG
 	}
 
-	__judyhash_base& operator = (const __this_type& a)
+	__judy_base& operator = (const __this_type& a)
 	{
 		// exception-less implementation
 		if (this != &a){
@@ -394,7 +256,7 @@ public:
 	}
 
 private:
-	union judyhash_union_type {
+	union judyarray_union_type {
 		Word_t        m_judy_int;
 		PWord_t       m_judy_ptr;
 		pointer       m_pointer;
@@ -403,13 +265,13 @@ private:
 
 	class iterator_base : private TTraits {
 	public:
-		__JUDYHASH_TYPEDEFS(TTraits)
+		__JUDYARRAY_TYPEDEFS(TTraits)
 
 //	private:
 		const __this_type *m_obj;
 
 		Word_t                 m_index;
-		judyhash_union_type    m_value;
+		judyarray_union_type    m_value;
 		bool                   m_end;
 		bool                   m_inside_list;
 
@@ -593,10 +455,10 @@ public:
 	private:
 		iterator_base m_it;
 		friend class const_iterator;
-		friend class __judyhash_base;
+		friend class __judy_base;
 
 	public:
-		__JUDYHASH_TYPEDEFS(iterator_base)
+		__JUDYARRAY_TYPEDEFS(iterator_base)
 		typedef std::forward_iterator_tag iterator_category;
 
 		iterator ()
@@ -659,10 +521,10 @@ public:
 	class const_iterator {
 	private:
 		iterator_base m_it;
-		friend class __judyhash_base;
+		friend class __judy_base;
 
 	public:
-		__JUDYHASH_TYPEDEFS(iterator_base)
+		__JUDYARRAY_TYPEDEFS(iterator_base)
 		typedef std::forward_iterator_tag iterator_category;
 
 		const_iterator ()
@@ -758,7 +620,7 @@ public:
 			m_size -= 1;
 
 			m_alloc.deallocate (*it.m_it.m_list_it, 1);
-#ifdef JUDYHASH_DEBUGINFO
+#ifdef JUDYARRAY_DEBUGINFO
 			m_debug_info.m_list_item_count -= 1;
 #endif
 
@@ -772,7 +634,7 @@ public:
 				m_allocated_lists.erase (lst);
 
 				::JudyLDel (&m_judy, it.m_it.m_index, 0);
-#ifdef JUDYHASH_DEBUGINFO
+#ifdef JUDYARRAY_DEBUGINFO
 				m_debug_info.m_list_count -= 1;
 #endif
 			}
@@ -782,7 +644,7 @@ public:
 			m_size -= 1;
 
 			m_alloc.deallocate (it.m_it.m_value.m_pointer, 1);
-#ifdef JUDYHASH_DEBUGINFO
+#ifdef JUDYARRAY_DEBUGINFO
 			m_debug_info.m_value_count -= 1;
 #endif
 
@@ -794,13 +656,13 @@ private:
 	iterator find_base (const key_type& key) const
 	{
 		unsigned long h = m_hash_func (key);
-		judyhash_union_type *ptr
-			= (judyhash_union_type *) ::JudyLGet (m_judy, h, 0);
+		judyarray_union_type *ptr
+			= (judyarray_union_type *) ::JudyLGet (m_judy, h, 0);
 
 		if (!ptr || !ptr -> m_judy_int){
 			return iterator ();
 		}else{
-			judyhash_union_type value;
+			judyarray_union_type value;
 			value.m_judy_int = ptr -> m_judy_int;
 
 			if ((value.m_judy_int & 1) == 0){
@@ -876,8 +738,8 @@ public:
 		const TKey &key = value2key (value);
 
 		Word_t h = m_hash_func (key);
-		judyhash_union_type *ptr
-			= (judyhash_union_type *) ::JudyLIns (&m_judy, h, 0);
+		judyarray_union_type *ptr
+			= (judyarray_union_type *) ::JudyLIns (&m_judy, h, 0);
 
 		assert (ptr);
 
@@ -900,7 +762,7 @@ public:
 
 					m_allocated_lists.insert (lst);
 
-#ifdef JUDYHASH_DEBUGINFO
+#ifdef JUDYARRAY_DEBUGINFO
 					m_debug_info.m_list_count       += 1;
 					m_debug_info.m_list_item_count  += 2;
 					m_debug_info.m_value_count      -= 1;
@@ -944,7 +806,7 @@ public:
 
 				++m_size;
 
-#ifdef JUDYHASH_DEBUGINFO
+#ifdef JUDYARRAY_DEBUGINFO
 				m_debug_info.m_list_item_count += 1;
 #endif
 
@@ -959,7 +821,7 @@ public:
 		}else{
 			// Created JudyL cell is new one.
 
-#ifdef JUDYHASH_DEBUGINFO
+#ifdef JUDYARRAY_DEBUGINFO
 			m_debug_info.m_value_count += 1;
 #endif
 
@@ -1154,63 +1016,4 @@ public:
 			return macrosarg__to_member.m_debug_info;\
 		}
 
-template <
-	typename TKey,
-	typename TValue,
-	typename THashFunc, // = std::hash <Key>,
-	typename TEqualFunc = std::equal_to <TKey>,
-	typename TAllocator = std::allocator < typename __judyhash_list_map <TKey, TValue, TEqualFunc>::value_type > >
-class judyhash_map
-{
-private:
-	typedef __judyhash_base <
-		TKey, TValue, THashFunc, TEqualFunc, TAllocator,
-		__judyhash_list_map <TKey, TValue, TEqualFunc> > __impl;
-	typedef judyhash_map <
-		TKey, TValue, THashFunc, TEqualFunc, TAllocator
-		> __this_type;
-
-	__impl m_hash_base;
-
-public:
-
-	__JUDYHASH_TYPEDEFS(__impl)
-
-// rempping judyhash_map/judyhash_set common members
-	REMAP_FUNCALLS(__impl, judyhash_map, m_hash_base)
-
-// judyhash_mem unique members
-	mapped_type& operator [] (const key_type& key)
-	{
-		std::pair <iterator, bool> res = insert (
-			value_type (key, mapped_type ()));
-
-		return res.first -> second;
-	}
-};
-
-template <
-	typename TKey,
-	typename THashFunc, // = std::hash <Key>,
-	typename TEqualFunc = std::equal_to <TKey>,
-	typename TAllocator = std::allocator < TKey> >
-class judyhash_set
-{
-private:
-	typedef __judyhash_base <
-		TKey, char, THashFunc, TEqualFunc, TAllocator,
-		__judyhash_list_set <TKey, TEqualFunc> > __impl;
-	typedef judyhash_set <
-		TKey, THashFunc, TEqualFunc, TAllocator> __this_type;
-
-	__impl m_hash_base;
-
-public:
-
-	__JUDYHASH_TYPEDEFS(__impl)
-
-// rempping judyhash_map/judyhash_set common members
-	REMAP_FUNCALLS(__impl, judyhash_set, m_hash_base)
-
-// judyhash_mem unique members
-};
+#endif // _JUDY_MAPSET_COMMON_H_

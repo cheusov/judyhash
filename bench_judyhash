@@ -23,19 +23,19 @@ lines=$(awk "BEGIN {
 	}
 }")
 
-test_judyhash (){
+test_judyarray (){
     CXX=$1
     CPPFLAGS=$2
     CFLAGS=$3
     LDFLAGS=$4
     DEFINES=$5
 
-    compile_cmd="$CXX main.cpp -o judyhash $CPPFLAGS $DEFINES $CFLAGS $LDFLAGS"
+    compile_cmd="$CXX main.cpp -o judytest $CPPFLAGS $DEFINES $CFLAGS $LDFLAGS"
     echo "Compile: $compile_cmd"
     $compile_cmd 2>log || exit 1
     for i in $lines; do
 	printf "$i LINES: "
-	exe_time=$(time -p ./judyhash $i < $TESTFILE 2>&1 > log_stdout)
+	exe_time=$(time -p ./judytest $i < $TESTFILE 2>&1 > log_stdout)
 	if test $? -eq 0; then
 	    echo $exe_time
 	else
@@ -49,51 +49,51 @@ for gpp in icpc; do
     which $gpp || continue
 
     # just file reading 
-     test_judyhash $gpp         \
+     test_judyarray $gpp         \
 	"-I$BOOST_INCLUDE_DIR"  \
 	"$OPTFLAGS"             \
 	""                      \
 	"-DTYPE_CHAR_PTR -DEMPTY_LOOP"
 
      # g++ STL
-    test_judyhash $gpp         \
-	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
-	"$OPTFLAGS"             \
-	""                      \
-	"-DTYPE_CHAR_PTR -DUSE_GOOGLE_DENSE_MAP"
-    test_judyhash $gpp         \
-	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
-	"$OPTFLAGS"             \
-	""                     \
-	"-DTYPE_CHAR_PTR -DUSE_STD_MAP"
-    test_judyhash $gpp         \
+#    test_judyarray $gpp         \
+#	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+#	"$OPTFLAGS"             \
+#	""                      \
+#	"-DTYPE_CHAR_PTR -DUSE_GOOGLE_DENSE_MAP"
+#    test_judyarray $gpp         \
+#	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+#	"$OPTFLAGS"             \
+#	""                     \
+#	"-DTYPE_CHAR_PTR -DUSE_STD_MAP"
+    test_judyarray $gpp         \
 	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"             \
 	"-lJudy"               \
 	"-DTYPE_CHAR_PTR -DUSE_JUDY_HASH"
-    test_judyhash $gpp         \
+    test_judyarray $gpp         \
 	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"            \
 	""                     \
 	"-DTYPE_CHAR_PTR -DUSE_HASH_MAP"
 
     # STLPORT STL
-    test_judyhash $gpp         \
+    test_judyarray $gpp         \
 	"-I$STLPORT_INCLUDE_DIR -I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"            \
 	"-lstlport -lm "       \
 	"-DTYPE_CHAR_PTR -DUSE_GOOGLE_DENSE_MAP"
-    test_judyhash $gpp         \
+    test_judyarray $gpp         \
 	"-I$STLPORT_INCLUDE_DIR -I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
         "$OPTFLAGS"            \
 	"-lstlport -lm"        \
 	"-DTYPE_CHAR_PTR -DUSE_STD_MAP"
-    test_judyhash $gpp         \
+    test_judyarray $gpp         \
 	"-I$STLPORT_INCLUDE_DIR -I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
         "$OPTFLAGS"            \
 	"-lstlport -lm -lJudy" \
 	"-DTYPE_CHAR_PTR -DUSE_JUDY_HASH"
-    test_judyhash $gpp         \
+    test_judyarray $gpp         \
 	"-I$STLPORT_INCLUDE_DIR -I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
         "$OPTFLAGS"            \
 	"-lstlport -lm"        \
