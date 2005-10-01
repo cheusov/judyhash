@@ -19,6 +19,8 @@
 #include "judyarray/judy_mapset_list.h"
 #include "judyarray/judy_mapset_common.h"
 
+//////////////////////////////////////////////////////////////////////
+
 template <typename TKey>
 struct __judy_set_traits_base {
 	typedef TKey                            key_type;
@@ -46,10 +48,13 @@ struct __judy_set_traits_base {
 };
 
 
+//////////////////////////////////////////////////////////////////////
+//////////////////////////     JUDY_SET_L         ////////////////////
+
 template <typename TKey, typename TEqualFunc>
 class __judy_list_set
 :
-public __judy_list_traits_base <TKey, void, TEqualFunc, __judy_set_traits_base <TKey> >
+public __judy_cmp_traits_list <TKey, void, TEqualFunc, __judy_set_traits_base <TKey> >
 {
 };
 
@@ -79,5 +84,8 @@ public:
 
 // judy_mem unique members
 };
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////     JUDY_SET_S         ////////////////////
 
 #endif // _JUDY_SET_H_

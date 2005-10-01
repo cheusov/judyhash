@@ -839,4 +839,7 @@ int main (int argc, const char **argv)
 	}else{
 		return 11;
 	}
+
+//	judy_map_m <std::string, int, hsh_string_hash1> ht40;
+//	test (ht40, 40);
 }

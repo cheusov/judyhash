@@ -16,8 +16,11 @@
 #define _JUDY_MAP_H_
 
 #include "judyarray/judy_common.h"
-#include "judyarray/judy_mapset_list.h"
 #include "judyarray/judy_mapset_common.h"
+#include "judyarray/judy_mapset_list.h"
+#include "judyarray/judy_mapset_map.h"
+
+//////////////////////////////////////////////////////////////////////
 
 template <typename TKey, typename TValue>
 struct __judy_map_traits_base {
@@ -50,10 +53,13 @@ struct __judy_map_traits_base {
 	}
 };
 
+//////////////////////////////////////////////////////////////////////
+////////////////////////// JUDY_MAP_L ////////////////////////////////
+
 template <typename TKey, typename TValue, typename TEqualFunc>
-class __judy_list_map
+class __judy_map_traits_list
 :
-public __judy_list_traits_base <TKey, TValue, TEqualFunc, __judy_map_traits_base <TKey, TValue> >
+public __judy_cmp_traits_list <TKey, TValue, TEqualFunc, __judy_map_traits_base <TKey, TValue> >
 {
 };
 
@@ -62,13 +68,13 @@ template <
 	typename TValue,
 	typename THashFunc, // = std::hash <Key>,
 	typename TEqualFunc = std::equal_to <TKey>,
-	typename TAllocator = std::allocator < typename __judy_list_map <TKey, TValue, TEqualFunc>::value_type > >
+	typename TAllocator = std::allocator < typename __judy_map_traits_list <TKey, TValue, TEqualFunc>::value_type > >
 class judy_map_l
 {
 private:
 	typedef __judy_base <
 		TKey, TValue, THashFunc, TEqualFunc, TAllocator,
-		__judy_list_map <TKey, TValue, TEqualFunc> > __impl;
+		__judy_map_traits_list <TKey, TValue, TEqualFunc> > __impl;
 	typedef judy_map_l <
 		TKey, TValue, THashFunc, TEqualFunc, TAllocator
 		> __this_type;
@@ -91,5 +97,53 @@ public:
 		return res.first -> second;
 	}
 };
+
+//////////////////////////////////////////////////////////////////////
+////////////////////////// JUDY_MAP_M ////////////////////////////////
+
+/*
+template <typename TKey, typename TValue, typename TLessFunc>
+class __judy_map_traits_map
+:
+public __judy_cmp_traits_map <TKey, TValue, TLessFunc, __judy_map_traits_base <TKey, TValue> >
+{
+};
+
+template <
+	typename TKey,
+	typename TValue,
+	typename THashFunc, // = std::hash <Key>,
+	typename TLessFunc = std::less <TKey>,
+	typename TEqualFunc = std::equal_to <TKey>,
+	typename TAllocator = std::allocator < typename __judy_map_traits_map <TKey, TValue, TLessFunc>::value_type > >
+class judy_map_m
+{
+private:
+	typedef __judy_base <
+		TKey, TValue, THashFunc, TEqualFunc, TAllocator,
+		__judy_map_traits_map <TKey, TValue, TLessFunc> > __impl;
+	typedef judy_map_m <
+		TKey, TValue, THashFunc, TEqualFunc, TAllocator
+		> __this_type;
+
+	__impl m_hash_base;
+
+public:
+
+	__JUDYARRAY_TYPEDEFS(__impl)
+
+// rempping judy_map/judy_set common members
+	REMAP_FUNCALLS(__impl, judy_map_m, m_hash_base)
+
+// judy_mem unique members
+	mapped_type& operator [] (const key_type& key)
+	{
+		std::pair <iterator, bool> res = insert (
+			value_type (key, mapped_type ()));
+
+		return res.first -> second;
+	}
+};
+*/
 
 #endif // _JUDY_MAP_H_

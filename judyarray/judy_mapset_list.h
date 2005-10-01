@@ -19,12 +19,12 @@
 
 template <typename TKey, typename TValue,
 	typename TEqualFunc, typename TTraits>
-class __judy_list_traits_base
+class __judy_cmp_traits_list
 :
 public TTraits
 {
 public:
-	class pointers_list_type
+	class __pointers_list_type
 	: public std::list <typename TTraits::pointer>
 	{
 	private:
@@ -32,10 +32,10 @@ public:
 	public:
 		typedef typename TTraits::pointer pointer;
 
-		pointers_list_type ()
+		__pointers_list_type ()
 		{
 		}
-		~pointers_list_type ()
+		~__pointers_list_type ()
 		{
 		}
 		typename std::list <pointer>::iterator find (
@@ -53,6 +53,8 @@ public:
 			}
 		}
 	};
+
+	typedef __pointers_list_type pointers_list_type;
 };
 
 #endif // _JUDY_MAPSET_LIST_H_
