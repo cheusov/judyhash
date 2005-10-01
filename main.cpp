@@ -371,9 +371,9 @@ int main (int argc, const char **argv)
 	std::cout << "duplicates count: " << dups << '\n';
 
 #ifdef USE_JUDY_HASH
-	std::cout << "single item count:" << ht.m_debug_info.m_value_count << '\n';
-	std::cout << "list item count:  " << ht.m_debug_info.m_list_item_count << '\n';
-	std::cout << "list count:       " << ht.m_debug_info.m_list_count << '\n';
+	std::cout << "single item count:" << ht.get_debug_info ().m_value_count << '\n';
+	std::cout << "list item count:  " << ht.get_debug_info ().m_list_item_count << '\n';
+	std::cout << "list count:       " << ht.get_debug_info ().m_list_count << '\n';
 
 	ht.key_eq ();
 	ht.hash_funct ();

@@ -169,7 +169,7 @@ template <
 	typename TEqualFunc,
 	typename TAllocator,
 	typename TTraits>
-class __judyhash_map : private TTraits
+class __judyhash_base : private TTraits
 {
 private:
 	typedef TTraits __base;
@@ -182,7 +182,7 @@ public:
 	typedef THashFunc                       hasher;
 	typedef TAllocator                      allocator_type;
 
-	typedef __judyhash_map <TKey, TValue, THashFunc, TEqualFunc, TAllocator, TTraits> __this_type;
+	typedef __judyhash_base <TKey, TValue, THashFunc, TEqualFunc, TAllocator, TTraits> __this_type;
 
 	__JUDYHASH_TYPEDEFS
 
@@ -236,13 +236,13 @@ private:
 
 //
 public:
-	__judyhash_map ()
+	__judyhash_base ()
 	{
 		m_judy = 0;
 		m_size = 0;
 	}
 
-	__judyhash_map (
+	__judyhash_base (
 		size_type n,
 		const hasher& h, 
 		const key_equal& k,
@@ -257,7 +257,7 @@ public:
 	}
 
 	template <class Tit>
-	__judyhash_map (
+	__judyhash_base (
 		Tit beg, Tit end,
 		size_type,
 		const hasher& h, 
@@ -274,7 +274,7 @@ public:
 		insert (beg, end);
 	}
 
-	__judyhash_map (const __this_type& a)
+	__judyhash_base (const __this_type& a)
 		:
 		m_judy (0),
 		m_size (0),
@@ -286,7 +286,7 @@ public:
 		insert (a.begin (), a.end ());
 	}
 
-	~__judyhash_map ()
+	~__judyhash_base ()
 	{
 		clear ();
 
@@ -329,7 +329,7 @@ public:
 #endif // JUDYHASH_DEBUG
 	}
 
-	__judyhash_map& operator = (const __this_type& a)
+	__judyhash_base& operator = (const __this_type& a)
 	{
 		// exception-less implementation
 		if (this != &a){
@@ -593,7 +593,7 @@ public:
 	private:
 		iterator_base m_it;
 		friend class const_iterator;
-		friend class __judyhash_map;
+		friend class __judyhash_base;
 
 		typedef iterator_base __base;
 
@@ -661,7 +661,7 @@ public:
 	class const_iterator {
 	private:
 		iterator_base m_it;
-		friend class __judyhash_map;
+		friend class __judyhash_base;
 
 		typedef iterator_base __base;
 
@@ -996,6 +996,168 @@ public:
 	}
 };
 
+// Unfortunately the following code doesn't work.
+//            template <typename T>
+//            typedef std::pair <T1, char> pair_first_is_char;
+// This is why this loooong macros is used here.
+
+#define REMAP_FUNCALLS(macrosarg__class_name, macrosarg__to_member)\
+		typedef typename __base::key_equal               key_equal;\
+		typedef typename __base::hasher                  hasher;\
+		typedef typename __base::allocator_type          allocator_type;\
+	\
+		typedef typename __base::iterator                iterator;\
+		typedef typename __base::const_iterator          const_iterator;\
+	\
+		typedef typename __base::debug_info              debug_info;\
+	\
+		macrosarg__class_name ()\
+		{\
+		}\
+	\
+		macrosarg__class_name (\
+			size_type n,\
+			const hasher& h         = hasher (), \
+			const key_equal& k      = key_equal (),\
+			const allocator_type& a = allocator_type ())\
+			:\
+			macrosarg__to_member (n, h, k, a)\
+		{\
+		}\
+	\
+		template <class Tit>\
+		macrosarg__class_name (\
+			Tit beg, Tit end,\
+			size_type n             = 0,\
+			const hasher& h         = hasher (), \
+			const key_equal& k      = key_equal (),\
+			const allocator_type& a = allocator_type ())\
+			:\
+			macrosarg__to_member (beg, end, n, h, k, a)\
+		{\
+		}\
+	\
+		macrosarg__class_name (const __this_type& a)\
+			:\
+			macrosarg__to_member (a.macrosarg__to_member)\
+		{\
+		}\
+	\
+		~macrosarg__class_name ()\
+		{\
+		}\
+	\
+		void clear ()\
+		{\
+			macrosarg__to_member.clear ();\
+		}\
+	\
+		std::pair <iterator, bool> insert (const value_type& value)\
+		{\
+			return macrosarg__to_member.insert (value);\
+		}\
+	\
+		template <class Tit>\
+		void insert (Tit beg, Tit end)\
+		{\
+			while (beg != end){\
+				macrosarg__to_member.insert (*beg);\
+	\
+				++beg;\
+			}\
+		}\
+	\
+		bool empty () const\
+		{\
+			return macrosarg__to_member.empty ();\
+		}\
+	\
+		size_type bucket_count () const\
+		{\
+			return macrosarg__to_member.bucket_count ();\
+		}\
+	\
+		void swap (__this_type& a)\
+		{\
+			macrosarg__to_member.swap (a.macrosarg__to_member);\
+		}\
+	\
+		size_type size () const\
+		{\
+			return macrosarg__to_member.size ();\
+		}\
+	\
+		hasher hash_funct () const\
+		{\
+			return macrosarg__to_member.hash_funct ();\
+		}\
+	\
+		key_equal key_eq () const\
+		{\
+			return macrosarg__to_member.key_eq ();\
+		}\
+	\
+		void resize (size_type n)\
+		{\
+		}\
+	\
+		size_type max_size () const\
+		{\
+			return macrosarg__to_member.max_size ();\
+		}\
+	\
+		void erase (const key_type& key)\
+		{\
+			macrosarg__to_member.erase (key);\
+		}\
+	\
+		void erase (iterator f, iterator l)\
+		{\
+			macrosarg__to_member.erase (f, l);\
+		}\
+	\
+		void erase (iterator it)\
+		{\
+			macrosarg__to_member.erase (it);\
+		}\
+	\
+		const_iterator find (const key_type& key) const\
+		{\
+			return macrosarg__to_member.find (key);\
+		}\
+		iterator find (const key_type& key)\
+		{\
+			return macrosarg__to_member.find (key);\
+		}\
+	\
+		size_type count (const key_type& key) const\
+		{\
+			return macrosarg__to_member.count (key);\
+		}\
+	\
+		iterator begin ()\
+		{\
+			return macrosarg__to_member.begin ();\
+		}\
+		const_iterator begin () const\
+		{\
+			return macrosarg__to_member.begin ();\
+		}\
+	\
+		iterator end ()\
+		{\
+			return macrosarg__to_member.end ();\
+		}\
+		const_iterator end () const\
+		{\
+			return macrosarg__to_member.end ();\
+		}\
+	\
+		const debug_info &get_debug_info () const\
+		{\
+			return macrosarg__to_member.m_debug_info;\
+		}
+
 template <
 	typename TKey,
 	typename TValue,
@@ -1005,7 +1167,7 @@ template <
 class judyhash_map
 {
 private:
-	typedef __judyhash_map <
+	typedef __judyhash_base <
 		TKey, TValue, THashFunc, TEqualFunc, TAllocator,
 		__judyhash_list_map <TKey, TValue, TEqualFunc> > __base;
 	typedef judyhash_map <
@@ -1015,167 +1177,13 @@ private:
 	__base m_hash_base;
 
 public:
-	typedef typename __base::key_equal               key_equal;
-	typedef typename __base::hasher                  hasher;
-	typedef typename __base::allocator_type          allocator_type;
-
-	typedef typename __base::iterator                iterator;
-	typedef typename __base::const_iterator          const_iterator;
-
-	typedef typename __base::debug_info              debug_info;
 
 	__JUDYHASH_TYPEDEFS
 
-// rempping members common with judyhash_set ones, create macros?
-	judyhash_map ()
-	{
-	}
+// rempping judyhash_map/judyhash_set common members
+	REMAP_FUNCALLS(judyhash_map, m_hash_base)
 
-	judyhash_map (
-		size_type n,
-		const hasher& h         = hasher (), 
-		const key_equal& k      = key_equal (),
-		const allocator_type& a = allocator_type ())
-		:
-		m_hash_base (n, h, k, a)
-	{
-	}
-
-	template <class Tit>
-	judyhash_map (
-		Tit beg, Tit end,
-		size_type n             = 0,
-		const hasher& h         = hasher (), 
-		const key_equal& k      = key_equal (),
-		const allocator_type& a = allocator_type ())
-		:
-		m_hash_base (beg, end, n, h, k, a)
-	{
-	}
-
-	judyhash_map (const __this_type& a)
-		:
-		m_hash_base (a.m_hash_base)
-	{
-	}
-
-	~judyhash_map ()
-	{
-	}
-
-	void clear ()
-	{
-		m_hash_base.clear ();
-	}
-
-	std::pair <iterator, bool> insert (const value_type& value)
-	{
-		return m_hash_base.insert (value);
-	}
-
-	template <class Tit>
-	void insert (Tit beg, Tit end)
-	{
-		while (beg != end){
-			m_hash_base.insert (*beg);
-
-			++beg;
-		}
-	}
-
-	bool empty () const
-	{
-		return m_hash_base.empty ();
-	}
-
-	size_type bucket_count () const
-	{
-		return m_hash_base.bucket_count ();
-	}
-
-	void swap (__this_type& a)
-	{
-		m_hash_base.swap (a.m_hash_base);
-	}
-
-	size_type size () const
-	{
-		return m_hash_base.size ();
-	}
-
-	hasher hash_funct () const
-	{
-		return m_hash_base.hash_funct ();
-	}
-
-	key_equal key_eq () const
-	{
-		return m_hash_base.key_eq ();
-	}
-
-	void resize (size_type n)
-	{
-		// does nothing
-	}
-
-	size_type max_size () const
-	{
-		return m_hash_base.max_size ();
-	}
-
-	void erase (const key_type& key)
-	{
-		m_hash_base.erase (key);
-	}
-
-	void erase (iterator f, iterator l)
-	{
-		m_hash_base.erase (f, l);
-	}
-
-	void erase (iterator it)
-	{
-		m_hash_base.erase (it);
-	}
-
-	const_iterator find (const key_type& key) const
-	{
-		return m_hash_base.find (key);
-	}
-	iterator find (const key_type& key)
-	{
-		return m_hash_base.find (key);
-	}
-
-	size_type count (const key_type& key) const
-	{
-		return m_hash_base.count (key);
-	}
-
-	iterator begin ()
-	{
-		return m_hash_base.begin ();
-	}
-	const_iterator begin () const
-	{
-		return m_hash_base.begin ();
-	}
-
-	iterator end ()
-	{
-		return m_hash_base.end ();
-	}
-	const_iterator end () const
-	{
-		return m_hash_base.end ();
-	}
-
-	const debug_info &get_debug_info () const
-	{
-		m_hash_base.m_debug_info;
-	}
-
-// members different from judyhash_set ones
+// judyhash_mem unique members
 	mapped_type& operator [] (const key_type& key)
 	{
 		std::pair <iterator, bool> res = insert (
@@ -1193,7 +1201,7 @@ template <
 class judyhash_set
 {
 private:
-	typedef __judyhash_map <
+	typedef __judyhash_base <
 		TKey, char, THashFunc, TEqualFunc, TAllocator,
 		__judyhash_list_set <TKey, TEqualFunc> > __base;
 	typedef judyhash_set <
@@ -1202,164 +1210,11 @@ private:
 	__base m_hash_base;
 
 public:
-	typedef typename __base::key_equal               key_equal;
-	typedef typename __base::hasher                  hasher;
-	typedef typename __base::allocator_type          allocator_type;
-
-	typedef typename __base::iterator                iterator;
-	typedef typename __base::const_iterator          const_iterator;
-
-	typedef typename __base::debug_info              debug_info;
 
 	__JUDYHASH_TYPEDEFS
 
-// rempping members common with judyhash_map ones, create macros?
-	judyhash_set ()
-	{
-	}
+// rempping judyhash_map/judyhash_set common members
+	REMAP_FUNCALLS(judyhash_set, m_hash_base)
 
-	judyhash_set (
-		size_type n,
-		const hasher& h         = hasher (), 
-		const key_equal& k      = key_equal (),
-		const allocator_type& a = allocator_type ())
-		:
-		m_hash_base (n, h, k, a)
-	{
-	}
-
-	template <class Tit>
-	judyhash_set (
-		Tit beg, Tit end,
-		size_type n             = 0,
-		const hasher& h         = hasher (), 
-		const key_equal& k      = key_equal (),
-		const allocator_type& a = allocator_type ())
-		:
-		m_hash_base (beg, end, n, h, k, a)
-	{
-	}
-
-	judyhash_set (const __this_type& a)
-		:
-		m_hash_base (a.m_hash_base)
-	{
-	}
-
-	~judyhash_set ()
-	{
-	}
-
-	void clear ()
-	{
-		m_hash_base.clear ();
-	}
-
-	std::pair <iterator, bool> insert (const value_type& value)
-	{
-		return m_hash_base.insert (value);
-	}
-
-	template <class Tit>
-	void insert (Tit beg, Tit end)
-	{
-		while (beg != end){
-			m_hash_base.insert (*beg);
-
-			++beg;
-		}
-	}
-
-	bool empty () const
-	{
-		return m_hash_base.empty ();
-	}
-
-	size_type bucket_count () const
-	{
-		return m_hash_base.bucket_count ();
-	}
-
-	void swap (__this_type& a)
-	{
-		m_hash_base.swap (a.m_hash_base);
-	}
-
-	size_type size () const
-	{
-		return m_hash_base.size ();
-	}
-
-	hasher hash_funct () const
-	{
-		return m_hash_base.hash_funct ();
-	}
-
-	key_equal key_eq () const
-	{
-		return m_hash_base.key_eq ();
-	}
-
-	void resize (size_type n)
-	{
-		// does nothing
-	}
-
-	size_type max_size () const
-	{
-		return m_hash_base.max_size ();
-	}
-
-	void erase (const key_type& key)
-	{
-		m_hash_base.erase (key);
-	}
-
-	void erase (iterator f, iterator l)
-	{
-		m_hash_base.erase (f, l);
-	}
-
-	void erase (iterator it)
-	{
-		m_hash_base.erase (it);
-	}
-
-	const_iterator find (const key_type& key) const
-	{
-		return m_hash_base.find (key);
-	}
-	iterator find (const key_type& key)
-	{
-		return m_hash_base.find (key);
-	}
-
-	size_type count (const key_type& key) const
-	{
-		return m_hash_base.count (key);
-	}
-
-	iterator begin ()
-	{
-		return m_hash_base.begin ();
-	}
-	const_iterator begin () const
-	{
-		return m_hash_base.begin ();
-	}
-
-	iterator end ()
-	{
-		return m_hash_base.end ();
-	}
-	const_iterator end () const
-	{
-		return m_hash_base.end ();
-	}
-
-	const debug_info &get_debug_info () const
-	{
-		m_hash_base.m_debug_info;
-	}
-// members different from judyhash_set ones
+// judyhash_mem unique members
 };
