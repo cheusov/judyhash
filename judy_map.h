@@ -18,7 +18,7 @@
 #include "judyarray/judy_common.h"
 #include "judyarray/judy_mapset_common.h"
 #include "judyarray/judy_mapset_list.h"
-#include "judyarray/judy_mapset_map.h"
+//#include "judyarray/judy_mapset_map.h"
 
 //////////////////////////////////////////////////////////////////////
 
@@ -72,7 +72,7 @@ template <
 class judy_map_l
 {
 private:
-	typedef __judy_base <
+	typedef __judy_mapset_base <
 		TKey, TValue, THashFunc, TEqualFunc, TAllocator,
 		__judy_map_traits_list <TKey, TValue, TEqualFunc> > __impl;
 	typedef judy_map_l <
@@ -119,7 +119,7 @@ template <
 class judy_map_m
 {
 private:
-	typedef __judy_base <
+	typedef __judy_mapset_base <
 		TKey, TValue, THashFunc, TEqualFunc, TAllocator,
 		__judy_map_traits_map <TKey, TValue, TLessFunc> > __impl;
 	typedef judy_map_m <

@@ -31,7 +31,7 @@ template <
 	typename TEqualFunc,
 	typename TAllocator,
 	typename TTraits>
-class __judy_base : private TTraits
+class __judy_mapset_base : private TTraits
 {
 private:
 	typedef TTraits __base;
@@ -44,7 +44,7 @@ public:
 	typedef THashFunc                       hasher;
 	typedef TAllocator                      allocator_type;
 
-	typedef __judy_base <TKey, TValue, THashFunc, TEqualFunc, TAllocator, TTraits> __this_type;
+	typedef __judy_mapset_base <TKey, TValue, THashFunc, TEqualFunc, TAllocator, TTraits> __this_type;
 
 	__JUDYARRAY_TYPEDEFS(__base)
 
@@ -98,13 +98,13 @@ private:
 
 //
 public:
-	__judy_base ()
+	__judy_mapset_base ()
 	{
 		m_judy = 0;
 		m_size = 0;
 	}
 
-	__judy_base (
+	__judy_mapset_base (
 		size_type n,
 		const hasher& h, 
 		const key_equal& k,
@@ -119,7 +119,7 @@ public:
 	}
 
 	template <class Tit>
-	__judy_base (
+	__judy_mapset_base (
 		Tit beg, Tit end,
 		size_type,
 		const hasher& h, 
@@ -136,7 +136,7 @@ public:
 		insert (beg, end);
 	}
 
-	__judy_base (const __this_type& a)
+	__judy_mapset_base (const __this_type& a)
 		:
 		m_judy (0),
 		m_size (0),
@@ -148,7 +148,7 @@ public:
 		insert (a.begin (), a.end ());
 	}
 
-	~__judy_base ()
+	~__judy_mapset_base ()
 	{
 		clear ();
 
@@ -191,7 +191,7 @@ public:
 #endif // JUDYARRAY_DEBUG
 	}
 
-	__judy_base& operator = (const __this_type& a)
+	__judy_mapset_base& operator = (const __this_type& a)
 	{
 		// exception-less implementation
 		if (this != &a){
@@ -455,7 +455,7 @@ public:
 	private:
 		iterator_base m_it;
 		friend class const_iterator;
-		friend class __judy_base;
+		friend class __judy_mapset_base;
 
 	public:
 		__JUDYARRAY_TYPEDEFS(iterator_base)
@@ -521,7 +521,7 @@ public:
 	class const_iterator {
 	private:
 		iterator_base m_it;
-		friend class __judy_base;
+		friend class __judy_mapset_base;
 
 	public:
 		__JUDYARRAY_TYPEDEFS(iterator_base)

@@ -56,16 +56,16 @@ for gpp in icpc; do
 	"-DTYPE_CHAR_PTR -DEMPTY_LOOP"
 
      # g++ STL
-#    test_judyarray $gpp         \
-#	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
-#	"$OPTFLAGS"             \
-#	""                      \
-#	"-DTYPE_CHAR_PTR -DUSE_GOOGLE_DENSE_MAP"
-#    test_judyarray $gpp         \
-#	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
-#	"$OPTFLAGS"             \
-#	""                     \
-#	"-DTYPE_CHAR_PTR -DUSE_STD_MAP"
+    test_judyarray $gpp         \
+	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$OPTFLAGS"             \
+	""                      \
+	"-DTYPE_CHAR_PTR -DUSE_GOOGLE_DENSE_MAP"
+    test_judyarray $gpp         \
+	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$OPTFLAGS"             \
+	""                     \
+	"-DTYPE_CHAR_PTR -DUSE_STD_MAP"
     test_judyarray $gpp         \
 	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"             \

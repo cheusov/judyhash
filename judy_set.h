@@ -67,7 +67,7 @@ template <
 class judy_set_l
 {
 private:
-	typedef __judy_base <
+	typedef __judy_mapset_base <
 		TKey, char, THashFunc, TEqualFunc, TAllocator,
 		__judy_list_set <TKey, TEqualFunc> > __impl;
 	typedef judy_set_l <
