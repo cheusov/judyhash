@@ -17,9 +17,26 @@
 #endif
 
 #include "judy_map.h"
-
-#ifdef USE_GOOGLE_DENSE_MAP
 #include <google/dense_hash_map>
+#include <map>
+
+#if defined(__GNUC__) && (__GNUC__ >= 3) && !defined(_STLP_CONFIG_H)
+#include <ext/hash_map>
+#define NMSPC __gnu_cxx
+#else
+#if defined(__INTEL_COMPILER)
+#include <ext/hash_map>
+#define NMSPC __gnu_cxx
+#else
+#include <hash_map>
+#define NMSPC std
+#endif
+#endif
+
+template<class T>
+inline void resize (T& map, int iters)
+{
+}
 
 template <
 	typename TKey,
@@ -66,24 +83,6 @@ public:
 	{
 	}
 };
-
-#endif
-
-#ifdef USE_HASH_MAP
-#if ((__GNUC__ >= 3) && !defined(_STLP_CONFIG_H))
-#include <ext/hash_map>
-#else
-#if defined(__INTEL_COMPILER)
-#include <ext/hash_map>
-#else
-#include <hash_map>
-#endif
-#endif
-#endif
-
-#ifdef USE_STD_MAP
-#include <map>
-#endif
 
 template <typename T>
 class my_pool {
@@ -252,33 +251,38 @@ typedef boost::fast_pool_allocator < std::pair <my_type const, int> > test_alloc
 typedef google_dense_hash_map <
 	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
+
+template <> void resize (my_hash& m, int n)
+{
+	m.resize (n);
+}
 #endif
 
 #ifdef USE_JUDY_HASH
 typedef judy_map_l <
 	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
+
+template <> void resize (my_hash& m, int n)
+{
+	m.resize (n);
+}
 #endif // USE_JUDY_HASH
 
 #ifdef USE_HASH_MAP
-#ifdef __INTEL_COMPILER
+//#ifdef __INTEL_COMPILER
 //typedef std::hash_map <
 //	my_type, int, dinkumware_hash_traits, test_allocator_type
 //	> my_hash;
-typedef __gnu_cxx::hash_map <
+//#else // !__INTEL_COMPILER
+typedef NMSPC::hash_map <
 	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
-#else // !__INTEL_COMPILER
-#if __GNUC__ >= 3 && !defined(_STLP_CONFIG_H)
-typedef __gnu_cxx::hash_map <
-	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
-	> my_hash;
-#else // __GNUC__ < 3
-typedef std::hash_map <
-	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
-	> my_hash;
-#endif // __GNUC__ >= 3
-#endif // __INTEL_COMPILER
+//#endif // __INTEL_COMPILER
+template <> void resize (my_hash& m, int n)
+{
+	m.resize (n);
+}
 #endif // USE_HASH_MAP
 
 #ifdef USE_STD_MAP
@@ -341,6 +345,7 @@ int main (int argc, const char **argv)
 #ifndef EMPTY_LOOP
 		if ((line_count % threshold) == 0){
 			ht.clear ();
+			resize (ht, threshold);
 		}
 #endif
 

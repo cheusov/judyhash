@@ -31,8 +31,8 @@ judyhash_test : judyhash_test.o
 
 .PHONY : clean
 clean:
-	rm -f *.o judyhash_bench judytest expected.txt
-	rm -f *.tmp core* *~ semantic.cache judyhash
+	rm -f *.o judyhash_bench judyhash_test expected.txt
+	rm -f *.tmp core* *~ semantic.cache judyhash log*
 
 .PHONY : test
 test : judyhash_test
