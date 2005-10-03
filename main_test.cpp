@@ -8,10 +8,12 @@
 #include <pool/pool_alloc.hpp>
 #include <map>
 #include <set>
+#include <sstream>
 
 //#define JUDYARRAY_NO_CONST
 #include "judy_map.h"
 #include "judy_set.h"
+#include "judy_set_cell.h"
 
 template <typename T>
 class my_pool {
@@ -99,22 +101,22 @@ struct hsh_string_hash1 {
 };
 
 struct hsh_string_hash2 {
-	size_t operator () (const char *key) const
+	size_t operator () (const char *) const
 	{
 		return 0;
 	}
-	size_t operator () (const std::string &key) const
+	size_t operator () (const std::string &) const
 	{
 		return 0;
 	}
 };
 
 struct hsh_string_hash3 {
-	size_t operator () (const char *key) const
+	size_t operator () (const char *) const
 	{
 		return 1000;
 	}
-	size_t operator () (const std::string &key) const
+	size_t operator () (const std::string &) const
 	{
 		return 1000;
 	}
@@ -205,7 +207,7 @@ typedef std::set <
 	const char *, cmp_string_lt
 	> std_set20;
 typedef judy_set_l <
-	const char *, hsh_string_hash3
+	const char *, hsh_string_hash1
 	> my_set21;
 typedef judy_set_l <
 	const char *, hsh_string_hash2
@@ -298,7 +300,7 @@ value2key_ (const my_set31::value_type &v)
 }
 
 my_set31::value_type
-value2data_ (const my_set31::value_type &v)
+value2data_ (const my_set31::value_type &)
 {
 	return my_set31::value_type ("(true)");
 }
@@ -322,7 +324,19 @@ void print_uni (judyhash_type &ht, const char * name)
 	std::cout << "size:" << ht.size () << '\n';
 	ITERATE_OVER (typename vec_type::const_iterator, vec, v){
 		std::cout << "key=`" << value2key_ (*v) << "` ";
-		std::cout << "value=" << value2key_ (*v) << "\n";
+		std::cout << "value=" << value2data_ (*v) << "\n";
+	}
+
+	std::cout << '\n';
+}
+
+template <typename judyhash_type, typename judyhash_iterator_type>
+void print_uni_int (judyhash_type &ht, const char * name)
+{
+	std::cout << name << ":\n";
+	std::cout << "size:" << ht.size () << '\n';
+	ITERATE_OVER (judyhash_iterator_type, ht, v){
+		std::cout << "key=" << *v << "\n";
 	}
 
 	std::cout << '\n';
@@ -520,7 +534,7 @@ void test (judyhash_type &ht, int num)
 		ht, "ht after erasing \"language\"");
 
 	// finding predefined words
-	for (int i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
+	for (size_t i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
 		const char *key = init_values [i].first;
 		hash_iterator found = ht.find (key);
 		if (found == ht.end ())
@@ -607,7 +621,9 @@ void test_set (judyhash_type &ht, int num)
 	// tests for iterator, find, iterator::operator++(),
 	//           iterator::operator*() etc.
 	// finding "layout"
-	hash_iterator layout_iterator = ht.find ("layout");
+	print_hash_const_it (ht, "ht before finding \"layout\"");
+	hash_iterator layout_iterator;
+	layout_iterator = ht.find ("layout");
 	hash_iterator layout_next_iterator;
 	print_iterator ("ht", ht, layout_iterator);
 //	(*layout_iterator).second = 75;
@@ -668,7 +684,7 @@ void test_set (judyhash_type &ht, int num)
 		ht, "ht after erasing \"language\"");
 
 	// finding predefined words
-	for (int i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
+	for (size_t i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
 		const char *key = init_values [i].first;
 		hash_iterator found = ht.find (key);
 		if (found == ht.end ())
@@ -843,4 +859,29 @@ int main (int argc, const char **argv)
 	judy_map_m <std::string, int, hsh_string_hash1> ht40;
 	test (ht40, 40);
 	*/
+
+	typedef judy_set_cell <int> my_set40;
+	my_set40 set_int1;
+	set_int1.insert (5);
+	set_int1.insert (50);
+	set_int1.insert (6);
+	set_int1.insert (51);
+	set_int1.insert (-52);
+	set_int1.insert (-530);
+	set_int1.insert (-15);
+	set_int1.insert (-520);
+	set_int1.insert (-53);
+	set_int1.insert (520);
+	set_int1.insert (51);
+	set_int1.insert (5);
+	set_int1.insert (5);
+	set_int1.insert (5000);
+
+	set_int1.erase (-530);
+
+	print_uni_int <my_set40, my_set40::iterator> (set_int1, "judy_set_cell");
+
+	set_int1.erase (set_int1.begin (), set_int1.end ());
+
+	print_uni_int <my_set40, my_set40::iterator> (set_int1, "judy_set_cell");
 }
