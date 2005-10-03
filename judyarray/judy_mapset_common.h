@@ -492,7 +492,7 @@ public:
 		iterator operator ++ (int)
 		{
 			iterator ret = *this;
-			operator ++ ();
+			m_it.operator ++ ();
 			return ret;
 		}
 		iterator& operator ++ ()
@@ -562,7 +562,7 @@ public:
 		const_iterator operator ++ (int)
 		{
 			const_iterator ret = *this;
-			operator ++ ();
+			m_it.operator ++ ();
 			return ret;
 		}
 		const_iterator& operator ++ ()
