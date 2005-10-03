@@ -1,0 +1,368 @@
+/*
+ * Copyright (c) 2005, Aleksey Cheusov <vle@gmx.net>
+ *
+ * Permission to use, copy, modify, distribute and sell this software
+ * and its documentation for any purpose is hereby granted without
+ * fee, provided that the above copyright notice appear in all copies
+ * and that both that copyright notice and this permission notice
+ * appear in supporting documentation.  I make no
+ * representations about the suitability of this software for any
+ * purpose.  It is provided "as is" without express or implied
+ * warranty.
+ *
+ */
+
+#ifndef _JUDY_SET_CELL_H_
+#define _JUDY_SET_CELL_H_
+
+#include "judyarray/judy_common.h"
+
+struct __judy_always_zero {
+	Word_t operator () (int) const
+	{
+		return 0;
+	}
+};
+
+template <
+	typename TKey,
+	typename THashFunc  = __judy_always_zero,
+	typename TEqualFunc = std::equal_to <TKey>,
+	typename TAllocator = std::allocator < TKey> >
+class judy_set_cell {
+private:
+	Pvoid_t              m_judy;
+
+	typedef judy_set_cell <TKey, THashFunc, TEqualFunc, TAllocator> __this_type;
+
+// types
+public:
+	typedef TKey key_type;
+	typedef TKey value_type;
+	typedef TKey data_type;
+	typedef TKey mapped_type;
+
+	typedef size_t                    size_type;
+	typedef ptrdiff_t                 difference_type;
+
+	typedef THashFunc                 hasher;
+	typedef TEqualFunc                key_equal;
+	typedef TAllocator                allocator_type;
+
+	class pointer {
+	private:
+		key_type m_p;
+
+		pointer (key_type v)
+			: m_p (v)
+		{
+		}
+
+		friend class judy_set_cell;
+
+	public:
+		pointer () : m_p ()
+		{
+		}
+
+		pointer (const pointer& a)
+			: m_p (a.m_p)
+		{
+		}
+
+		key_type operator * () const
+		{
+			return m_p;
+		}
+		key_type& operator * ()
+		{
+			return m_p;
+		}
+	};
+
+	typedef pointer                   const_pointer;
+
+	typedef TKey                      reference;
+	typedef TKey                      const_reference;
+
+// functions
+public:
+	judy_set_cell ()
+	{
+		m_judy = 0;
+	}
+
+	judy_set_cell (
+		size_type n,
+		const hasher&, 
+		const key_equal&,
+		const allocator_type&)
+	{
+		m_judy = 0;
+	}
+
+	template <class Tit>
+	judy_set_cell (
+		Tit beg, Tit end,
+		size_type,
+		const hasher&, 
+		const key_equal&,
+		const allocator_type&)
+	{
+		m_judy = 0;
+
+		insert (beg, end);
+	}
+
+	judy_set_cell (const __this_type& a)
+		:
+		m_judy (0)
+	{
+		// optimize me!!!
+		insert (a.begin (), a.end ());
+	}
+
+	~judy_set_cell ()
+	{
+		clear ();
+		assert (!m_judy);
+	}
+
+	void clear ()
+	{
+#ifdef JUDYARRAY_DEBUG
+		// Slow implementation which allows better
+		// inconsistency checking
+		erase (begin (), end ());
+#else // JUDYARRAY_DEBUG
+		// Much faster implementation
+
+		::Judy1FreeArray (&m_judy, 0);
+#endif // JUDYARRAY_DEBUG
+	}
+
+	judy_set_cell& operator = (const __this_type& a)
+	{
+		// exception-less implementation
+		if (this != &a){
+			clear ();
+
+			__this_type temp (a);
+
+			swap (temp);
+		}
+
+		return *this;
+	}
+
+	template <class Tit>
+	void insert (Tit beg, Tit end)
+	{
+		while (beg != end){
+			insert (*beg);
+
+			++beg;
+		}
+	}
+
+	bool empty () const
+	{
+		return m_judy == 0;
+	}
+
+	size_type bucket_count () const
+	{
+		return ::Judy1Count (m_judy, 0, -1, 0);
+	}
+
+	void swap (__this_type& a)
+	{
+		std::swap (m_judy, a.m_judy);
+	}
+
+	size_type size () const
+	{
+		return ::Judy1Count (m_judy, 0, -1, 0);
+	}
+
+	hasher hash_funct () const
+	{
+		return hasher ();
+	}
+
+	key_equal key_eq () const
+	{
+		return key_equal ();
+	}
+
+	size_type max_size () const
+	{
+		return size_type (-1);
+	}
+
+	class iterator {
+	public:
+		__JUDYARRAY_TYPEDEFS(__this_type);
+
+		const __this_type *m_obj;
+
+		Word_t                 m_index;
+		bool                   m_end;
+
+		iterator ()
+			:
+			m_obj   (NULL),
+			m_index (0),
+			m_end   (true)
+		{
+		}
+
+		iterator (const __this_type *obj, Word_t index)
+			:
+			m_obj (obj),
+			m_index (index),
+			m_end (false)
+		{
+		}
+
+		iterator (const __this_type *obj)
+			:
+			m_obj (obj),
+			m_index (0),
+			m_end (false)
+		{
+			::Judy1First (m_obj -> m_judy, &m_index, 0);
+		}
+
+		iterator & operator = (const iterator& a)
+		{
+			if (this == &a)
+				return *this;
+
+			m_index       = a.m_index;
+			m_obj         = a.m_obj;
+			m_end         = a.m_end;
+
+			return *this;
+		}
+
+		reference operator * ()
+		{
+			return m_index;
+		}
+		const_reference operator * () const
+		{
+			return m_index;
+		}
+
+		iterator& operator ++ ()
+		{
+			if (m_end)
+				abort ();
+
+			PWord_t pvalue = (PWord_t) Judy1Next (m_obj -> m_judy, &m_index, 0);
+
+			if (!pvalue){
+				m_end = true;
+			}
+
+			return *this;
+		}
+
+		iterator operator ++ (int)
+		{
+			iterator ret = *this;
+			operator ++ ();
+			return ret;
+		}
+
+		bool operator == (const iterator& a) const
+		{
+			if (m_end && a.m_end)
+				return true;
+
+			assert (!m_obj || !a.m_obj || m_obj == a.m_obj);
+
+			if (m_end != a.m_end)
+				return false;
+
+			return m_index == a.m_index;
+		}
+		bool operator != (const iterator& a) const
+		{
+			return !operator == (a);
+		}
+	};
+	typedef iterator const_iterator;
+
+	void erase (key_type key)
+	{
+		::Judy1Unset (&m_judy, (Word_t) key, 0);
+	}
+
+	void erase (iterator f, iterator l)
+	{
+		while (f != l){
+			erase (f++);
+		}
+	}
+
+	void erase (iterator it)
+	{
+		erase (*it);
+	}
+
+	const_iterator find (key_type key) const
+	{
+		if (::Judy1Test (m_judy, (Word_t) key, 0)){
+			return iterator (this, key);
+		}else{
+			return iterator ();
+		}
+	}
+
+	iterator find (key_type key)
+	{
+		if (::Judy1Test (m_judy, (Word_t) key, 0)){
+			return iterator (this, key);
+		}else{
+			return iterator ();
+		}
+	}
+
+	size_type count (const key_type& key) const
+	{
+		return ::Judy1Count (m_judy, 0, -1, 0);
+	}
+
+	std::pair <iterator, bool> insert (key_type key)
+	{
+		if (!::Judy1Test (m_judy, key, 0)){
+			::Judy1Set (&m_judy, key, 0);
+			return std::make_pair (iterator (this, key), true);
+		}else{
+			return std::make_pair (iterator (this, key), false);
+		}
+	}
+
+public:
+	iterator begin ()
+	{
+		return iterator (this);
+	}
+	const_iterator begin () const
+	{
+		return const_iterator (this);
+	}
+
+	iterator end ()
+	{
+		return iterator ();
+	}
+	const_iterator end () const
+	{
+		return const_iterator ();
+	}
+};
+
+#endif // _JUDY_SET_CELL_H_
