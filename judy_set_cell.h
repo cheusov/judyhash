@@ -32,6 +32,7 @@ template <
 class judy_set_cell {
 private:
 	Pvoid_t              m_judy;
+	size_t               m_size;
 
 	typedef judy_set_cell <TKey, THashFunc, TEqualFunc, TAllocator> __this_type;
 
@@ -90,6 +91,7 @@ public:
 	judy_set_cell ()
 	{
 		m_judy = 0;
+		m_size = 0;
 	}
 
 	judy_set_cell (
@@ -99,6 +101,7 @@ public:
 		const allocator_type&)
 	{
 		m_judy = 0;
+		m_size = 0;
 	}
 
 	template <class Tit>
@@ -110,13 +113,15 @@ public:
 		const allocator_type& = allocator_type ())
 	{
 		m_judy = 0;
+		m_size = 0;
 
 		insert (beg, end);
 	}
 
 	judy_set_cell (const __this_type& a)
 		:
-		m_judy (0)
+		m_judy (0),
+		m_size (0)
 	{
 		// optimize me!!!
 		insert (a.begin (), a.end ());
@@ -126,6 +131,7 @@ public:
 	{
 		clear ();
 		assert (m_judy == 0);
+		assert (m_size == 0);
 	}
 
 	void clear ()
@@ -139,6 +145,7 @@ public:
 
 		::Judy1FreeArray (&m_judy, 0);
 		m_judy = 0;
+		m_size = 0;
 #endif // JUDYARRAY_DEBUG
 	}
 
@@ -173,17 +180,18 @@ public:
 
 	size_type bucket_count () const
 	{
-		return ::Judy1Count (m_judy, 0, -1, 0);
+		return m_size;
 	}
 
 	void swap (__this_type& a)
 	{
 		std::swap (m_judy, a.m_judy);
+		std::swap (m_size, a.m_size);
 	}
 
 	size_type size () const
 	{
-		return ::Judy1Count (m_judy, 0, -1, 0);
+		return m_size;
 	}
 
 	hasher hash_funct () const
@@ -264,9 +272,7 @@ public:
 		{
 			assert (!m_end);
 
-			PWord_t pvalue = (PWord_t) Judy1Next (m_obj -> m_judy, &m_index, 0);
-
-			if (!pvalue){
+			if (!Judy1Next (m_obj -> m_judy, &m_index, 0)){
 				m_end = true;
 			}
 
@@ -301,7 +307,8 @@ public:
 
 	void erase (key_type key)
 	{
-		::Judy1Unset (&m_judy, (Word_t) key, 0);
+		if (::Judy1Unset (&m_judy, (Word_t) key, 0))
+			--m_size;
 	}
 
 	void erase (iterator f, iterator l)
@@ -313,8 +320,12 @@ public:
 
 	void erase (iterator it)
 	{
-		if (!it.m_end)
+		if (!it.m_end){
 			erase (*it);
+		}else{
+			// Does nothing here.
+			// IMHO, it is much better than "undefined behaviour"
+		}
 	}
 
 	const_iterator find (key_type key) const
@@ -345,8 +356,8 @@ public:
 
 	std::pair <iterator, bool> insert (key_type key)
 	{
-		if (!::Judy1Test (m_judy, (Word_t) key, 0)){
-			::Judy1Set (&m_judy, (Word_t) key, 0);
+		if (::Judy1Set (&m_judy, (Word_t) key, 0)){
+			++m_size;
 			return std::make_pair (iterator (this, (Word_t) key), true);
 		}else{
 			return std::make_pair (iterator (this, (Word_t) key), false);
