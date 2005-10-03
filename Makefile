@@ -1,7 +1,7 @@
 ############################################################
 
 # Examples
-#CXX=icpc -no-gcc
+#CXX=icpc
 CXX=g++
 
 # Examples
@@ -24,7 +24,7 @@ LDFLAGS_TEST=
 .PHONY : all
 all : judyhash_test #judyhash_bench
 
-judyhash_test.o : main_test.cpp judy_map.h judy_set.h
+judyhash_test.o : main_test.cpp *.h judyarray/*.h
 	$(CXX) -o $@ -I. $(CPPFLAGS) $(CFLAGS_TEST) -c main_test.cpp
 judyhash_test : judyhash_test.o
 	$(CXX) $(LDFLAGS_TEST) -o $@ judyhash_test.o -L. -lJudy
@@ -51,7 +51,7 @@ test : judyhash_test
 	./judyhash_test "6" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judyhash_map (const char *) 6 done" && \
 	\
-	printf "\n"; \
+	printf "\n" && \
 	./judyhash_test "10" >expected.txt && \
 	./judyhash_test "11" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judyhash_map (std::string) 11 done" && \
@@ -66,7 +66,7 @@ test : judyhash_test
 	./judyhash_test "16" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judyhash_map (std::string) 16 done" && \
 	\
-	printf "\n"; \
+	printf "\n" && \
 	./judyhash_test "20" >expected.txt && \
 	./judyhash_test "21" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judyhash_set (const char *) 21 done" && \
@@ -81,7 +81,7 @@ test : judyhash_test
 	./judyhash_test "26" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judyhash_set (const char *) 26 done" && \
 	\
-	printf "\n"; \
+	printf "\n" && \
 	./judyhash_test "30" >expected.txt && \
 	./judyhash_test "31" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judyhash_set (std::string) 31 done" && \
