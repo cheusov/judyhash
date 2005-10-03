@@ -339,21 +339,10 @@ void print_uni (judyhash_type &ht, const char * name)
 
 	std::cout << name << ":\n";
 	std::cout << "size:" << ht.size () << '\n';
+	std::cout << "empty:" << ht.empty () << '\n';
 	ITERATE_OVER (typename vec_type::const_iterator, vec, v){
 		std::cout << "key=`" << value2key_ (*v) << "` ";
 		std::cout << "value=" << value2data_ (*v) << "\n";
-	}
-
-	std::cout << '\n';
-}
-
-template <typename judyhash_type, typename judyhash_iterator_type>
-void print_uni_int (judyhash_type &ht, const char * name)
-{
-	std::cout << name << ":\n";
-	std::cout << "size:" << ht.size () << '\n';
-	ITERATE_OVER (judyhash_iterator_type, ht, v){
-		std::cout << "key=" << *v << "\n";
 	}
 
 	std::cout << '\n';
