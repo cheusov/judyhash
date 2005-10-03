@@ -96,4 +96,9 @@ test : judyhash_test
 	./judyhash_test "36" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judyhash_set (std::string) 36 done" && \
 	\
+	printf "\n" && \
+	./judyhash_test "40" >expected.txt && \
+	./judyhash_test "41" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judyhash_set_cell (const char *) 41 done" && \
+	\
 	true

@@ -104,10 +104,10 @@ public:
 	template <class Tit>
 	judy_set_cell (
 		Tit beg, Tit end,
-		size_type,
-		const hasher&, 
-		const key_equal&,
-		const allocator_type&)
+		size_type = 0,
+		const hasher& = hasher (), 
+		const key_equal& = key_equal (),
+		const allocator_type& = allocator_type ())
 	{
 		m_judy = 0;
 
@@ -125,7 +125,7 @@ public:
 	~judy_set_cell ()
 	{
 		clear ();
-		assert (!m_judy);
+		assert (m_judy == 0);
 	}
 
 	void clear ()
@@ -138,6 +138,7 @@ public:
 		// Much faster implementation
 
 		::Judy1FreeArray (&m_judy, 0);
+		m_judy = 0;
 #endif // JUDYARRAY_DEBUG
 	}
 
@@ -203,6 +204,7 @@ public:
 	class iterator {
 	public:
 		__JUDYARRAY_TYPEDEFS(__this_type);
+		typedef std::forward_iterator_tag iterator_category;
 
 		const __this_type *m_obj;
 
@@ -231,7 +233,8 @@ public:
 			m_index (0),
 			m_end (false)
 		{
-			::Judy1First (m_obj -> m_judy, &m_index, 0);
+			if (!::Judy1First (m_obj -> m_judy, &m_index, 0))
+				m_end = true;
 		}
 
 		iterator & operator = (const iterator& a)
@@ -248,17 +251,18 @@ public:
 
 		reference operator * ()
 		{
-			return m_index;
+			assert (!m_end);
+			return (key_type) m_index;
 		}
 		const_reference operator * () const
 		{
-			return m_index;
+			assert (!m_end);
+			return (key_type) m_index;
 		}
 
 		iterator& operator ++ ()
 		{
-			if (m_end)
-				abort ();
+			assert (!m_end);
 
 			PWord_t pvalue = (PWord_t) Judy1Next (m_obj -> m_judy, &m_index, 0);
 
@@ -309,13 +313,14 @@ public:
 
 	void erase (iterator it)
 	{
-		erase (*it);
+		if (!it.m_end)
+			erase (*it);
 	}
 
 	const_iterator find (key_type key) const
 	{
 		if (::Judy1Test (m_judy, (Word_t) key, 0)){
-			return iterator (this, key);
+			return iterator (this, (Word_t) key);
 		}else{
 			return iterator ();
 		}
@@ -324,7 +329,7 @@ public:
 	iterator find (key_type key)
 	{
 		if (::Judy1Test (m_judy, (Word_t) key, 0)){
-			return iterator (this, key);
+			return iterator (this, (Word_t) key);
 		}else{
 			return iterator ();
 		}
@@ -332,16 +337,19 @@ public:
 
 	size_type count (const key_type& key) const
 	{
-		return ::Judy1Count (m_judy, 0, -1, 0);
+		if (::Judy1Test (m_judy, (Word_t) key, 0))
+			return 1;
+		else
+			return 0;
 	}
 
 	std::pair <iterator, bool> insert (key_type key)
 	{
-		if (!::Judy1Test (m_judy, key, 0)){
-			::Judy1Set (&m_judy, key, 0);
-			return std::make_pair (iterator (this, key), true);
+		if (!::Judy1Test (m_judy, (Word_t) key, 0)){
+			::Judy1Set (&m_judy, (Word_t) key, 0);
+			return std::make_pair (iterator (this, (Word_t) key), true);
 		}else{
-			return std::make_pair (iterator (this, key), false);
+			return std::make_pair (iterator (this, (Word_t) key), false);
 		}
 	}
 

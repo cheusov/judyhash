@@ -255,9 +255,16 @@ typedef judy_set_l <
 	std::allocator <my_set31::value_type>
 	> my_set36;
 
-typedef std::multimap <
-	const char *, int, cmp_string_lt
-	> std_multimap40;
+typedef std::set <
+	const char *
+	> std_set40;
+typedef judy_set_cell <
+	const char *
+	> my_set41;
+
+//typedef std::multimap <
+//	const char *, int, cmp_string_lt
+//	> std_multimap40;
 
 static const my_map1::value_type init_values [] = {
 	my_map1::value_type ("record", 1000),
@@ -293,7 +300,7 @@ value2data_ (const T &v)
 	return v.second;
 }
 
-const my_set31::value_type &
+my_set31::value_type
 value2key_ (const my_set31::value_type &v)
 {
 	return v;
@@ -303,6 +310,16 @@ my_set31::value_type
 value2data_ (const my_set31::value_type &)
 {
 	return my_set31::value_type ("(true)");
+}
+
+std::string value2key_ (const char *v)
+{
+	return v;
+}
+
+std::string value2data_ (const char *v)
+{
+	return "(true)";
 }
 
 #define ITERATE_OVER(it_t, array, iter)                        \
@@ -393,7 +410,7 @@ void print_insert_ret_set (const T &i)
 	else
 		std::cout << "old item `";
 
-	std::cout << *(i.first) << "` was inserted";
+	std::cout << *(i.first) << "` was inserted\n";
 }
 
 template <typename judyhash_type>
@@ -684,7 +701,10 @@ void test_set (judyhash_type &ht, int num)
 		ht, "ht after erasing \"language\"");
 
 	// finding predefined words
-	for (size_t i=0; i < sizeof (init_values)/sizeof (init_values [0]); ++i){
+	for (size_t i=0;
+		 i < sizeof (init_values_set)/sizeof (init_values_set [0]);
+		 ++i)
+	{
 		const char *key = init_values [i].first;
 		hash_iterator found = ht.find (key);
 		if (found == ht.end ())
@@ -852,36 +872,23 @@ int main (int argc, const char **argv)
 		// test for constructor
 		my_set36 ht36;
 		test_set (ht36, 36);
+
+
+
+
+	}else if (!strcmp (argv [0], "40")){
+		// test for constructor
+		std_set40 ht40;
+		test_set (ht40, 40);
+	}else if (!strcmp (argv [0], "41")){
+		// test for constructor
+		my_set41 ht41;
+		test_set (ht41, 41);
+
+
+
+
 	}else{
 		return 11;
 	}
-	/*
-	judy_map_m <std::string, int, hsh_string_hash1> ht40;
-	test (ht40, 40);
-	*/
-
-	typedef judy_set_cell <int> my_set40;
-	my_set40 set_int1;
-	set_int1.insert (5);
-	set_int1.insert (50);
-	set_int1.insert (6);
-	set_int1.insert (51);
-	set_int1.insert (-52);
-	set_int1.insert (-530);
-	set_int1.insert (-15);
-	set_int1.insert (-520);
-	set_int1.insert (-53);
-	set_int1.insert (520);
-	set_int1.insert (51);
-	set_int1.insert (5);
-	set_int1.insert (5);
-	set_int1.insert (5000);
-
-	set_int1.erase (-530);
-
-	print_uni_int <my_set40, my_set40::iterator> (set_int1, "judy_set_cell");
-
-	set_int1.erase (set_int1.begin (), set_int1.end ());
-
-	print_uni_int <my_set40, my_set40::iterator> (set_int1, "judy_set_cell");
 }
