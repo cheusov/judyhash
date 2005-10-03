@@ -1,5 +1,7 @@
 #include <string.h>
 #include <assert.h>
+#include <time.h>
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -705,6 +707,25 @@ void test_set (judyhash_type &ht, int num)
 	print_hash_const_it (ht, "ht2 final");
 }
 
+#include <ext/hash_set>
+
+template <typename set_type>
+void test_set_int (set_type& obj, size_t probs)
+{
+	time_t time_curr;
+
+	time_t time_start;
+	time (&time_start);
+
+
+	for (int i=0; i < probs; ++i){
+		obj.insert (i);
+	}
+
+	time (&time_curr);
+	std::cout << time_curr - time_start << " seconds\n";
+}
+
 int main (int argc, const char **argv)
 {
 	--argc, ++argv;
@@ -877,6 +898,25 @@ int main (int argc, const char **argv)
 
 
 
+	}else if (!strcmp (argv [0], "50")){
+		if (!argv [1])
+			return 55;
+
+		unsigned long probs = strtoul (argv [1], NULL, 10);
+
+		// test for constructor
+		std::cout << "judy_set_cell <int>: ";
+		judy_set_cell <int> set_judy;
+		test_set_int (set_judy, probs);
+		set_judy.clear ();
+
+//		std::cout << "std::set <int>: ";
+//		std::set <int> set_std;
+//		test_set_int (set_std, probs);
+
+		std::cout << "hash <int>: ";
+		__gnu_cxx::hash_set <int> set_hash;
+		test_set_int (set_hash, probs);
 	}else{
 		return 11;
 	}
