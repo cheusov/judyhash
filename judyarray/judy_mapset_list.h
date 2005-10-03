@@ -51,6 +51,8 @@ public:
 					return beg;
 				}
 			}
+
+			return std::list <pointer>::end ();
 		}
 	};
 
