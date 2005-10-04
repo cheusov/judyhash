@@ -101,4 +101,9 @@ test : judyhash_test
 	./judyhash_test "41" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judyhash_set_cell (const char *) 41 done" && \
 	\
+	printf "\n" && \
+	./judyhash_test "50" >expected.txt && \
+	./judyhash_test "51" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judyhash_map_kcell_dcell (const char *, int) 51 done" && \
+	\
 	true

@@ -17,13 +17,6 @@
 
 #include "judyarray/judy_common.h"
 
-struct __judy_always_zero {
-	Word_t operator () (int) const
-	{
-		return 0;
-	}
-};
-
 template <
 	typename TKey,
 	typename THashFunc  = __judy_always_zero,
@@ -50,38 +43,10 @@ public:
 	typedef TEqualFunc                key_equal;
 	typedef TAllocator                allocator_type;
 
-	class pointer {
-	private:
-		key_type m_p;
-
-		pointer (key_type v)
-			: m_p (v)
-		{
-		}
-
-		friend class judy_set_cell;
-
-	public:
-		pointer () : m_p ()
-		{
-		}
-
-		pointer (const pointer& a)
-			: m_p (a.m_p)
-		{
-		}
-
-		key_type operator * () const
-		{
-			return m_p;
-		}
-		key_type& operator * ()
-		{
-			return m_p;
-		}
-	};
-
-	typedef pointer                   const_pointer;
+	// I know about proxies, but I don't think they are really
+	// necessary in the class implemeting a set.
+	typedef const TKey *              pointer;
+	typedef TKey *                    const_pointer;
 
 	typedef TKey                      reference;
 	typedef TKey                      const_reference;

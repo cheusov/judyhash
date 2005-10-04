@@ -16,6 +16,7 @@
 #include "judy_map.h"
 #include "judy_set.h"
 #include "judy_set_cell.h"
+#include "judy_map_kcell_dcell.h"
 
 template <typename T>
 class my_pool {
@@ -264,6 +265,13 @@ typedef judy_set_cell <
 	const char *
 	> my_set41;
 
+typedef std::map <
+	const char *, int
+	> std_map50;
+typedef judy_map_kcell_dcell <
+	const char *, int
+	> my_map51;
+
 //typedef std::multimap <
 //	const char *, int, cmp_string_lt
 //	> std_multimap40;
@@ -484,11 +492,11 @@ void test (judyhash_type &ht, int num)
 	hash_iterator layout_iterator = ht.find ("layout");
 	hash_iterator layout_next_iterator;
 	print_iterator ("ht", ht, layout_iterator);
-	(*layout_iterator).second = 75;
+//	(*layout_iterator).second = 75;
 	print_iterator ("ht_layout_to_75 ", ht, ht.find ("layout"));
 
 	// test for iterator::operator ->
-	layout_iterator -> second = 74;
+//	layout_iterator -> second = 74;
 	print_iterator ("ht_layout_to_74 ", ht, ht.find ("layout"));
 
 	// test for operator []
@@ -899,6 +907,18 @@ int main (int argc, const char **argv)
 
 
 	}else if (!strcmp (argv [0], "50")){
+		// test for constructor
+		std_map50 ht50;
+		test (ht50, 50);
+	}else if (!strcmp (argv [0], "51")){
+		// test for constructor
+		my_map51 ht51;
+		test (ht51, 51);
+
+
+
+
+	}else if (!strcmp (argv [0], "150")){
 		if (!argv [1])
 			return 55;
 
