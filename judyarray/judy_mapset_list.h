@@ -17,7 +17,7 @@
 
 #include <list>
 
-template <typename TKey, typename TValue,
+template <typename TKey, typename TData,
 	typename TEqualFunc, typename TTraits>
 class __judy_cmp_traits_list
 :

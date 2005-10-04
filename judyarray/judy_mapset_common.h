@@ -26,7 +26,7 @@
 
 template <
 	typename TKey,
-	typename TValue,
+	typename TData,
 	typename THashFunc,
 	typename TEqualFunc,
 	typename TAllocator,
@@ -44,7 +44,7 @@ public:
 	typedef THashFunc                       hasher;
 	typedef TAllocator                      allocator_type;
 
-	typedef __judy_mapset_base <TKey, TValue, THashFunc, TEqualFunc, TAllocator, TTraits> __this_type;
+	typedef __judy_mapset_base <TKey, TData, THashFunc, TEqualFunc, TAllocator, TTraits> __this_type;
 
 	__JUDYARRAY_TYPEDEFS(__base)
 

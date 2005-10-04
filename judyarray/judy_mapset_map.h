@@ -17,7 +17,7 @@
 
 #include <map>
 
-template <typename TKey, typename TValue,
+template <typename TKey, typename TData,
 	typename TLessFunc, typename TTraits>
 class __judy_cmp_traits_map
 :
@@ -52,7 +52,7 @@ public:
 		typename std::map <pointer, compare>::iterator find (
 			const TKey &key)
 		{
-			typename TTraits::value_type tmp (key, TValue ());
+			typename TTraits::value_type tmp (key, TData ());
 			return this -> find (&tmp);
 		}
 	};
