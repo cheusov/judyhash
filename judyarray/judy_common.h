@@ -48,4 +48,61 @@
 	typedef typename macrosarg_from::const_reference const_reference;
 
 
+struct __judy_always_zero {
+	Word_t operator () (int) const
+	{
+		return 0;
+	}
+};
+
+template <typename T>
+class judy_reference {
+private:
+	T *m_pointer;
+
+public:
+	judy_reference ()
+	{
+		m_pointer = NULL;
+	}
+
+	judy_reference (const judy_reference &)
+	{
+		m_pointer = a.m_pointer;
+	}
+
+	~judy_reference ()
+	{
+	}
+
+	judy_reference &operator = (const judy_reference &a)
+	{
+		// copy value, but the pointer!!!
+		assert (a.m_pointer);
+		assert (m_pointer);
+
+		*m_pointer = *a.m_pointer;
+
+		return *this;
+	}
+
+	operator T () const
+	{
+		assert (m_pointer);
+		return *m_pointer;
+	}
+
+	void set_pointer (T *pointer)
+	{
+		m_pointer = pointer;
+	}
+
+	template <typename TValue>
+	judy_reference &operator = (const TValue& v)
+	{
+		assert (m_pointer);
+		*m_pointer = v;
+	}
+};
+
 #endif // _JUDY_COMMON_H_
