@@ -734,6 +734,68 @@ void test_set_int (set_type& obj, size_t probs)
 	std::cout << time_curr - time_start << " seconds\n";
 }
 
+template <typename T1, typename T2>
+bool sequences_are_equal (T1 b1, T1 e1, T2 b2, T2 e2)
+{
+	while (b1 != e1 && b2 != e2){
+		if (*b1 != *b2)
+			return false;
+
+		++b1;
+		++b2;
+	}
+
+	return (b1 == e1) && (b2 == e2);
+}
+
+template <typename T1, typename T2>
+void check_sequences (T1 b1, T1 e1, T2 b2, T2 e2)
+{
+//	std::cerr << "size ()=" << std::distance (b2, e2) << '\n';
+
+	if (!sequences_are_equal (b1, e1, b2, e2)){
+		std::cout << "Oooooh :-( Please send a bug report.";
+		exit (10);
+	}
+}
+
+template <typename T1, typename T2>
+void test_two_sets (T1 &set1, T2 &set2)
+{
+	srandom (time (NULL));
+
+	int probs_count = 100000;
+
+	for (int i=0; i < probs_count; ++i){
+		long v = random ();
+		int threshold = int (((double) RAND_MAX) * i / probs_count);
+
+		if (random () > threshold){
+			set1.insert (v);
+			set2.insert (v);
+		}else{
+			set1.erase (v);
+			set2.erase (v);
+		}
+
+		if (0 == (i % (probs_count / 100))){
+//			std::cerr << "theshold = " << threshold * 100 / RAND_MAX << "%\n";
+			check_sequences (
+				set1.begin (), set1.end (),
+				set2.begin (), set2.end ());
+		}
+	}
+	check_sequences (
+		set1.begin (), set1.end (),
+		set2.begin (), set2.end ());
+}
+
+struct judy_test_hash_eq {
+	int operator () (int i) const {
+		return i;
+	}
+};
+
 int main (int argc, const char **argv)
 {
 	--argc, ++argv;
@@ -917,6 +979,21 @@ int main (int argc, const char **argv)
 
 
 
+
+	}else if (!strcmp (argv [0], "100")){
+		{
+			std::set <int> std_set_int;
+			judy_set_cell <int> set_cell_int;
+			test_two_sets (std_set_int, set_cell_int);
+			std::cout << "(std::set <int> == judy_set_cell <int>) = true\n";
+		}
+
+		{
+			std::set <int> std_set_int;
+			judy_set_l <int, judy_test_hash_eq> set_l_int;
+			test_two_sets (std_set_int, set_l_int);
+			std::cout << "(std::set <int> == judy_set_l <int>) = true\n";
+		}
 
 	}else if (!strcmp (argv [0], "150")){
 		if (!argv [1])
