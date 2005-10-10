@@ -16,7 +16,7 @@
 #include "judy_map.h"
 #include "judy_set.h"
 #include "judy_set_cell.h"
-#include "judy_map_kcell_dcell.h"
+#include "judy_map_kdcell.h"
 
 template <typename T>
 class my_pool {
@@ -268,7 +268,7 @@ typedef judy_set_cell <
 typedef std::map <
 	const char *, int
 	> std_map50;
-typedef judy_map_kcell_dcell <
+typedef judy_map_kdcell <
 	const char *, int
 	> my_map51;
 
@@ -1030,9 +1030,9 @@ int main (int argc, const char **argv)
 
 	}else if (!strcmp (argv [0], "103")){
 		std::map <int, int> std_map_int;
-		judy_map_kcell_dcell <int, int> map_kcell_dcell_int;
-		test_two_maps (std_map_int, map_kcell_dcell_int);
-		std::cout << "(std::map <int> == judy_map_kcell_dcell <int, int>) = true\n";
+		judy_map_kdcell <int, int> map_kdcell_int;
+		test_two_maps (std_map_int, map_kdcell_int);
+		std::cout << "(std::map <int> == judy_map_kdcell <int, int>) = true\n";
 
 	}else if (!strcmp (argv [0], "104")){
 		std::map <int, int> std_map_int;

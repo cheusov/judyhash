@@ -104,7 +104,7 @@ test : judyhash_test
 	printf "\n" && \
 	./judyhash_test "50" >expected.txt && \
 	./judyhash_test "51" >res.tmp && diff -u expected.txt res.tmp && \
-	echo "judy_map_kcell_dcell <const char *, int> 51 done" && \
+	echo "judy_map_kdcell <const char *, int> 51 done" && \
 	\
 	printf "\n" && \
 	./judyhash_test "101" >/dev/null && \
@@ -114,7 +114,7 @@ test : judyhash_test
 	echo "judy_set_l <int> 102 done" && \
 	printf "\n" && \
 	./judyhash_test "103" >/dev/null && \
-	echo "judy_map_kcell_dcell <int, int> 103 done" && \
+	echo "judy_map_kdcell <int, int> 103 done" && \
 	printf "\n" && \
 	./judyhash_test "104" >/dev/null && \
 	echo "judy_map_l <int, int> 104 done" && \
