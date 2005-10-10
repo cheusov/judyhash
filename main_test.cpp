@@ -751,24 +751,22 @@ bool sequences_are_equal (T1 b1, T1 e1, T2 b2, T2 e2)
 template <typename T1, typename T2>
 void check_sequences (T1 b1, T1 e1, T2 b2, T2 e2)
 {
-//	std::cerr << "size ()=" << std::distance (b2, e2) << '\n';
-
 	if (!sequences_are_equal (b1, e1, b2, e2)){
-		std::cout << "Oooooh :-( Please send a bug report.";
+		std::cerr << "Please, send a bug report to vle@gmx.net.";
 		exit (10);
 	}
 }
 
-template <typename T1, typename T2>
-void test_two_sets (T1 &set1, T2 &set2)
+template <typename T>
+void test_two_sets (std::set <int> &set1, T &set2)
 {
-	srandom (time (NULL));
-
-	int probs_count = 100000;
+	int probs_count = 1000000;
+	int print_count = 400;
+	int rand_value_count = 100000;
 
 	for (int i=0; i < probs_count; ++i){
-		long v = random ();
-		int threshold = int (((double) RAND_MAX) * i / probs_count);
+		long v = random () % rand_value_count;
+		int threshold = int (rand_value_count * i / probs_count);
 
 		if (random () > threshold){
 			set1.insert (v);
@@ -778,7 +776,7 @@ void test_two_sets (T1 &set1, T2 &set2)
 			set2.erase (v);
 		}
 
-		if (0 == (i % (probs_count / 100))){
+		if (0 == (i % (probs_count / print_count))){
 //			std::cerr << "theshold = " << threshold * 100 / RAND_MAX << "%\n";
 			check_sequences (
 				set1.begin (), set1.end (),
@@ -790,6 +788,43 @@ void test_two_sets (T1 &set1, T2 &set2)
 		set2.begin (), set2.end ());
 }
 
+template <typename T>
+void check_map (
+	const std::map <int, int> &m1,
+	const T& m2)
+{
+	std::map <int, int> m3 (m2.begin (), m2.end ());
+
+	check_sequences (m1.begin (), m1.end (), m3.begin (), m3.end ());
+}
+
+template <typename T>
+void test_two_maps (std::map <int, int> &map1, T &map2)
+{
+	int probs_count = 1000000;
+	int print_count = 400;
+	int rand_value_count = 100000;
+
+	for (int i=0; i < probs_count; ++i){
+		long v = random () % rand_value_count;
+		int threshold = int (rand_value_count * i / probs_count);
+
+		if (random () > threshold){
+			map1.insert (std::make_pair (v, i));
+			map2.insert (std::make_pair (v, i));
+		}else{
+			map1.erase (v);
+			map2.erase (v);
+		}
+
+		if (0 == (i % (probs_count / print_count))){
+//			std::cerr << "theshold = " << threshold * 100 / RAND_MAX << "%\n";
+			check_map (map1, map2);
+		}
+	}
+	check_map (map1, map2);
+}
+
 struct judy_test_hash_eq {
 	int operator () (int i) const {
 		return i;
@@ -799,6 +834,7 @@ struct judy_test_hash_eq {
 int main (int argc, const char **argv)
 {
 	--argc, ++argv;
+	srandom (time (NULL));
 
 	// test for constructor
 	my_map6 ht777 (
@@ -980,20 +1016,29 @@ int main (int argc, const char **argv)
 
 
 
-	}else if (!strcmp (argv [0], "100")){
-		{
-			std::set <int> std_set_int;
-			judy_set_cell <int> set_cell_int;
-			test_two_sets (std_set_int, set_cell_int);
-			std::cout << "(std::set <int> == judy_set_cell <int>) = true\n";
-		}
+	}else if (!strcmp (argv [0], "101")){
+		std::set <int> std_set_int;
+		judy_set_cell <int> set_cell_int;
+		test_two_sets (std_set_int, set_cell_int);
+		std::cout << "(std::set <int> == judy_set_cell <int>) = true\n";
 
-		{
-			std::set <int> std_set_int;
-			judy_set_l <int, judy_test_hash_eq> set_l_int;
-			test_two_sets (std_set_int, set_l_int);
-			std::cout << "(std::set <int> == judy_set_l <int>) = true\n";
-		}
+	}else if (!strcmp (argv [0], "102")){
+		std::set <int> std_set_int;
+		judy_set_l <int, judy_test_hash_eq> set_l_int;
+		test_two_sets (std_set_int, set_l_int);
+		std::cout << "(std::set <int> == judy_set_l <int>) = true\n";
+
+	}else if (!strcmp (argv [0], "103")){
+		std::map <int, int> std_map_int;
+		judy_map_kcell_dcell <int, int> map_kcell_dcell_int;
+		test_two_maps (std_map_int, map_kcell_dcell_int);
+		std::cout << "(std::map <int> == judy_map_kcell_dcell <int, int>) = true\n";
+
+	}else if (!strcmp (argv [0], "104")){
+		std::map <int, int> std_map_int;
+		judy_map_l <int, int, judy_test_hash_eq> map_l_int;
+		test_two_maps (std_map_int, map_l_int);
+		std::cout << "(std::map <int> == judy_map_l <int>) = true\n";
 
 	}else if (!strcmp (argv [0], "150")){
 		if (!argv [1])
