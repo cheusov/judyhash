@@ -96,6 +96,35 @@ test : judyhash_test
 	./judyhash_test "36" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judy_set_l <std::string, ...> 36 done" && \
 	\
+	./judyhash_test "0" >expected.txt && \
+	./judyhash_test "61" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <const char *, int, ...> 61 done" && \
+	./judyhash_test "62" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <const char *, int, ...> 62 done" && \
+	./judyhash_test "63" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <const char *, int, ...> 63 done" && \
+	./judyhash_test "64" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <const char *, int, ...> 64 done" && \
+	./judyhash_test "65" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <const char *, int, ...> 65 done" && \
+	./judyhash_test "66" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <const char *, int, ...> 66 done" && \
+	\
+	printf "\n" && \
+	./judyhash_test "10" >expected.txt && \
+	./judyhash_test "71" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <std::string, int, ...> 71 done" && \
+	./judyhash_test "72" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <std::string, int, ...> 72 done" && \
+	./judyhash_test "73" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <std::string, int, ...> 73 done" && \
+	./judyhash_test "74" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <std::string, int, ...> 74 done" && \
+	./judyhash_test "75" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <std::string, int, ...> 75 done" && \
+	./judyhash_test "76" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_map_m <std::string, int, ...> 76 done" && \
+	\
 	printf "\n" && \
 	./judyhash_test "40" >expected.txt && \
 	./judyhash_test "41" >res.tmp && diff -u expected.txt res.tmp && \

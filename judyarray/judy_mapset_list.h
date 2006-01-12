@@ -35,9 +35,7 @@ public:
 	public:
 		typedef typename inherited::pointer pointer;
 		typedef typename inherited::value_type value_type;
-		typedef typename inherited::pointer pointer;
 		typedef typename inherited::iterator iterator;
-		typedef typename inherited::const_iterator const_iterator;
 
 		__pointers_list_type ()
 		{
@@ -45,6 +43,7 @@ public:
 		~__pointers_list_type ()
 		{
 		}
+
 		iterator find (const TKey &key)
 		{
 			iterator b = begin ();

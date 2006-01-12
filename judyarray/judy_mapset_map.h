@@ -38,14 +38,13 @@ public:
 
 	class __pointers_list_type
 	:
-	public std::map <typename TTraits::pointer, compare>
+	public std::set <typename TTraits::pointer, compare>
 	{
-		typedef std::map <typename TTraits::pointer, compare> inherited;
+		typedef std::set <typename TTraits::pointer, compare> inherited;
 	public:
-		typedef typename __pointers_list_type::pointer pointer;
-		typedef typename __pointers_list_type::value_type value_type;
-		typedef typename __pointers_list_type::pointer pointer;
-		typedef typename __pointers_list_type::iterator iterator;
+		typedef typename inherited::pointer pointer;
+		typedef typename inherited::value_type value_type;
+		typedef typename inherited::iterator iterator;
 
 		__pointers_list_type ()
 		{
@@ -54,17 +53,19 @@ public:
 		{
 		}
 
-		typename std::map <pointer, compare>::iterator find (
-			const TKey &key)
+		iterator find (const TKey &key)
 		{
-//			typename TTraits::value_type tmp (key, TData ());
-//			return this -> find (&tmp);
+			typename TTraits::value_type tmp (key, TData ());
+			return inherited::find (&tmp);
 		}
-
-//		std::pair <iterator, bool> insert (const pointer& p)
+//
+//		std::pair <iterator, bool> insert (const value_type& v)
+//		{
+//		}
+//		std::pair <iterator, bool> insert (const value_type& v)
 //		{
 //			typename TTraits::value_type tmp (key, TData ());
-//			return this -> insert (&tmp);
+//			return inherited::insert (&tmp);
 //		}
 	};
 

@@ -891,7 +891,7 @@ int main (int argc, const char **argv)
 		mapl_6::key_equal (),
 		mapl_6::allocator_type ());
 
-	//max_count
+	// max_count
 	std::cout << "max_count=" << ht777.max_size () << '\n';
 
 	std::cout << "single item count:"
@@ -913,46 +913,27 @@ int main (int argc, const char **argv)
 		// test for constructor
 		mapl_1 ht_l1;
 		test (ht_l1, 1);
-
-//		mapm_1 ht_m1;
-//		test (ht_m1, 1);
 	}else if (!strcmp (argv [0], "2")){
 		// test for constructor
 		mapl_2 ht_l2 (0);
 		test (ht_l2, 2);
-
-//		mapm_2 ht_m2 (0);
-//		test (ht_m2, 2);
 	}else if (!strcmp (argv [0], "3")){
 		// test for constructor
 		mapl_3 ht_l3 (0, mapl_3::hasher ());
 		test (ht_l3, 3);
-
-//		mapm_3 ht_m3 (0, mapm_3::hasher ());
-//		test (ht_m3, 3);
 	}else if (!strcmp (argv [0], "4")){
 		// test for constructor
 		mapl_4 ht_l4 (0, mapl_4::hasher (), mapl_4::key_equal ());
 		test (ht_l4, 4);
-
-//		mapm_4 ht_m4 (0, mapm_4::hasher (), mapm_4::key_equal ());
-//		test (ht_m4, 4);
 	}else if (!strcmp (argv [0], "5")){
 		// test for constructor
 		mapl_5 ht_l5 (0, mapl_5::hasher (),
 					  mapl_5::key_equal (), mapl_5::allocator_type ());
 		test (ht_l5, 5);
-
-//		mapm_5 ht_m5 (0, mapm_5::hasher (),
-//					  mapm_5::key_equal (), mapm_5::allocator_type ());
-//		test (ht_m5, 5);
 	}else if (!strcmp (argv [0], "6")){
 		// test for constructor
 		mapl_6 ht_l6;
 		test (ht_l6, 6);
-
-//		mapm_6 ht_m6;
-//		test (ht_m6, 6);
 
 
 	}else if (!strcmp (argv [0], "10")){
@@ -963,44 +944,26 @@ int main (int argc, const char **argv)
 		// test for constructor
 		mapl_11 ht_l11;
 		test (ht_l11, 11);
-
-//		mapm_11 ht_m11;
-//		test (ht_m11, 11);
 	}else if (!strcmp (argv [0], "12")){
 		// test for constructor
 		mapl_12 ht_l12;
 		test (ht_l12, 12);
-
-//		mapm_12 ht_m12;
-//		test (ht_m12, 12);
 	}else if (!strcmp (argv [0], "13")){
 		// test for constructor
 		mapl_13 ht_l13;
 		test (ht_l13, 13);
-
-//		mapm_13 ht_m13;
-//		test (ht_m13, 13);
 	}else if (!strcmp (argv [0], "14")){
 		// test for constructor
 		mapl_14 ht_l14;
 		test (ht_l14, 14);
-
-//		mapm_14 ht_m14;
-//		test (ht_m14, 14);
 	}else if (!strcmp (argv [0], "15")){
 		// test for constructor
 		mapl_15 ht_l15;
 		test (ht_l15, 15);
-
-//		mapm_15 ht_m15;
-//		test (ht_m15, 15);
 	}else if (!strcmp (argv [0], "16")){
 		// test for constructor
 		mapl_16 ht_l16;
 		test (ht_l16, 16);
-
-//		mapm_16 ht_m16;
-//		test (ht_m16, 16);
 
 
 //	}else if (!strcmp (argv [0], "40")){
@@ -1095,6 +1058,61 @@ int main (int argc, const char **argv)
 		test (ht_l51, 51);
 
 
+
+
+	}else if (!strcmp (argv [0], "61")){
+		// test for constructor
+		mapm_1 ht_m1;
+		test (ht_m1, 1);
+	}else if (!strcmp (argv [0], "62")){
+		// test for constructor
+		mapm_2 ht_m2 (0);
+		test (ht_m2, 2);
+	}else if (!strcmp (argv [0], "63")){
+		// test for constructor
+		mapm_3 ht_m3 (0, mapm_3::hasher ());
+		test (ht_m3, 3);
+	}else if (!strcmp (argv [0], "64")){
+		// test for constructor
+		mapm_4 ht_m4 (0, mapm_4::hasher (), mapm_4::key_equal ());
+		test (ht_m4, 4);
+	}else if (!strcmp (argv [0], "65")){
+		// test for constructor
+		mapm_5 ht_m5 (0, mapm_5::hasher (),
+					  mapm_5::key_equal (), mapm_5::allocator_type ());
+		test (ht_m5, 5);
+	}else if (!strcmp (argv [0], "66")){
+		// test for constructor
+		mapm_6 ht_m6;
+		test (ht_m6, 6);
+
+
+
+
+	}else if (!strcmp (argv [0], "71")){
+		// test for constructor
+		mapm_11 ht_m11;
+		test (ht_m11, 11);
+	}else if (!strcmp (argv [0], "72")){
+		// test for constructor
+		mapm_12 ht_m12;
+		test (ht_m12, 12);
+	}else if (!strcmp (argv [0], "73")){
+		// test for constructor
+		mapm_13 ht_m13;
+		test (ht_m13, 13);
+	}else if (!strcmp (argv [0], "74")){
+		// test for constructor
+		mapm_14 ht_m14;
+		test (ht_m14, 14);
+	}else if (!strcmp (argv [0], "75")){
+		// test for constructor
+		mapm_15 ht_m15;
+		test (ht_m15, 15);
+	}else if (!strcmp (argv [0], "76")){
+		// test for constructor
+		mapm_16 ht_m16;
+		test (ht_m16, 16);
 
 
 	}else if (!strcmp (argv [0], "101")){
