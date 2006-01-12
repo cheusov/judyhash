@@ -318,6 +318,52 @@ typedef judy_map_m <
 	std::allocator <mapl_11::value_type>
 	> mapm_16;
 
+typedef judy_set_m <
+	const char *, hsh_string_hash1
+	> setm_81;
+typedef judy_set_m <
+	const char *, hsh_string_hash2
+	> setm_82;
+typedef judy_set_m <
+	const char *, hsh_string_hash3, cmp_string_lt, cmp_string_eq,
+	my_pool <setm_81::value_type>
+	> setm_83;
+typedef judy_set_m <
+	const char *, hsh_string_hash1, cmp_string_lt, cmp_string_eq,
+	std::allocator <setm_81::value_type>
+	> setm_84;
+typedef judy_set_m <
+	const char *, hsh_string_hash2, cmp_string_lt, cmp_string_eq,
+	boost::fast_pool_allocator <setm_81::value_type>
+	> setm_85;
+typedef judy_set_m <
+	const char *, hsh_string_hash3, cmp_string_lt, cmp_string_eq,
+	std::allocator <setm_81::value_type>
+	> setm_86;
+
+typedef judy_set_m <
+	std::string, hsh_string_hash3
+	> setm_91;
+typedef judy_set_m <
+	std::string, hsh_string_hash2
+	> setm_92;
+typedef judy_set_m <
+	std::string, hsh_string_hash3, cmp_string_lt, cmp_string_eq,
+	my_pool <setm_91::value_type>
+	> setm_93;
+typedef judy_set_m <
+	std::string, hsh_string_hash1, cmp_string_lt, cmp_string_eq,
+	std::allocator <setm_91::value_type>
+	> setm_94;
+typedef judy_set_m <
+	std::string, hsh_string_hash2, cmp_string_lt, cmp_string_eq,
+	boost::fast_pool_allocator <setm_91::value_type>
+	> setm_95;
+typedef judy_set_m <
+	std::string, hsh_string_hash3, cmp_string_lt, cmp_string_eq,
+	std::allocator <setm_91::value_type>
+	> setm_96;
+
 //typedef std::multimap <
 //	const char *, int, cmp_string_lt
 //	> std_multimap40;
@@ -367,6 +413,18 @@ value2data_ (const setl_31::value_type &)
 {
 	return setl_31::value_type ("(true)");
 }
+
+//setm_91::value_type
+//value2key_ (const setm_91::value_type &v)
+//{
+//	return v;
+//}
+
+//setm_91::value_type
+//value2data_ (const setm_91::value_type &)
+//{
+//	return setm_91::value_type ("(true)");
+//}
 
 std::string value2key_ (const char *v)
 {
@@ -1115,6 +1173,61 @@ int main (int argc, const char **argv)
 		test (ht_m16, 16);
 
 
+
+	}else if (!strcmp (argv [0], "81")){
+		// test for constructor
+		setm_81  ht_m81;
+		test_set (ht_m81, 81);
+	}else if (!strcmp (argv [0], "82")){
+		// test for constructor
+		setm_82  ht_m82;
+		test_set (ht_m82, 82);
+	}else if (!strcmp (argv [0], "83")){
+		// test for constructor
+		setm_83  ht_m83;
+		test_set (ht_m83, 83);
+	}else if (!strcmp (argv [0], "84")){
+		// test for constructor
+		setm_84  ht_m84;
+		test_set (ht_m84, 84);
+	}else if (!strcmp (argv [0], "85")){
+		// test for constructor
+		setm_85  ht_m85;
+		test_set (ht_m85, 85);
+	}else if (!strcmp (argv [0], "86")){
+		// test for constructor
+		setm_86  ht_m86;
+		test_set (ht_m86, 86);
+
+
+
+	}else if (!strcmp (argv [0], "91")){
+		// test for constructor
+		setm_91 ht_m91;
+		test_set (ht_m91, 91);
+	}else if (!strcmp (argv [0], "92")){
+		// test for constructor
+		setm_92 ht_m92;
+		test_set (ht_m92, 92);
+	}else if (!strcmp (argv [0], "93")){
+		// test for constructor
+		setm_93 ht_m93;
+		test_set (ht_m93, 93);
+	}else if (!strcmp (argv [0], "94")){
+		// test for constructor
+		setm_94 ht_m94;
+		test_set (ht_m94, 94);
+	}else if (!strcmp (argv [0], "95")){
+		// test for constructor
+		setm_95 ht_m95;
+		test_set (ht_m95, 95);
+	}else if (!strcmp (argv [0], "96")){
+		// test for constructor
+		setm_96 ht_m96;
+		test_set (ht_m96, 96);
+
+
+
 	}else if (!strcmp (argv [0], "101")){
 		std::set <int> std_set_int;
 		judy_set_cell <int> set_cell_int;
@@ -1138,6 +1251,18 @@ int main (int argc, const char **argv)
 		judy_map_l <int, int, judy_test_hash_eq> map_l_int;
 		test_two_maps (std_map_int, map_l_int);
 		std::cout << "(std::map <int> == judy_map_l <int>) = true\n";
+
+	}else if (!strcmp (argv [0], "105")){
+		std::map <int, int> std_map_int;
+		judy_map_m <int, int, judy_test_hash_eq> map_m_int;
+		test_two_maps (std_map_int, map_m_int);
+		std::cout << "(std::map <int> == judy_map_m <int>) = true\n";
+
+	}else if (!strcmp (argv [0], "106")){
+		std::set <int> std_set_int;
+		judy_set_m <int, judy_test_hash_eq> set_m_int;
+		test_two_sets (std_set_int, set_m_int);
+		std::cout << "(std::set <int> == judy_set_m <int>) = true\n";
 
 	}else if (!strcmp (argv [0], "150")){
 		if (!argv [1])

@@ -96,6 +96,7 @@ test : judyhash_test
 	./judyhash_test "36" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judy_set_l <std::string, ...> 36 done" && \
 	\
+	printf "\n" && \
 	./judyhash_test "0" >expected.txt && \
 	./judyhash_test "61" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judy_map_m <const char *, int, ...> 61 done" && \
@@ -126,6 +127,36 @@ test : judyhash_test
 	echo "judy_map_m <std::string, int, ...> 76 done" && \
 	\
 	printf "\n" && \
+	./judyhash_test "20" >expected.txt && \
+	./judyhash_test "81" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <const char *, ...> 81 done" && \
+	./judyhash_test "82" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <const char *, ...> 82 done" && \
+	./judyhash_test "83" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <const char *, ...> 83 done" && \
+	./judyhash_test "84" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <const char *, ...> 84 done" && \
+	./judyhash_test "85" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <const char *, ...> 85 done" && \
+	./judyhash_test "86" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <const char *, ...> 86 done" && \
+	\
+	printf "\n" && \
+	./judyhash_test "30" >expected.txt && \
+	./judyhash_test "91" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <std::string, ...> 91 done" && \
+	./judyhash_test "92" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <std::string, ...> 92 done" && \
+	./judyhash_test "93" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <std::string, ...> 93 done" && \
+	./judyhash_test "94" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <std::string, ...> 94 done" && \
+	./judyhash_test "95" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <std::string, ...> 95 done" && \
+	./judyhash_test "96" >res.tmp && diff -u expected.txt res.tmp && \
+	echo "judy_set_m <std::string, ...> 96 done" && \
+	\
+	printf "\n" && \
 	./judyhash_test "40" >expected.txt && \
 	./judyhash_test "41" >res.tmp && diff -u expected.txt res.tmp && \
 	echo "judy_set_cell <const char *> 41 done" && \
@@ -147,5 +178,11 @@ test : judyhash_test
 	printf "\n" && \
 	./judyhash_test "104" >/dev/null && \
 	echo "judy_map_l <int, int> 104 done" && \
+	printf "\n" && \
+	./judyhash_test "105" >/dev/null && \
+	echo "judy_map_m <int, int> 105 done" && \
+	printf "\n" && \
+	./judyhash_test "106" >/dev/null && \
+	echo "judy_set_m <int, int> 106 done" && \
 	\
 	true

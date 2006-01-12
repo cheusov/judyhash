@@ -32,7 +32,7 @@ public:
 		bool operator () (typename TTraits::pointer a,
 					   typename TTraits::pointer b) const
 		{
-			return m_cmp (a -> first, b -> first);
+			return m_cmp (TTraits::value2key (*a), TTraits::value2key (*b));
 		}
 	};
 
@@ -55,7 +55,7 @@ public:
 
 		iterator find (const TKey &key)
 		{
-			typename TTraits::value_type tmp (key, TData ());
+			typename TTraits::value_type tmp = TTraits::key2value (key);
 			return inherited::find (&tmp);
 		}
 //

@@ -37,11 +37,11 @@ struct __judy_set_traits_base {
 	typedef value_type                   & reference;
 	typedef value_type             const & const_reference;
 
-	static const key_type &value2key (const value_type& value)
+	static inline const key_type &value2key (const value_type& value)
 	{
 		return value;
 	}
-	static const value_type &key2value (const key_type& key)
+	static inline const value_type &key2value (const key_type& key)
 	{
 		return key;
 	}
@@ -49,7 +49,7 @@ struct __judy_set_traits_base {
 
 
 //////////////////////////////////////////////////////////////////////
-//////////////////////////     JUDY_SET_L         ////////////////////
+////////////////////////// JUDY_SET_L ////////////////////////////////
 
 template <typename TKey, typename TEqualFunc>
 class __judy_set_traits_list
@@ -57,7 +57,6 @@ class __judy_set_traits_list
 public __judy_cmp_traits_list <TKey, void, TEqualFunc, __judy_set_traits_base <TKey> >
 {
 };
-
 
 template <
 	typename TKey,
@@ -86,6 +85,41 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////
-//////////////////////////     JUDY_SET_S         ////////////////////
+//////////////////////////     JUDY_SET_M         ////////////////////
+
+template <typename TKey, typename TLessFunc>
+class __judy_set_traits_map
+:
+public __judy_cmp_traits_map <TKey, void, TLessFunc, __judy_set_traits_base <TKey> >
+{
+};
+
+
+template <
+	typename TKey,
+	typename THashFunc, // = std::hash <Key>,
+	typename TLessFunc = std::less <TKey>,
+	typename TEqualFunc = std::equal_to <TKey>,
+	typename TAllocator = std::allocator < TKey> >
+class judy_set_m
+{
+private:
+	typedef __judy_mapset_base <
+		TKey, char, THashFunc, TEqualFunc, TAllocator,
+		__judy_set_traits_map <TKey, TLessFunc> > __impl;
+	typedef judy_set_m <
+		TKey, THashFunc, TLessFunc, TEqualFunc, TAllocator> __this_type;
+
+	__impl m_hash_base;
+
+public:
+
+	__JUDYARRAY_TYPEDEFS(__impl)
+
+// rempping judy_map/judy_set common members
+	REMAP_FUNCALLS(__impl, judy_set_m, m_hash_base)
+
+// judy_mem unique members
+};
 
 #endif // _JUDY_SET_H_
