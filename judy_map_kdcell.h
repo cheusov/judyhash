@@ -12,8 +12,8 @@
  *
  */
 
-#ifndef _JUDY_MAP_KCELL_DCELL_H_
-#define _JUDY_MAP_KCELL_DCELL_H_
+#ifndef _JUDY_MAP_KDCELL_H_
+#define _JUDY_MAP_KDCELL_H_
 
 #include <utility>
 
@@ -26,9 +26,9 @@ template <
 	typename TEqualFunc = std::equal_to <TKey>,
 	typename TAllocator = std::allocator <std::pair <TKey, TData> > >
 //<std::pair <const TKey, judy_reference <TData> > > >
-class judy_map_kcell_dcell {
+class judy_map_kdcell {
 private:
-	typedef judy_map_kcell_dcell <TKey, TData, THashFunc, TEqualFunc, TAllocator> __this_type;
+	typedef judy_map_kdcell <TKey, TData, THashFunc, TEqualFunc, TAllocator> __this_type;
 
 
 	Pvoid_t              m_judy;
@@ -64,13 +64,13 @@ public:
 
 // functions
 public:
-	judy_map_kcell_dcell ()
+	judy_map_kdcell ()
 	{
 		m_judy         = 0;
 		m_insdel_count = 0;
 	}
 
-	judy_map_kcell_dcell (
+	judy_map_kdcell (
 		size_type n,
 		const hasher&, 
 		const key_equal&,
@@ -81,7 +81,7 @@ public:
 	}
 
 	template <class Tit>
-	judy_map_kcell_dcell (
+	judy_map_kdcell (
 		Tit beg, Tit end,
 		size_type = 0,
 		const hasher& = hasher (), 
@@ -94,7 +94,7 @@ public:
 		insert (beg, end);
 	}
 
-	judy_map_kcell_dcell (const __this_type& a)
+	judy_map_kdcell (const __this_type& a)
 	{
 		m_judy         = 0;
 		m_insdel_count = 0;
@@ -102,7 +102,7 @@ public:
 		insert (a.begin (), a.end ());
 	}
 
-	~judy_map_kcell_dcell ()
+	~judy_map_kdcell ()
 	{
 		clear ();
 		assert (m_judy == 0);
@@ -124,7 +124,7 @@ public:
 		m_insdel_count = 0;
 	}
 
-	judy_map_kcell_dcell& operator = (const __this_type& a)
+	judy_map_kdcell& operator = (const __this_type& a)
 	{
 		// exception-less implementation
 		if (this != &a){
@@ -444,4 +444,4 @@ public:
 	}
 };
 
-#endif // _JUDY_MAP_KCELL_DCELL_H_
+#endif // _JUDY_MAP_KDCELL_H_
