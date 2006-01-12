@@ -682,13 +682,14 @@ private:
 #if 1
 				typename pointers_list_type::iterator found
 					= lst -> find (key);
-				if (found != lst -> end ()){
+
+				if (found != end){
 					return iterator (iterator_base
 									 (this, h, value.m_judy_int, found));
 				}
 #else
-				typename pointers_list_type::iterator beg;
-				beg = lst -> begin ();
+				typename pointers_list_type::iterator beg
+					= lst -> begin ();
 
 				for (; !(beg == end); ++beg){
 					if (m_eq_func (value2key (**beg), key)){
@@ -749,7 +750,7 @@ public:
 				if (m_eq_func (
 						value2key (*ptr -> m_pointer), key))
 				{
-					// JudyL cell equal to 'value'
+					// JudyL cell points to the same value
 					return std::make_pair
 						(iterator (iterator_base (this, h, ptr -> m_judy_int)),
 						 false);
@@ -768,11 +769,10 @@ public:
 					m_debug_info.m_value_count      -= 1;
 #endif
 
-					lst -> insert (lst -> end (), copy);
+					lst -> insert (copy);
 
 					typename pointers_list_type::iterator ret_it
-						= lst -> insert (
-							lst -> end (), judy_hash_new (value));
+						= lst -> insert (judy_hash_new (value)).first;
 
 					++m_size;
 
@@ -789,34 +789,39 @@ public:
 				pointers_list_type *lst
 					= (pointers_list_type *) (ptr -> m_judy_int & ~1);
 
-				typename pointers_list_type::iterator beg, end;
-				beg = lst -> begin ();
-				end = lst -> end ();
+//				typename pointers_list_type::iterator beg, end;
+//				beg = lst -> begin ();
+//				end = lst -> end ();
 
 				// Look for 'value' in the list
-				for (; !(beg == end); ++beg){
-					if (m_eq_func (value2key (**beg), key)){
+//				for (; !(beg == end); ++beg){
+//					if (m_eq_func (value2key (**beg), key)){
 						// found
-						return std::make_pair (
-							iterator (iterator_base (
-										  this, h, ptr -> m_judy_int, beg)),
-							false);
-					}
-				}
+//						return std::make_pair (
+//							iterator (iterator_base (
+//										  this, h, ptr -> m_judy_int, beg)),
+//							false);
+//					}
+//				}
 
-				++m_size;
-
-#ifdef JUDYARRAY_DEBUGINFO
-				m_debug_info.m_list_item_count += 1;
-#endif
+//				++m_size;
 
 				// Add new 'value' to the list
+				std::pair <typename pointers_list_type::iterator, bool> ret_it
+					= lst -> insert (judy_hash_new (value));
+
+				if (ret_it.second){
+					++m_size;
+#ifdef JUDYARRAY_DEBUGINFO
+					m_debug_info.m_list_item_count += 1;
+#endif
+				}
+
 				return std::make_pair (
 					iterator (iterator_base (
-								  this, h, ptr -> m_judy_int,
-								  lst -> insert (lst -> end (),
-												 judy_hash_new (value)))),
-					true);
+								  this, h, ptr -> m_judy_int, ret_it.first
+								  )),
+					ret_it.second);
 			}
 		}else{
 			// Created JudyL cell is new one.

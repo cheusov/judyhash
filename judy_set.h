@@ -52,7 +52,7 @@ struct __judy_set_traits_base {
 //////////////////////////     JUDY_SET_L         ////////////////////
 
 template <typename TKey, typename TEqualFunc>
-class __judy_list_set
+class __judy_set_traits_list
 :
 public __judy_cmp_traits_list <TKey, void, TEqualFunc, __judy_set_traits_base <TKey> >
 {
@@ -69,7 +69,7 @@ class judy_set_l
 private:
 	typedef __judy_mapset_base <
 		TKey, char, THashFunc, TEqualFunc, TAllocator,
-		__judy_list_set <TKey, TEqualFunc> > __impl;
+		__judy_set_traits_list <TKey, TEqualFunc> > __impl;
 	typedef judy_set_l <
 		TKey, THashFunc, TEqualFunc, TAllocator> __this_type;
 

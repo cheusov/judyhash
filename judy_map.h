@@ -18,7 +18,7 @@
 #include "judyarray/judy_common.h"
 #include "judyarray/judy_mapset_common.h"
 #include "judyarray/judy_mapset_list.h"
-//#include "judyarray/judy_mapset_map.h"
+#include "judyarray/judy_mapset_map.h"
 
 //////////////////////////////////////////////////////////////////////
 
@@ -43,11 +43,12 @@ struct __judy_map_traits_base {
 	typedef value_type                   & reference;
 	typedef value_type             const & const_reference;
 
-	static const key_type &value2key (const value_type& value)
+	static inline const key_type &value2key (const value_type& value)
 	{
 		return value.first;
 	}
-	static value_type key2value (const key_type& key)
+
+	static inline value_type key2value (const key_type& key)
 	{
 		return value_type (key, mapped_type ());
 	}
@@ -101,7 +102,6 @@ public:
 //////////////////////////////////////////////////////////////////////
 ////////////////////////// JUDY_MAP_M ////////////////////////////////
 
-/*
 template <typename TKey, typename TData, typename TLessFunc>
 class __judy_map_traits_map
 :
@@ -123,7 +123,7 @@ private:
 		TKey, TData, THashFunc, TEqualFunc, TAllocator,
 		__judy_map_traits_map <TKey, TData, TLessFunc> > __impl;
 	typedef judy_map_m <
-		TKey, TData, THashFunc, TEqualFunc, TAllocator
+		TKey, TData, THashFunc, TLessFunc, TEqualFunc, TAllocator
 		> __this_type;
 
 	__impl m_hash_base;
@@ -144,6 +144,5 @@ public:
 		return res.first -> second;
 	}
 };
-*/
 
 #endif // _JUDY_MAP_H_

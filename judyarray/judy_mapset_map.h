@@ -29,8 +29,8 @@ public:
 		TLessFunc m_cmp;
 
 	public:
-		bool operator () (typename TTraits::const_pointer a,
-					   typename TTraits::const_pointer b) const
+		bool operator () (typename TTraits::pointer a,
+					   typename TTraits::pointer b) const
 		{
 			return m_cmp (a -> first, b -> first);
 		}
@@ -40,8 +40,12 @@ public:
 	:
 	public std::map <typename TTraits::pointer, compare>
 	{
+		typedef std::map <typename TTraits::pointer, compare> inherited;
 	public:
-		typedef typename TTraits::pointer pointer;
+		typedef typename __pointers_list_type::pointer pointer;
+		typedef typename __pointers_list_type::value_type value_type;
+		typedef typename __pointers_list_type::pointer pointer;
+		typedef typename __pointers_list_type::iterator iterator;
 
 		__pointers_list_type ()
 		{
@@ -49,12 +53,19 @@ public:
 		~__pointers_list_type ()
 		{
 		}
+
 		typename std::map <pointer, compare>::iterator find (
 			const TKey &key)
 		{
-			typename TTraits::value_type tmp (key, TData ());
-			return this -> find (&tmp);
+//			typename TTraits::value_type tmp (key, TData ());
+//			return this -> find (&tmp);
 		}
+
+//		std::pair <iterator, bool> insert (const pointer& p)
+//		{
+//			typename TTraits::value_type tmp (key, TData ());
+//			return this -> insert (&tmp);
+//		}
 	};
 
 	typedef __pointers_list_type pointers_list_type;

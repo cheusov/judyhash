@@ -25,12 +25,19 @@ public TTraits
 {
 public:
 	class __pointers_list_type
-	: public std::list <typename TTraits::pointer>
+	:
+	public std::list <typename TTraits::pointer>
 	{
 	private:
 		TEqualFunc m_eq_func;
+		typedef std::list <typename TTraits::pointer> inherited;
+
 	public:
-		typedef typename TTraits::pointer pointer;
+		typedef typename inherited::pointer pointer;
+		typedef typename inherited::value_type value_type;
+		typedef typename inherited::pointer pointer;
+		typedef typename inherited::iterator iterator;
+		typedef typename inherited::const_iterator const_iterator;
 
 		__pointers_list_type ()
 		{
@@ -38,21 +45,31 @@ public:
 		~__pointers_list_type ()
 		{
 		}
-		typename std::list <pointer>::iterator find (
-			const TKey &key)
+		iterator find (const TKey &key)
 		{
-			typename std::list <pointer>::iterator beg
-				= std::list <pointer>::begin ();
-			typename std::list <pointer>::iterator end
-				= std::list <pointer>::end ();
+			iterator b = begin ();
+			iterator e = end ();
 
-			for (; !(beg == end); ++beg){
-				if (m_eq_func (TTraits::value2key (**beg), key)){
-					return beg;
+			for (; !(b == e); ++b){
+				if (m_eq_func (TTraits::value2key (**b), key)){
+					return b;
 				}
 			}
 
-			return std::list <pointer>::end ();
+			return e;
+		}
+
+		std::pair <iterator, bool> insert (const value_type& v)
+		{
+			const iterator e = end ();
+			const iterator f = find (TTraits::value2key(*v));
+
+			if (e == f){
+				return std::make_pair (
+					inherited::insert (inherited::end (), v), true);
+			}else{
+				return std::make_pair (f, false);
+			}
 		}
 	};
 
