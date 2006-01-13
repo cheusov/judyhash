@@ -165,8 +165,10 @@ public:
 		// Slow implementation which allows better
 		// inconsistency checking
 		erase (begin (), end ());
-#else // JUDYARRAY_DEBUG
+#else // !JUDYARRAY_DEBUG
+
 		// Much faster implementation
+		// Deleting object from lists
 		typename allocated_lists_type::iterator f, l;
 
 		f = m_allocated_lists.begin ();
@@ -174,21 +176,35 @@ public:
 
 #ifdef JUDYARRAY_DEBUGINFO
 		m_debug_info.m_value_count = 0;
-#endif
+#endif // JUDYARRAY_DEBUGINFO
 
 		for (; f != l; ++f){
 #ifdef JUDYARRAY_DEBUGINFO
 			m_debug_info.m_list_count -= 1;
 			m_debug_info.m_list_item_count -= (*f) -> size ();
-#endif
+#endif //JUDYARRAY_DEBUGINFO
 			delete *f;
 		}
 
-		m_size = 0;
+		// Deleting the set of allocated lists
+//		m_allocated_lists.clear ();
+
+		// Deleting object from JudyL cells
+		Word_t index = 0;
+		PWord_t pvalue = (PWord_t) JudyLFirst (m_judy, &index, 0);
+		while (pvalue){
+			Word_t v = *pvalue;
+			if ((v & 1) == 0){
+				m_alloc.deallocate ((value_type *) v, 1);
+			}
+			pvalue = (PWord_t) JudyLNext (m_judy, &index, 0);
+		}
 
 		m_allocated_lists.clear ();
 		::JudyLFreeArray (&m_judy, 0);
 #endif // JUDYARRAY_DEBUG
+
+		m_size = 0;
 	}
 
 	__judy_mapset_base& operator = (const __this_type& a)
