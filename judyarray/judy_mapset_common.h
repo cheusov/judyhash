@@ -89,10 +89,24 @@ private:
 	TEqualFunc           m_eq_func;
 	allocator_type       m_alloc;
 
-	inline pointer judy_hash_new (const value_type &v)
+	inline pointer allocate (const value_type &v)
 	{
+#ifdef JUDYHASH_USE_NEW
+		return new value_type (v);
+#else
 		pointer p = m_alloc.allocate (1);
 		return new (p) value_type (v);
+#endif
+	}
+
+	inline void deallocate (pointer p)
+	{
+#ifdef JUDYHASH_USE_NEW
+		delete p;
+#else
+		p -> ~value_type ();
+		m_alloc.deallocate (p, 1);
+#endif
 	}
 
 //
@@ -204,7 +218,7 @@ public:
 					m_debug_info.m_list_item_count -= 1;
 #endif //JUDYARRAY_DEBUGINFO
 
-					m_alloc.deallocate ((*beg), 1);
+					deallocate (*beg);
 				}
 				delete pvalue -> m_list;
 			}else{
@@ -212,7 +226,7 @@ public:
 				m_debug_info.m_value_count -= 1;
 #endif //JUDYARRAY_DEBUGINFO
 
-				m_alloc.deallocate (pvalue -> m_pointer, 1);
+				deallocate (pvalue -> m_pointer);
 			}
 			pvalue = (judyarray_union_type *) JudyLNext (m_judy, &index, 0);
 		}
@@ -650,7 +664,7 @@ public:
 
 			m_size -= 1;
 
-			m_alloc.deallocate (*it.m_it.m_list_it, 1);
+			deallocate (*it.m_it.m_list_it);
 #ifdef JUDYARRAY_DEBUGINFO
 			m_debug_info.m_list_item_count -= 1;
 #endif
@@ -673,7 +687,7 @@ public:
 
 			m_size -= 1;
 
-			m_alloc.deallocate (it.m_it.m_value.m_pointer, 1);
+			deallocate (it.m_it.m_value.m_pointer);
 #ifdef JUDYARRAY_DEBUGINFO
 			m_debug_info.m_value_count -= 1;
 #endif
@@ -800,7 +814,7 @@ public:
 					lst -> insert (copy);
 
 					typename pointers_list_type::iterator ret_it
-						= lst -> insert (judy_hash_new (value)).first;
+						= lst -> insert (allocate (value)).first;
 
 					++m_size;
 
@@ -836,7 +850,7 @@ public:
 
 				// Add new 'value' to the list
 				std::pair <typename pointers_list_type::iterator, bool> ret_it
-					= lst -> insert (judy_hash_new (value));
+					= lst -> insert (allocate (value));
 
 				if (ret_it.second){
 					++m_size;
@@ -858,7 +872,7 @@ public:
 			m_debug_info.m_value_count += 1;
 #endif
 
-			ptr -> m_pointer = judy_hash_new (value);
+			ptr -> m_pointer = allocate (value);
 
 			++m_size;
 
