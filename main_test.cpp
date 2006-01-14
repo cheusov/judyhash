@@ -61,6 +61,58 @@ public:
 	}
 };
 
+struct hsh_string_hash0 {
+	size_t operator () (const char *key) const
+	{
+		static const unsigned char rand_256_array [] = {
+			0xa8, 0x68, 0x0b, 0x60, 0xf6, 0xe4, 0xeb, 0x2c,
+			0x86, 0xc3, 0xfb, 0xbd, 0x9e, 0x0d, 0x86, 0x9b,
+			0x75, 0x55, 0xc1, 0x9e, 0x19, 0x7b, 0x1f, 0xc8,
+			0x43, 0x0e, 0x3d, 0x4a, 0x80, 0xa7, 0xc1, 0x06,
+			0x31, 0xbf, 0x9b, 0xbc, 0xdd, 0x81, 0x33, 0xd3,
+			0x73, 0x0a, 0x87, 0xf9, 0xa2, 0xeb, 0x9a, 0xe7,
+			0xcd, 0x59, 0x2c, 0xe6, 0x1d, 0x3d, 0xdb, 0x75,
+			0xf9, 0x89, 0x86, 0x63, 0xa4, 0x51, 0x23, 0xa7,
+			0xbf, 0x22, 0xf5, 0xd8, 0xbd, 0x5b, 0x25, 0xbd,
+			0x5c, 0x9d, 0x64, 0xe9, 0x9b, 0x32, 0xdf, 0x3d,
+			0x6f, 0xfe, 0xd9, 0xf6, 0x32, 0x66, 0x5e, 0xe7,
+			0x03, 0x27, 0x31, 0x16, 0x62, 0x89, 0xff, 0x55,
+			0x00, 0x1d, 0xb8, 0x87, 0x56, 0x84, 0xec, 0xe7,
+			0x25, 0x60, 0xa0, 0xf2, 0xdf, 0xf3, 0x73, 0xf7,
+			0xa8, 0xd0, 0x97, 0x90, 0x8a, 0x52, 0x99, 0xc5,
+			0x9b, 0xac, 0xad, 0xf7, 0x91, 0x61, 0xbd, 0x05,
+			0xf1, 0x56, 0x38, 0xcb, 0xba, 0x40, 0x0f, 0xb2,
+			0x6b, 0xfb, 0x4b, 0xc2, 0xf0, 0xca, 0x15, 0xcd,
+			0x5a, 0xd6, 0xb0, 0x24, 0x8b, 0xcf, 0x55, 0x4a,
+			0xa1, 0xc3, 0xf6, 0x9b, 0xd9, 0x48, 0x80, 0x96,
+			0xf2, 0x64, 0xdf, 0x4b, 0x97, 0x5d, 0x84, 0x2f,
+			0x70, 0x12, 0x0d, 0x40, 0x77, 0x08, 0x58, 0x3d,
+			0xee, 0xd3, 0x27, 0xf8, 0x82, 0xeb, 0x5e, 0x1a,
+			0x09, 0x95, 0x89, 0x1f, 0xab, 0xf9, 0x0d, 0x34,
+			0x66, 0x60, 0x46, 0xca, 0xe7, 0x52, 0xb5, 0x73,
+			0xbc, 0x02, 0x26, 0x26, 0x93, 0x54, 0x89, 0xbd,
+			0x9b, 0x6f, 0x2f, 0xd9, 0x51, 0xd0, 0xe3, 0xba,
+			0x1d, 0xb6, 0xbc, 0x7a, 0xa5, 0x57, 0x50, 0x84,
+			0xd0, 0x0f, 0xdf, 0x6d, 0xe2, 0xa6, 0xff, 0x51,
+			0x73, 0x33, 0xd2, 0x2d, 0x61, 0x1a, 0xc3, 0xde,
+			0xa3, 0x91, 0x0a, 0x46, 0x45, 0xed, 0x48, 0x1a,
+			0xd8, 0x7a, 0x2a, 0x20, 0xe8, 0xe8, 0x4c, 0x0c
+		};
+
+		unsigned h = 0;
+		unsigned char *p=rand_256_array;
+		while (*key){
+			h = h * 31 ^ *key++;// ^ *p;
+			++p;
+//			if (p == rand_256_array + 256){
+//				p = rand_256_array;
+//			}
+		}
+
+		return h & 0x7FFFFF;
+	}
+};
+
 struct hsh_string_hash1 {
 	size_t operator () (const char *key) const
 	{
@@ -158,7 +210,7 @@ typedef std::map <
 	const char *, int, cmp_string_lt
 	> std_map0;
 typedef judy_map_l <
-	const char *, int, hsh_string_hash1, cmp_string_eq
+	const char *, int, hsh_string_hash0, cmp_string_eq
 	> mapl_1;
 typedef judy_map_l <
 	const char *, int, hsh_string_hash2, cmp_string_eq
@@ -168,7 +220,7 @@ typedef judy_map_l <
 	my_pool <mapl_1::value_type>
 	> mapl_3;
 typedef judy_map_l <
-	const char *, int, hsh_string_hash1, cmp_string_eq,
+	const char *, int, hsh_string_hash0, cmp_string_eq,
 	std::allocator <mapl_1::value_type>
 	> mapl_4;
 typedef judy_map_l <
@@ -184,7 +236,7 @@ typedef std::map <
 	std::string, int
 	> std_map10;
 typedef judy_map_l <
-	std::string, int, hsh_string_hash1
+	std::string, int, hsh_string_hash0
 	> mapl_11;
 typedef judy_map_l <
 	std::string, int, hsh_string_hash2
@@ -194,7 +246,7 @@ typedef judy_map_l <
 	my_pool <mapl_11::value_type>
 	> mapl_13;
 typedef judy_map_l <
-	std::string, int, hsh_string_hash1, cmp_string_eq,
+	std::string, int, hsh_string_hash0, cmp_string_eq,
 	std::allocator <mapl_11::value_type>
 	> mapl_14;
 typedef judy_map_l <
@@ -210,7 +262,7 @@ typedef std::set <
 	const char *, cmp_string_lt
 	> std_set20;
 typedef judy_set_l <
-	const char *, hsh_string_hash1
+	const char *, hsh_string_hash0
 	> setl_21;
 typedef judy_set_l <
 	const char *, hsh_string_hash2
@@ -220,7 +272,7 @@ typedef judy_set_l <
 	my_pool <setl_21::value_type>
 	> setl_23;
 typedef judy_set_l <
-	const char *, hsh_string_hash1, cmp_string_eq,
+	const char *, hsh_string_hash0, cmp_string_eq,
 	std::allocator <setl_21::value_type>
 	> setl_24;
 typedef judy_set_l <
@@ -246,7 +298,7 @@ typedef judy_set_l <
 	my_pool <setl_31::value_type>
 	> setl_33;
 typedef judy_set_l <
-	std::string, hsh_string_hash1, cmp_string_eq,
+	std::string, hsh_string_hash0, cmp_string_eq,
 	std::allocator <setl_31::value_type>
 	> setl_34;
 typedef judy_set_l <
@@ -273,7 +325,7 @@ typedef judy_map_kdcell <
 	> mapl_51;
 
 typedef judy_map_m <
-	const char *, int, hsh_string_hash1, cmp_string_lt, cmp_string_eq
+	const char *, int, hsh_string_hash0, cmp_string_lt, cmp_string_eq
 	> mapm_1;
 typedef judy_map_m <
 	const char *, int, hsh_string_hash2, cmp_string_lt, cmp_string_eq
@@ -283,7 +335,7 @@ typedef judy_map_m <
 	my_pool <mapl_1::value_type>
 	> mapm_3;
 typedef judy_map_m <
-	const char *, int, hsh_string_hash1, cmp_string_lt, cmp_string_eq,
+	const char *, int, hsh_string_hash0, cmp_string_lt, cmp_string_eq,
 	std::allocator <mapl_1::value_type>
 	> mapm_4;
 typedef judy_map_m <
@@ -296,7 +348,7 @@ typedef judy_map_m <
 	> mapm_6;
 
 typedef judy_map_m <
-	std::string, int, hsh_string_hash1
+	std::string, int, hsh_string_hash0
 	> mapm_11;
 typedef judy_map_m <
 	std::string, int, hsh_string_hash2
@@ -306,7 +358,7 @@ typedef judy_map_m <
 	my_pool <mapl_11::value_type>
 	> mapm_13;
 typedef judy_map_m <
-	std::string, int, hsh_string_hash1, cmp_string_lt, cmp_string_eq,
+	std::string, int, hsh_string_hash0, cmp_string_lt, cmp_string_eq,
 	std::allocator <mapl_11::value_type>
 	> mapm_14;
 typedef judy_map_m <
@@ -319,7 +371,7 @@ typedef judy_map_m <
 	> mapm_16;
 
 typedef judy_set_m <
-	const char *, hsh_string_hash1
+	const char *, hsh_string_hash0
 	> setm_81;
 typedef judy_set_m <
 	const char *, hsh_string_hash2
@@ -329,7 +381,7 @@ typedef judy_set_m <
 	my_pool <setm_81::value_type>
 	> setm_83;
 typedef judy_set_m <
-	const char *, hsh_string_hash1, cmp_string_lt, cmp_string_eq,
+	const char *, hsh_string_hash0, cmp_string_lt, cmp_string_eq,
 	std::allocator <setm_81::value_type>
 	> setm_84;
 typedef judy_set_m <
@@ -352,7 +404,7 @@ typedef judy_set_m <
 	my_pool <setm_91::value_type>
 	> setm_93;
 typedef judy_set_m <
-	std::string, hsh_string_hash1, cmp_string_lt, cmp_string_eq,
+	std::string, hsh_string_hash0, cmp_string_lt, cmp_string_eq,
 	std::allocator <setm_91::value_type>
 	> setm_94;
 typedef judy_set_m <
