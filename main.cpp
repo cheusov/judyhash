@@ -345,9 +345,9 @@ template <> void resize (my_hash& m, int n)
 #endif
 
 #ifdef USE_JUDY_HASH
-typedef judy_map_m <
-	my_type, int, hsh_string_hash, cmp_string_lt, cmp_string_eq, test_allocator_type
-//	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
+typedef judy_map_l <
+//	my_type, int, hsh_string_hash, cmp_string_lt, cmp_string_eq, test_allocator_type
+	my_type, int, hsh_string_hash, cmp_string_eq, test_allocator_type
 	> my_hash;
 
 template <> void resize (my_hash& m, int n)
