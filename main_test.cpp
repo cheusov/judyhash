@@ -100,7 +100,7 @@ struct hsh_string_hash0 {
 		};
 
 		unsigned h = 0;
-		unsigned char *p=rand_256_array;
+		const unsigned char *p=rand_256_array;
 		while (*key){
 			h = h * 31 ^ *key++;// ^ *p;
 			++p;
@@ -110,6 +110,11 @@ struct hsh_string_hash0 {
 		}
 
 		return h & 0x7FFFFF;
+	}
+
+	size_t operator () (const std::string &key) const
+	{
+		return operator () (key.c_str ());
 	}
 };
 
