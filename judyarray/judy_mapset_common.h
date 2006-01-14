@@ -88,7 +88,6 @@ private:
 	THashFunc            m_hash_func;
 	TEqualFunc           m_eq_func;
 	allocator_type       m_alloc;
-	allocated_lists_type m_allocated_lists;
 
 	inline pointer judy_hash_new (const value_type &v)
 	{
@@ -156,7 +155,6 @@ public:
 		assert (!m_debug_info.m_list_count);
 		assert (!m_debug_info.m_list_item_count);
 		assert (!m_judy);
-		assert (m_allocated_lists.empty ());
 	}
 
 	void clear ()
@@ -169,38 +167,56 @@ public:
 
 		// Much faster implementation
 		// Deleting object from lists
-		typename allocated_lists_type::iterator f, l;
+//		typename allocated_lists_type::iterator f, l;
 
-		f = m_allocated_lists.begin ();
-		l = m_allocated_lists.end ();
+//		f = m_allocated_lists.begin ();
+//		l = m_allocated_lists.end ();
 
+//		for (; f != l; ++f){
 #ifdef JUDYARRAY_DEBUGINFO
-		m_debug_info.m_value_count = 0;
-#endif // JUDYARRAY_DEBUGINFO
-
-		for (; f != l; ++f){
-#ifdef JUDYARRAY_DEBUGINFO
-			m_debug_info.m_list_count -= 1;
-			m_debug_info.m_list_item_count -= (*f) -> size ();
+//			m_debug_info.m_list_count -= 1;
+//			m_debug_info.m_list_item_count -= (*f) -> size ();
 #endif //JUDYARRAY_DEBUGINFO
-			delete *f;
-		}
+//			delete *f;
+//		}
 
 		// Deleting the set of allocated lists
 //		m_allocated_lists.clear ();
 
 		// Deleting object from JudyL cells
 		Word_t index = 0;
-		PWord_t pvalue = (PWord_t) JudyLFirst (m_judy, &index, 0);
+		judyarray_union_type *pvalue
+			= (judyarray_union_type *) JudyLFirst (m_judy, &index, 0);
+
 		while (pvalue){
-			Word_t v = *pvalue;
-			if ((v & 1) == 0){
-				m_alloc.deallocate ((value_type *) v, 1);
+			if (pvalue -> m_judy_int & 1){
+				pvalue -> m_judy_int &= ~1;
+
+				typename pointers_list_type::iterator beg = pvalue -> m_list -> begin ();
+				typename pointers_list_type::iterator end = pvalue -> m_list -> end ();
+
+#ifdef JUDYARRAY_DEBUGINFO
+				m_debug_info.m_list_count -= 1;
+#endif //JUDYARRAY_DEBUGINFO
+
+				for (; beg != end; ++beg){
+#ifdef JUDYARRAY_DEBUGINFO
+					m_debug_info.m_list_item_count -= 1;
+#endif //JUDYARRAY_DEBUGINFO
+
+					m_alloc.deallocate ((*beg), 1);
+				}
+				delete pvalue -> m_list;
+			}else{
+#ifdef JUDYARRAY_DEBUGINFO
+				m_debug_info.m_value_count -= 1;
+#endif //JUDYARRAY_DEBUGINFO
+
+				m_alloc.deallocate (pvalue -> m_pointer, 1);
 			}
-			pvalue = (PWord_t) JudyLNext (m_judy, &index, 0);
+			pvalue = (judyarray_union_type *) JudyLNext (m_judy, &index, 0);
 		}
 
-		m_allocated_lists.clear ();
 		::JudyLFreeArray (&m_judy, 0);
 #endif // JUDYARRAY_DEBUG
 
@@ -248,7 +264,6 @@ public:
 		std::swap (m_hash_func, a.m_hash_func);
 		std::swap (m_debug_info, a.m_debug_info);
 		std::swap (m_alloc, a.m_alloc);
-		std::swap (m_allocated_lists, a.m_allocated_lists);
 	}
 
 	size_type size () const
@@ -647,7 +662,6 @@ public:
 
 			if (lst -> empty ()){
 				delete lst;
-				m_allocated_lists.erase (lst);
 
 				::JudyLDel (&m_judy, it.m_it.m_index, 0);
 #ifdef JUDYARRAY_DEBUGINFO
@@ -776,8 +790,6 @@ public:
 					pointer copy = ptr -> m_pointer;
 					pointers_list_type *lst
 						= ptr -> m_list = new pointers_list_type;
-
-					m_allocated_lists.insert (lst);
 
 #ifdef JUDYARRAY_DEBUGINFO
 					m_debug_info.m_list_count       += 1;
