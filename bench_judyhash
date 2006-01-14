@@ -2,17 +2,18 @@
 
 ###############################################################
 
-BOOST_INCLUDE_DIR=/usr/include/boost
-STLPORT_INCLUDE_DIR=/usr/include/stlport
-ADDON_INCLUDE_DIR=/usr/local/include
-OPTFLAGS='-O3 -march=i586'
+BOOST_INCLUDE_DIR=-I/usr/include/boost
+STLPORT_INCLUDE_DIR=-I/usr/include/stlport
+ADDON_INCLUDE_DIR="-I/usr/local/include -I$HOME/local/`hostname`/include"
+#OPTFLAGS='-O3 -march=i586'
+OPTFLAGS='-O3'
 TESTED_TYPE=-DTYPE_STD_STRING
 
 TESTFILE=$HOME/texts/5000.out
 
 #MCOUNT=15 # a number of measurements
 #MAX_LINE=10000000
-MCOUNT=2 # a number of measurements
+MCOUNT=15 # a number of measurements
 MAX_LINE=3162277
 
 ###############################################################
@@ -31,7 +32,7 @@ test_judyarray (){
     LDFLAGS=$4
     DEFINES=$5
 
-    compile_cmd="$CXX main.cpp -o judytest $CPPFLAGS $DEFINES $CFLAGS $LDFLAGS"
+    compile_cmd="$CXX -o judytest $CPPFLAGS $DEFINES $CFLAGS $LDFLAGS main.cpp"
     echo "Compile: $compile_cmd"
     $compile_cmd 2>log || exit 1
     for i in $lines; do
@@ -51,51 +52,51 @@ for gpp in g++; do
 
     # just file reading 
      test_judyarray $gpp         \
-	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$BOOST_INCLUDE_DIR $ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"             \
 	""                      \
 	"$TESTED_TYPE -DEMPTY_LOOP"
 
      # g++ STL
     test_judyarray $gpp         \
-	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$BOOST_INCLUDE_DIR $ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"             \
 	""                      \
 	"$TESTED_TYPE -DUSE_GOOGLE_DENSE_MAP"
     test_judyarray $gpp         \
-	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$BOOST_INCLUDE_DIR $ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"             \
 	""                     \
 	"$TESTED_TYPE -DUSE_STD_MAP"
     test_judyarray $gpp         \
-	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$BOOST_INCLUDE_DIR $ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"             \
 	"-lJudy"               \
 	"$TESTED_TYPE -DUSE_JUDY_HASH"
     test_judyarray $gpp         \
-	"-I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$BOOST_INCLUDE_DIR $ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"            \
 	""                     \
 	"$TESTED_TYPE -DUSE_HASH_MAP"
 
     # STLPORT STL
     test_judyarray $gpp         \
-	"-I$STLPORT_INCLUDE_DIR -I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$STLPORT_INCLUDE_DIR $BOOST_INCLUDE_DIR $ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"            \
 	"-lstlport -lm "       \
 	"$TESTED_TYPE -DUSE_GOOGLE_DENSE_MAP"
     test_judyarray $gpp         \
-	"-I$STLPORT_INCLUDE_DIR -I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$STLPORT_INCLUDE_DIR $BOOST_INCLUDE_DIR $ADDON_INCLUDE_DIR" \
         "$OPTFLAGS"            \
 	"-lstlport -lm"        \
 	"$TESTED_TYPE -DUSE_STD_MAP"
     test_judyarray $gpp         \
-	"-I$STLPORT_INCLUDE_DIR -I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$STLPORT_INCLUDE_DIR $BOOST_INCLUDE_DIR $ADDON_INCLUDE_DIR" \
         "$OPTFLAGS"            \
 	"-lstlport -lm -lJudy" \
 	"$TESTED_TYPE -DUSE_JUDY_HASH"
     test_judyarray $gpp         \
-	"-I$STLPORT_INCLUDE_DIR -I$BOOST_INCLUDE_DIR -I$ADDON_INCLUDE_DIR" \
+	"$STLPORT_INCLUDE_DIR $BOOST_INCLUDE_DIR $ADDON_INCLUDE_DIR" \
         "$OPTFLAGS"            \
 	"-lstlport -lm"        \
 	"$TESTED_TYPE -DUSE_HASH_MAP"
