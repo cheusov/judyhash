@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <pool/pool_alloc.hpp>
+//#include <pool/pool_alloc.hpp>
 
 #if !defined(USE_GOOGLE_DENSE_MAP) && !defined(USE_STD_MAP) && !defined(USE_JUDY_HASH) && !defined(USE_HASH_MAP) && !defined(EMPTY_LOOP)
 #error Opps
@@ -299,8 +299,8 @@ public:
 };
 
 //typedef my_pool < std::pair <my_type const, int> > test_allocator_type;
-//typedef std::allocator < std::pair <my_type const, int> > test_allocator_type;
-typedef boost::fast_pool_allocator < std::pair <my_type const, int> > test_allocator_type;
+typedef std::allocator < std::pair <my_type const, int> > test_allocator_type;
+//typedef boost::fast_pool_allocator < std::pair <my_type const, int> > test_allocator_type;
 
 #ifdef USE_GOOGLE_DENSE_MAP
 typedef google_dense_hash_map <
