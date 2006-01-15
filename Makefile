@@ -9,13 +9,13 @@ CPPFLAGS=-I/usr/include/boost
 #CPPFLAGS=-I/usr/include/boost -I/usr/include/stlport
 
 # Examples
-CFLAGS=-O3 -march=i586
+CFLAGS=-O3
 CFLAGS_TEST=-O0 -g
 #CFLAGS=-O
 
 # Examples
 LDFLAGS=
-LDFLAGS_TEST=
+LDFLAGS_TEST=-g
 #LDFLAGS=-L. -lstlport -lm
 
 
@@ -27,7 +27,11 @@ all : judyhash_test #judyhash_bench
 judyhash_test.o : main_test.cpp *.h judyarray/*.h
 	$(CXX) -o $@ -I. $(CPPFLAGS) $(CFLAGS_TEST) -c main_test.cpp
 judyhash_test : judyhash_test.o
-	$(CXX) $(LDFLAGS_TEST) -o $@ judyhash_test.o -L. -lJudy
+	$(CXX) -o $@ $(LDFLAGS_TEST) judyhash_test.o -L. -lJudy
+judyhash_bench.o : main.cpp *.h judyarray/*.h
+	$(CXX) -o $@ -I. $(CPPFLAGS) -DUSE_HASH_MAP $(CFLAGS) -c main.cpp
+judyhash_bench : judyhash_bench.o
+	$(CXX) -o $@ $(LDFLAGS) judyhash_bench.o -L. -lJudy
 
 .PHONY : clean
 clean:
