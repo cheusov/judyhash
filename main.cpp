@@ -54,7 +54,7 @@ class google_dense_hash_map : public google::dense_hash_map
 {
 private:
 	typedef google::dense_hash_map
-	<TKey, TValue, THashFunc, TEqualFunc, TAllocator> __base;
+		<TKey, TValue, THashFunc, TEqualFunc, TAllocator> __base;
 
 public:
 	google_dense_hash_map ()
@@ -229,8 +229,8 @@ struct hsh_string_hash {
 //		const int m = 7U;
 //		const int m = 31U;
 //		const int m = 33U;
-//		const int m = 65599U;
-		const size_t m = 2654435789U;
+		const int m = 65599U;
+//		const size_t m = 2654435789U;
 
 		unsigned h = 0;
 
@@ -392,7 +392,6 @@ int main (int argc, const char **argv)
 //		return 9;
 //	}
 
-	
 	char line [2048];
 
 	int dups = 0;
@@ -408,16 +407,16 @@ int main (int argc, const char **argv)
 	std::cout << "threshold: " << threshold << '\n';
 
 #ifdef USE_JUDY_HASH
-	std::cout << "JudyArray: ";
+	std::cout << "JudyArray: \n";
 #endif
 #ifdef USE_HASH_MAP
-	std::cout << "hash_map: ";
+	std::cout << "hash_map: \n";
 #endif
 #ifdef USE_STD_MAP
-	std::cout << "std::map: ";
+	std::cout << "std::map: \n";
 #endif
 #ifdef USE_GOOGLE_DENSE_MAP
-	std::cout << "google::dense_hash_map: ";
+	std::cout << "google::dense_hash_map: \n";
 #endif
 
 #if defined(USE_JUDY_HASH) || (defined(USE_HASH_MAP) && !defined(__ICC)) || defined(USE_GOOGLE_DENSE_MAP)
@@ -426,9 +425,16 @@ int main (int argc, const char **argv)
 	my_hash ht;
 #endif
 
-	unsigned long line_count = 0;
-	while (fgets (line, sizeof (line), stdin)){
-		++line_count;
+	unsigned long max_line_count = 10000000;
+	for (int line_count = 0; line_count < max_line_count; ++line_count){
+		char line_ [2048];
+		sprintf (line_, "%d", line_count);
+
+#ifdef TYPE_CHAR_PTR
+		char *line = strdup (line_);
+#else
+		char *line = line_;
+#endif
 
 #ifndef EMPTY_LOOP
 		if ((line_count % threshold) == 0){
@@ -437,31 +443,11 @@ int main (int argc, const char **argv)
 		}
 #endif
 
-		char *NL = strchr (line, '\n');
-		if (NL)
-			*NL = 0;
-
 #ifndef EMPTY_LOOP
-#ifdef TYPE_CHAR_PTR
-		std::pair <my_hash::iterator, bool> curr = ht.insert (
-			my_hash::value_type (strdup (line), line_count));
-#else
 		std::pair <my_hash::iterator, bool> curr = ht.insert (
 			my_hash::value_type (line, line_count));
 #endif
-
-		bool new_item = curr.second;
-		if (!new_item){
-			++dups;
-		}
-#else
-#ifdef TYPE_CHAR_PTR
-		strdup (line);
-#endif
-#endif
 	}
-
-	std::cout << "duplicates count: " << dups << '\n';
 
 #ifdef USE_JUDY_HASH
 	std::cout << "single item count:" << ht.get_debug_info ().m_value_count << '\n';

@@ -11,10 +11,10 @@ TESTED_TYPE=-DTYPE_STD_STRING
 
 TESTFILE=$HOME/texts/5000.out
 
-#MCOUNT=15 # a number of measurements
-#MAX_LINE=10000000
 MCOUNT=15 # a number of measurements
-MAX_LINE=3162277
+MAX_LINE=10000000
+#MCOUNT=2 # a number of measurements
+#MAX_LINE=3162277
 
 ###############################################################
 
