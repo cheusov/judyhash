@@ -5,10 +5,10 @@
 BOOST_INCLUDE_DIR=-I/usr/include/boost
 STLPORT_INCLUDE_DIR=-I/usr/include/stlport
 ADDON_INCLUDE_DIR="-I/usr/local/include -I$HOME/local/`hostname`/include"
-#OPTFLAGS='-O3 -march=i586'
 OPTFLAGS='-O3'
+#OPTFLAGS='-O3 -DJUDYHASH_USE_NEW'
 TESTED_TYPE=-DTYPE_STD_STRING
-
+#TESTED_TYPE=-DTYPE_CHAR_PTR
 TESTFILE=$HOME/texts/5000.out
 
 MCOUNT=15 # a number of measurements
@@ -57,7 +57,7 @@ for gpp in g++; do
 	""                      \
 	"$TESTED_TYPE -DEMPTY_LOOP"
 
-     # g++ STL
+    # g++ STL
     test_judyarray $gpp         \
 	"$BOOST_INCLUDE_DIR $ADDON_INCLUDE_DIR" \
 	"$OPTFLAGS"             \
