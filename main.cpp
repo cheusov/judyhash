@@ -75,8 +75,8 @@ public:
 
 	google_dense_hash_map (
 		size_type n             = 0,
-		const hasher& h         = hasher (), 
-		const key_equal& k      = key_equal ())
+		const THashFunc& h      = hasher (), 
+		const TEqualFunc& k     = key_equal ())
 		:
 		__base (n, h, k)
 	{
@@ -212,6 +212,7 @@ struct hsh_string_hash {
 			0x93f524cf, 0x10a8cf70, 0xb624d190, 0x210a0741,
 			0x02b5fd3c, 0xd1f81cc9, 0xc55f7fcf, 0xb55eeae9,
 			0x61c05df2, 0x836307b3, 0xc9ea8a6c, 0xeeb9cad2,
+			0x85bd531b, 0xe4fd6e40, 0x9e31ea77, 0x75e497e0,
 		};
 
 		unsigned h = 0;
