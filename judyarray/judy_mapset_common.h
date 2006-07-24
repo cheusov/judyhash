@@ -239,7 +239,7 @@ public:
 
 	__judy_mapset_base& operator = (const __this_type& a)
 	{
-		// exception-less implementation
+		// exception-safe implementation
 		if (this != &a){
 			clear ();
 
