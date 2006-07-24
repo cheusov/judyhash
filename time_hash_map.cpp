@@ -71,12 +71,66 @@ using GOOGLE_NAMESPACE::sparse_hash_map;
 using GOOGLE_NAMESPACE::dense_hash_map;
 using STL_NAMESPACE::map;
 
+//
+int func (int a);
+
+struct hash2 {
+	unsigned operator () (int n) const {
+		return n;
+	};
+};
+
+struct less2 {
+	bool operator () (int a, int b) const {
+		return func (a) < func (b);
+	};
+};
+
+struct equal2 {
+	bool operator () (int a, int b) const {
+		return func (a) == func (b);
+	};
+};
+
 // Normally I don't like non-const references, but using them here ensures
 // the inlined code ends up as efficient as possible.
 
 template<class MapType> inline void SET_DELETED_KEY(MapType& map, int key) {}
 template<class MapType> inline void SET_EMPTY_KEY(MapType& map, int key) {}
 template<class MapType> inline void RESIZE(MapType& map, int iters) {}
+
+template<> inline void SET_DELETED_KEY(
+  sparse_hash_map<int, int, HASH_NAMESPACE::hash <int>, equal2>& m, int key)
+{
+  m.set_deleted_key(key);
+}
+template<> inline void SET_DELETED_KEY(
+  dense_hash_map<int, int, HASH_NAMESPACE::hash <int>, equal2>& m, int key)
+{
+  m.set_deleted_key(key);
+}
+
+template<> inline void SET_EMPTY_KEY(
+  dense_hash_map<int, int, HASH_NAMESPACE::hash <int>, equal2>& m, int key)
+{
+  m.set_empty_key(key);
+}
+
+template<> inline void RESIZE(
+  sparse_hash_map<int, int, HASH_NAMESPACE::hash <int>, equal2>& m, int iters)
+{
+  m.resize(iters);
+}
+template<> inline void RESIZE(
+  dense_hash_map<int, int, HASH_NAMESPACE::hash <int>, equal2>& m, int iters)
+{
+  m.resize(iters);
+}
+template<> inline void RESIZE(
+  hash_map<int, int, HASH_NAMESPACE::hash <int>, equal2>& m, int iters)
+{
+  m.resize(iters);
+}
 
 template<> inline void SET_DELETED_KEY(sparse_hash_map<int, int>& m, int key) {
   m.set_deleted_key(key);
@@ -286,47 +340,27 @@ static void measure_map(int iters) {
 template <class Less, class Equal, class Hash>
 void measure_all_maps (int n)
 {
-//  printf("\nSPARSE_HASH_MAP:\n");
-//  measure_map< sparse_hash_map<int, int, Hash, Equal> >(n);
+  printf("\nSPARSE_HASH_MAP:\n");
+  measure_map< sparse_hash_map<int, int, Hash, Equal> >(n);
 
-//  printf("\nDENSE_HASH_MAP:\n");
-//  measure_map< dense_hash_map<int, int, Hash, Equal> >(n);
+  printf("\nDENSE_HASH_MAP:\n");
+  measure_map< dense_hash_map<int, int, Hash, Equal> >(n);
 
-//  printf("\nJUDY_MAP_L:\n");
-//  measure_map< judy_map_l<int, int, Hash, Equal> >(n);
+  printf("\nJUDY_MAP_L:\n");
+  measure_map< judy_map_l<int, int, Hash, Equal> >(n);
 
   printf("\nJUDY_MAP_M:\n");
   measure_map< judy_map_m<int, int, Hash, Less, Equal> >(n);
 
-//  printf("\nJUDY_MAP_KDCELL:\n");
-//  measure_map< judy_map_kdcell<int, int> >(n);
+  printf("\nJUDY_MAP_KDCELL:\n");
+  measure_map< judy_map_kdcell<int, int> >(n);
 
   printf("\nSTANDARD HASH_MAP:\n");
   measure_map< hash_map<int, int, Hash, Equal> >(n);
 
-//  printf("\nSTANDARD MAP:\n");
-//  measure_map< map<int, int, Less> >(n);
+  printf("\nSTANDARD MAP:\n");
+  measure_map< map<int, int, Less> >(n);
 }
-
-double func (int a);
-
-struct hash2 {
-	unsigned operator () (int n) const {
-		return n;
-	};
-};
-
-struct less2 {
-	bool operator () (int a, int b) const {
-		return func (a) < func (b);
-	};
-};
-
-struct equal2 {
-	bool operator () (int a, int b) const {
-		return func (a) == func (b);
-	};
-};
 
 int main(int argc, char** argv) {
   int iters = default_iters;
@@ -350,7 +384,7 @@ int main(int argc, char** argv) {
 //                    HASH_NAMESPACE::hash <int> > (iters);
   measure_all_maps <less2,
                     equal2,
-                    hash2 > (iters);
+                    HASH_NAMESPACE::hash <int> > (iters);
 
   return 0;
 }
