@@ -1,41 +1,31 @@
 ############################################################
+include Makefile.config
 
-# Examples
-#CXX=icpc
-CXX=g++
+CPPFLAGS=$(CPPFLAGS_STLPORT) $(CPPFLAGS_BOOST) \
+    $(CPPFLAGS_SPARSEHASH) $(CPPFLAGS_COMMON)
 
-# Examples
-CPPFLAGS=-I/usr/include/boost
-#CPPFLAGS=-I/usr/include/boost -I/usr/include/stlport
+CFLAGS_O=-I. $(CPPFLAGS) $(CFLAGS_COMMON) $(CFLAGS_OPT)
+CFLAGS_T=-I. $(CPPFLAGS) $(CFLAGS_COMMON) $(CFLAGS_TEST)
 
-# Examples
-CFLAGS=-O3
-CFLAGS_TEST=-O0 -g
-#CFLAGS=-O
+LDFLAGS_C=$(LDFLAGS_COMMON) $(LDFLAGS_STLPORT) \
+    $(LDFLAGS_JUDY)
 
-# Examples
-LDFLAGS=
-LDFLAGS_TEST=-g
-#LDFLAGS=-L. -lstlport -lm
-
+LDFLAGS_O=$(LDFLAGS_C)
+LDFLAGS_T=$(LDFLAGS_TEST) $(LDFLAGS_C)
 
 ############################################################
 
 .PHONY : all
-all : judyhash_test #judyhash_bench
+all : judyhash_test
 
 judyhash_test.o : main_test.cpp *.h judyarray/*.h
-	$(CXX) -o $@ -I. $(CPPFLAGS) $(CFLAGS_TEST) -c main_test.cpp
+	$(CXX) -o $@ $(CFLAGS_T) -c main_test.cpp
 judyhash_test : judyhash_test.o
-	$(CXX) -o $@ $(LDFLAGS_TEST) judyhash_test.o -L. -lJudy
-judyhash_bench.o : main.cpp *.h judyarray/*.h
-	$(CXX) -o $@ -I. $(CPPFLAGS) -DUSE_HASH_MAP $(CFLAGS) -c main.cpp
-judyhash_bench : judyhash_bench.o
-	$(CXX) -o $@ $(LDFLAGS) judyhash_bench.o -L. -lJudy
+	$(CXX) -o $@ $(LDFLAGS_T) judyhash_test.o
 
 .PHONY : clean
 clean:
-	rm -f *.o judyhash_bench judyhash_test expected.txt
+	rm -f *.o judyhash_test expected.txt
 	rm -f *.tmp core* *~ semantic.cache judyhash log*
 
 .PHONY : test
