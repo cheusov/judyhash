@@ -58,6 +58,7 @@ extern "C" {
 
 #include <map>
 #include <hash_map>
+#include <ext/stl_hash_fun.h>
 #include <google/sparse_hash_map>
 #include <google/dense_hash_map>
 #include <judy_map.h>
@@ -298,9 +299,10 @@ static void time_map_fetch(int iters) {
   }
 
   r = 1;
+  typename MapType::iterator e (set.end());
   t.Reset();
   for (i = 0; i < iters; i++) {
-    r ^= (set.find(i) != set.end());
+    r ^= (set.find(i) != e);
   }
   double ut = t.UserTime();
 
