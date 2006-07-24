@@ -227,15 +227,22 @@ static void report(char const* title, double t, int iters) {
 }
 
 template<class MapType>
+static void add_items_to_map (MapType& m, int iters)
+{
+  for (int i = 0; i < iters; i++) {
+    m[i] = i+1;
+  }
+}
+
+template<class MapType>
 static void time_map_grow(int iters) {
   MapType set;
   Rusage t;
 
   SET_EMPTY_KEY(set, -2);
+
   t.Reset();
-  for (int i = 0; i < iters; i++) {
-    set[i] = i+1;
-  }
+  add_items_to_map(set, iters);
   double ut = t.UserTime();
 
   report("map_grow", ut, iters);
@@ -248,10 +255,9 @@ static void time_map_grow_predicted(int iters) {
 
   SET_EMPTY_KEY(set, -2);
   RESIZE(set, iters);
+
   t.Reset();
-  for (int i = 0; i < iters; i++) {
-    set[i] = i+1;
-  }
+  add_items_to_map(set, iters);
   double ut = t.UserTime();
 
   report("map_predict/grow", ut, iters);
@@ -264,9 +270,7 @@ static void time_map_replace(int iters) {
   int i;
 
   SET_EMPTY_KEY(set, -2);
-  for (i = 0; i < iters; i++) {
-    set[i] = i+1;
-  }
+  add_items_to_map(set, iters);
 
   t.Reset();
   for (i = 0; i < iters; i++) {
@@ -285,9 +289,7 @@ static void time_map_fetch_base(int iters, int offs, const char *msg) {
   int i;
 
   SET_EMPTY_KEY(set, -2);
-  for (i = 0; i < iters; i++) {
-    set[i] = i+1;
-  }
+  add_items_to_map(set, iters);
 
   r = 1;
   t.Reset();
@@ -316,9 +318,7 @@ static void time_map_remove(int iters) {
   int i;
 
   SET_EMPTY_KEY(set, -2);
-  for (i = 0; i < iters; i++) {
-    set[i] = i+1;
-  }
+  add_items_to_map(set, iters);
 
   t.Reset();
   SET_DELETED_KEY(set, -1);
