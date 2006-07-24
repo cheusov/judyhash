@@ -278,7 +278,7 @@ static void time_map_replace(int iters) {
 }
 
 template<class MapType>
-static void time_map_fetch(int iters) {
+static void time_map_fetch_base(int iters, int offs, const char *msg) {
   MapType set;
   Rusage t;
   int r;
@@ -292,11 +292,21 @@ static void time_map_fetch(int iters) {
   r = 1;
   t.Reset();
   for (i = 0; i < iters; i++) {
-    r ^= (set.find(i) != set.end());
+    r ^= (set.find(offs+i) != set.end());
   }
   double ut = t.UserTime();
 
-  report("map_fetch", ut, iters);
+  report(msg, ut, iters);
+}
+
+template<class MapType>
+static void time_map_fetch_present(int iters) {
+	time_map_fetch_base <MapType> (iters, 0, "map_fetch(present)");
+}
+
+template<class MapType>
+static void time_map_fetch_absent(int iters) {
+	time_map_fetch_base <MapType> (iters, iters, "map_fetch(absent)");
 }
 
 template<class MapType>
@@ -325,7 +335,8 @@ static void measure_map(int iters) {
   time_map_grow<MapType>(iters);
   time_map_grow_predicted<MapType>(iters);
   time_map_replace<MapType>(iters);
-  time_map_fetch<MapType>(iters);
+  time_map_fetch_present<MapType>(iters);
+  time_map_fetch_absent<MapType>(iters);
   time_map_remove<MapType>(iters);
 }
 
