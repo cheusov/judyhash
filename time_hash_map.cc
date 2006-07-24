@@ -330,6 +330,28 @@ static void time_map_remove(int iters) {
   report("map_remove", ut, iters);
 }
 
+static int iterate_accum = 0;
+template<class MapType>
+static void time_map_iterate(int iters) {
+  MapType set;
+  Rusage t;
+  int i;
+
+  SET_EMPTY_KEY(set, -2);
+  add_items_to_map(set, iters);
+
+  typename MapType::const_iterator beg = set.begin ();
+  typename MapType::const_iterator end = set.end ();
+
+  t.Reset();
+  for (; beg != end; ++beg) {
+    iterate_accum ^= (*beg).first;
+  }
+  double ut = t.UserTime();
+
+  report("map_iterate", ut, iters);
+}
+
 template<class MapType>
 static void measure_map(int iters) {
   time_map_grow<MapType>(iters);
@@ -338,6 +360,7 @@ static void measure_map(int iters) {
   time_map_fetch_present<MapType>(iters);
   time_map_fetch_absent<MapType>(iters);
   time_map_remove<MapType>(iters);
+  time_map_iterate<MapType>(iters);
 }
 
 template <class Less, class Equal, class Hash>
