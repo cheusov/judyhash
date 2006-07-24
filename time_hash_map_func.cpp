@@ -1,8 +1,8 @@
-double func (int a)
+int func (int a)
 {
-	double ret = 0.0;
-	for (int i=0; i<20; ++i){
+	int ret = 0;
+	for (int i=0; i<2000; ++i){
 		ret += a;
 	}
-	return ret;
+	return a;
 }
