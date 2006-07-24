@@ -78,6 +78,26 @@ using GOOGLE_NAMESPACE::sparse_hash_map;
 using GOOGLE_NAMESPACE::dense_hash_map;
 using STL_NAMESPACE::map;
 
+int func (int a);
+
+struct hash2 {
+	unsigned operator () (int n) const {
+		return n;
+	};
+};
+
+struct less2 {
+	bool operator () (int a, int b) const {
+		return func (a) < func (b);
+	};
+};
+
+struct equal2 {
+	bool operator () (int a, int b) const {
+		return func (a) == func (b);
+	};
+};
+
 // Normally I don't like non-const references, but using them here ensures
 // the inlined code ends up as efficient as possible.
 
@@ -85,29 +105,48 @@ template<class MapType> inline void SET_DELETED_KEY(MapType& map, int key) {}
 template<class MapType> inline void SET_EMPTY_KEY(MapType& map, int key) {}
 template<class MapType> inline void RESIZE(MapType& map, int iters) {}
 
-template<> inline void SET_DELETED_KEY(sparse_hash_map<int, int>& m, int key) {
-  m.set_deleted_key(key);
-}
-template<> inline void SET_DELETED_KEY(dense_hash_map<int, int>& m, int key) {
-  m.set_deleted_key(key);
-}
+#define REDEF_SET_DELETED_KEY(Type, Key, Data, Hash, Equal) \
+	template<> inline void SET_DELETED_KEY(        \
+		Type <Key, Data, Hash, Equal>& m, int key) \
+	{                                              \
+		m.set_deleted_key(key);                    \
+	}
 
-template<> inline void SET_EMPTY_KEY(dense_hash_map<int, int>& m, int key) {
-  m.set_empty_key(key);
-}
+#define REDEF_SET_EMPTY_KEY(Type, Key, Data, Hash, Equal) \
+	template<> inline void SET_EMPTY_KEY(          \
+		Type <Key, Data, Hash, Equal>& m, int key) \
+	{                                              \
+		m.set_empty_key(key);                      \
+	}
 
-template<> inline void RESIZE(sparse_hash_map<int, int>& m, int iters) {
-  m.resize(iters);
-}
-template<> inline void RESIZE(dense_hash_map<int, int>& m, int iters) {
-  m.resize(iters);
-}
-template<> inline void RESIZE(hash_map<int, int>& m, int iters) {
-  m.resize(iters);
-}
+#define REDEF_RESIZE(Type, Key, Data, Hash, Equal)   \
+	template<> inline void RESIZE(                   \
+		Type <Key, Data, Hash, Equal>& m, int iters) \
+	{                                                \
+		m.resize(iters);                             \
+	}
+
+#define REDEF_SET_DELETED_KEY2(Key, Data, Hash, Equal) \
+  REDEF_SET_DELETED_KEY(sparse_hash_map, Key, Data, Hash, Equal) \
+  REDEF_SET_DELETED_KEY(dense_hash_map,  Key, Data, Hash, Equal)
+
+#define REDEF_SET_EMPTY_KEY2(Key, Data, Hash, Equal) \
+  REDEF_SET_EMPTY_KEY(dense_hash_map, Key, Data, Hash, Equal)
+
+#define REDEF_RESIZE2(Key, Data, Hash, Equal) \
+  REDEF_RESIZE(sparse_hash_map, Key, Data, Hash, Equal) \
+  REDEF_RESIZE(dense_hash_map,  Key, Data, Hash, Equal) \
+  REDEF_RESIZE(hash_map,        Key, Data, Hash, Equal)
+
+REDEF_SET_DELETED_KEY2(int, int, HASH_NAMESPACE::hash <int>, std::equal_to <int> )
+REDEF_SET_EMPTY_KEY2(int, int, HASH_NAMESPACE::hash <int>, std::equal_to <int> )
+REDEF_RESIZE2(int, int, HASH_NAMESPACE::hash <int>, std::equal_to <int> )
+
+REDEF_SET_DELETED_KEY2(int, int, HASH_NAMESPACE::hash <int>, equal2 )
+REDEF_SET_EMPTY_KEY2(int, int, HASH_NAMESPACE::hash <int>, equal2 )
+REDEF_RESIZE2(int, int, HASH_NAMESPACE::hash <int>, equal2 )
 
 static const int default_iters = 5000000;
-
 
 /*
  * Measure resource usage.
@@ -315,26 +354,6 @@ void measure_all_maps (int n)
   measure_map< map<int, int, Less> >(n);
 }
 
-double func (int a);
-
-struct hash2 {
-	unsigned operator () (int n) const {
-		return n;
-	};
-};
-
-struct less2 {
-	bool operator () (int a, int b) const {
-		return func (a) < func (b);
-	};
-};
-
-struct equal2 {
-	bool operator () (int a, int b) const {
-		return func (a) == func (b);
-	};
-};
-
 int main(int argc, char** argv) {
   int iters = default_iters;
   if (argc > 1) {            // first arg is # of iterations
@@ -349,15 +368,13 @@ int main(int argc, char** argv) {
 #endif
 
 //  measure_all_maps <std::less <int>, std::equal_to <int>, std::less <int> > ();
-//  measure_all_maps <std::less <int>,
-//                    std::equal_to <int>,
-//                    HASH_NAMESPACE::hash <int> > (iters);
-//  measure_all_maps <less2,
-//                    equal2,
-//                    HASH_NAMESPACE::hash <int> > (iters);
+  measure_all_maps <std::less <int>,
+                    std::equal_to <int>,
+                    HASH_NAMESPACE::hash <int> > (iters);
   measure_all_maps <less2,
                     equal2,
-                    hash2 > (iters);
+                    HASH_NAMESPACE::hash <int> > (iters);
+//  measure_all_maps <less2, equal2, hash2 > (iters);
 
   return 0;
 }
