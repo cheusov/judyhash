@@ -1,0 +1,12 @@
+#!/bin/sh
+
+##### bench options
+ITEMS='500 5000 50000 500000 5000000'
+
+#. ./Makefile.config || exit 1
+
+gmake time_hash_map || exit 2
+
+for items in $ITEMS; do
+    ./time_hash_map $items
+done

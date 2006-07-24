@@ -1,18 +1,6 @@
 ############################################################
 include Makefile.config
 
-CPPFLAGS=$(CPPFLAGS_STLPORT) $(CPPFLAGS_BOOST) \
-    $(CPPFLAGS_SPARSEHASH) $(CPPFLAGS_COMMON)
-
-CFLAGS_O=-I. $(CPPFLAGS) $(CFLAGS_COMMON) $(CFLAGS_OPT)
-CFLAGS_T=-I. $(CPPFLAGS) $(CFLAGS_COMMON) $(CFLAGS_TEST)
-
-LDFLAGS_C=$(LDFLAGS_COMMON) $(LDFLAGS_STLPORT) \
-    $(LDFLAGS_JUDY)
-
-LDFLAGS_O=$(LDFLAGS_C)
-LDFLAGS_T=$(LDFLAGS_TEST) $(LDFLAGS_C)
-
 ############################################################
 
 .PHONY : all
@@ -22,6 +10,11 @@ selftest.o : selftest.cc *.h judyarray/*.h
 	$(CXX) -o $@ $(CFLAGS_T) -c selftest.cc
 selftest : selftest.o
 	$(CXX) -o $@ $(LDFLAGS_T) selftest.o
+
+time_hash_map.o : time_hash_map.cc *.h judyarray/*.h
+	$(CXX) -o $@ $(CFLAGS_T) -c time_hash_map.cc
+time_hash_map : time_hash_map.o
+	$(CXX) -o $@ $(LDFLAGS_T) time_hash_map.o
 
 .PHONY : clean
 clean:
@@ -180,3 +173,7 @@ test : selftest
 	echo "judy_set_m <int, int> 106 done" && \
 	\
 	true
+
+.PHONY : bench
+bench:
+	./run_bench
