@@ -36,8 +36,6 @@ class __judy_mapset_base : private TTraits
 private:
 	typedef TTraits __base;
 
-//	enum {multimap_flag = TMultimap_flag};
-
 // types
 public:
 	typedef TEqualFunc                      key_equal;
@@ -80,7 +78,6 @@ public:
 //
 private:
 	typedef typename TTraits::pointers_list_type pointers_list_type;
-//	typedef std::list <pointer> pointers_list_type;
 	typedef std::set <pointers_list_type *> allocated_lists_type;
 
 	Pvoid_t              m_judy;
@@ -312,7 +309,6 @@ private:
 	public:
 		__JUDYARRAY_TYPEDEFS(TTraits)
 
-//	private:
 		const __this_type *m_obj;
 
 		Word_t                 m_index;
@@ -351,7 +347,6 @@ private:
 			m_end = true;
 		}
 
-//	protected:
 		reference at () const
 		{
 			if (m_inside_list){
@@ -361,7 +356,6 @@ private:
 			}
 		}
 
-//	public:
 		iterator_base ()
 		{
 			init ();
