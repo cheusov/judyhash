@@ -38,6 +38,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+
 extern "C" {
 #include <time.h>
 #ifdef HAVE_SYS_TIME_H
@@ -288,6 +290,51 @@ static void measure_map(int iters) {
   time_map_remove<MapType>(iters);
 }
 
+template <class Less, class Equal, class Hash>
+void measure_all_maps (int n)
+{
+  printf("\nSPARSE_HASH_MAP:\n");
+  measure_map< sparse_hash_map<int, int, Hash, Equal> >(n);
+
+  printf("\nDENSE_HASH_MAP:\n");
+  measure_map< dense_hash_map<int, int, Hash, Equal> >(n);
+
+  printf("\nJUDY_MAP_L:\n");
+  measure_map< judy_map_l<int, int, Hash, Equal> >(n);
+
+  printf("\nJUDY_MAP_M:\n");
+  measure_map< judy_map_m<int, int, Hash, Less, Equal> >(n);
+
+  printf("\nJUDY_MAP_KDCELL:\n");
+  measure_map< judy_map_kdcell<int, int> >(n);
+
+  printf("\nSTANDARD HASH_MAP:\n");
+  measure_map< hash_map<int, int, Hash, Equal> >(n);
+
+  printf("\nSTANDARD MAP:\n");
+  measure_map< map<int, int, Less> >(n);
+}
+
+double func (int a);
+
+struct hash2 {
+	unsigned operator () (int n) const {
+		return n;
+	};
+};
+
+struct less2 {
+	bool operator () (int a, int b) const {
+		return func (a) < func (b);
+	};
+};
+
+struct equal2 {
+	bool operator () (int a, int b) const {
+		return func (a) == func (b);
+	};
+};
+
 int main(int argc, char** argv) {
   int iters = default_iters;
   if (argc > 1) {            // first arg is # of iterations
@@ -301,32 +348,16 @@ int main(int argc, char** argv) {
          "                 reported are wall-clock time, not user time\n");
 #endif
 
-  printf("\nSPARSE_HASH_MAP:\n");
-  measure_map< sparse_hash_map<int, int> >(iters);
-
-  printf("\nDENSE_HASH_MAP:\n");
-  measure_map< dense_hash_map<int, int> >(iters);
-
-  printf("\nJUDY_MAP_L:\n");
-  measure_map< judy_map_l<int, int, HASH_NAMESPACE::hash <int> > >(iters);
-
-  printf("\nJUDY_MAP_M:\n");
-  measure_map< judy_map_m<int, int, HASH_NAMESPACE::hash <int> > >(iters);
-
-  printf("\nJUDY_MAP_KDCELL:\n");
-  measure_map< judy_map_kdcell<int, int> >(iters);
-
-  printf("\nSPARSE_HASH_MAP:\n");
-  measure_map< sparse_hash_map<int, int> >(iters);
-
-  printf("\nDENSE_HASH_MAP:\n");
-  measure_map< dense_hash_map<int, int> >(iters);
-
-  printf("\nSTANDARD HASH_MAP:\n");
-  measure_map< hash_map<int, int> >(iters);
-
-  printf("\nSTANDARD MAP:\n");
-  measure_map< map<int, int> >(iters);
+//  measure_all_maps <std::less <int>, std::equal_to <int>, std::less <int> > ();
+//  measure_all_maps <std::less <int>,
+//                    std::equal_to <int>,
+//                    HASH_NAMESPACE::hash <int> > (iters);
+//  measure_all_maps <less2,
+//                    equal2,
+//                    HASH_NAMESPACE::hash <int> > (iters);
+  measure_all_maps <less2,
+                    equal2,
+                    hash2 > (iters);
 
   return 0;
 }

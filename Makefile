@@ -12,9 +12,12 @@ selftest : selftest.o
 	$(CXX) -o $@ $(LDFLAGS_T) selftest.o
 
 time_hash_map.o : time_hash_map.cc *.h judyarray/*.h
-	$(CXX) -o $@ $(CFLAGS_T) -c time_hash_map.cc
-time_hash_map : time_hash_map.o
-	$(CXX) -o $@ $(LDFLAGS_T) time_hash_map.o
+	$(CXX) -o $@ $(CFLAGS_O) -c time_hash_map.cc
+time_hash_map : time_hash_map.o hash_func.o
+	$(CXX) -o $@ $(LDFLAGS_O) $^
+
+hash_func.o : hash_func.cc
+	$(CXX) -o $@ $(CFLAGS_T) -c hash_func.cc
 
 .PHONY : clean
 clean:
