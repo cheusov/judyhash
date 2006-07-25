@@ -485,13 +485,14 @@ int main(int argc, char** argv)
 		   "                 reported are wall-clock time, not user time\n");
 #endif
 
-	//  measure_all_maps <std::less <int>, std::equal_to <int>, std::less <int> > ();
-//	measure_all_maps <std::less <int>,
-//		std::equal_to <int>,
-//		HASH_NAMESPACE::hash <int> > (iters);
-	measure_all_maps <slow_less, slow_equal,
-		HASH_NAMESPACE::hash <int> > (iters);
-//	measure_all_maps <less2, equal2, hash2 > (iters);
+	if (!slowness_level){
+		measure_all_maps <std::less <int>,
+			std::equal_to <int>,
+			HASH_NAMESPACE::hash <int> > (iters);
+	}else{
+		measure_all_maps <slow_less, slow_equal,
+			HASH_NAMESPACE::hash <int> > (iters);
+	}
 
 	return 0;
 }
