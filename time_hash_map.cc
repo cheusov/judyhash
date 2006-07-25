@@ -91,26 +91,21 @@ enum {
 	mt_judy_m,
 	mt_judy_kd,
 };
-int map_type = -1;
+int map_type       = -1;
+int slowness_level = -1;
 
 // external function for slower hash function 
-int func (int a);
+int slow_compare_int (int a, int b, int slowness);
 
-struct hash2 {
-	unsigned operator () (int n) const {
-		return n;
+struct slow_less {
+	bool operator () (int a, int b) const {
+		return slow_compare_int (a, b, slowness_level) < 0;
 	};
 };
 
-struct less2 {
+struct slow_equal {
 	bool operator () (int a, int b) const {
-		return func (a) < func (b);
-	};
-};
-
-struct equal2 {
-	bool operator () (int a, int b) const {
-		return func (a) == func (b);
+		return slow_compare_int (a, b, slowness_level) == 0;
 	};
 };
 
@@ -158,9 +153,9 @@ REDEF_SET_DELETED_KEY2(int, int, HASH_NAMESPACE::hash <int>, std::equal_to <int>
 REDEF_SET_EMPTY_KEY2(int, int, HASH_NAMESPACE::hash <int>, std::equal_to <int> )
 REDEF_RESIZE2(int, int, HASH_NAMESPACE::hash <int>, std::equal_to <int> )
 
-REDEF_SET_DELETED_KEY2(int, int, HASH_NAMESPACE::hash <int>, equal2 )
-REDEF_SET_EMPTY_KEY2(int, int, HASH_NAMESPACE::hash <int>, equal2 )
-REDEF_RESIZE2(int, int, HASH_NAMESPACE::hash <int>, equal2 )
+REDEF_SET_DELETED_KEY2(int, int, HASH_NAMESPACE::hash <int>, slow_equal )
+REDEF_SET_EMPTY_KEY2(int, int, HASH_NAMESPACE::hash <int>, slow_equal )
+REDEF_RESIZE2(int, int, HASH_NAMESPACE::hash <int>, slow_equal )
 
 static const int default_iters = 5000000;
 
@@ -427,6 +422,7 @@ usage: time_hash_map [OPTIONS]\n\
 OPTIONS:\n\
   -h            this help message\n\
   -n <num>      iteration count\n\
+  -s <num>      slowness level\n\
   -t sparse     google's sparse_map<...>\n\
   -t dense      google's dense_map<...>\n\
   -t map        std::map<...>\n\
@@ -442,7 +438,7 @@ int main(int argc, char** argv)
 	int iters = default_iters;
 	int c = 0;
 
-	while (c = getopt (argc, argv, "ht:n:"), c != EOF){
+	while (c = getopt (argc, argv, "ht:n:s:"), c != EOF){
 		switch (c) {
 			case 'h':
 				usage ();
@@ -463,6 +459,9 @@ int main(int argc, char** argv)
 			case 'n':
 				iters = atoi (optarg);
 				break;
+			case 's':
+				slowness_level = atoi (optarg);
+				break;
 			default:
 				usage ();
 				exit (1);
@@ -474,7 +473,12 @@ int main(int argc, char** argv)
 		exit (1);
 	}
 
-	stamp_run(iters);
+	if (slowness_level == -1){
+		fprintf (stderr, "-s is mandatory option\n");
+		exit (1);
+	}
+
+//	stamp_run(iters);
 
 #ifndef HAVE_SYS_RESOURCE_H
 	printf("\n*** WARNING ***: sys/resources.h was not found, so all times\n"
@@ -482,13 +486,12 @@ int main(int argc, char** argv)
 #endif
 
 	//  measure_all_maps <std::less <int>, std::equal_to <int>, std::less <int> > ();
-	measure_all_maps <std::less <int>,
-		std::equal_to <int>,
+//	measure_all_maps <std::less <int>,
+//		std::equal_to <int>,
+//		HASH_NAMESPACE::hash <int> > (iters);
+	measure_all_maps <slow_less, slow_equal,
 		HASH_NAMESPACE::hash <int> > (iters);
-	//	measure_all_maps <less2,
-	//		equal2,
-	//		HASH_NAMESPACE::hash <int> > (iters);
-	//  measure_all_maps <less2, equal2, hash2 > (iters);
+//	measure_all_maps <less2, equal2, hash2 > (iters);
 
 	return 0;
 }

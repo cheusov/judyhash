@@ -1,13 +1,28 @@
 #!/bin/sh
 
-##### bench options
-ITEMS='50000 500000 5000000'
+##### bench options #####
+ITEMS='50000 500000'
+ITEMS_DEF=500000
 TYPES='sparse dense judy_l judy_m judy_kd hash map'
+SLOW_LEVELS='0 50 100 150 200 250 300'
+SLOW_LEVEL_DEF=20
+#########################
 
-gmake time_hash_map || exit 2
+GMAKE_PROG=$(sed -n 's/^GMAKE_PROG=//p' Makefile.config)
+if test -z $GMAKE_PROG; then
+    exit 1
+fi
+$GMAKE_PROG time_hash_map || exit 2
 
 for n in $ITEMS; do
     for t in $TYPES; do
-	./time_hash_map -t $t -n $n
+	./time_hash_map -t $t -n $n -s $SLOW_LEVEL_DEF || exit 3
+    done
+done
+
+for t in $TYPES; do
+    for sl in $SLOW_LEVELS; do
+	echo "slowness level: $sl"
+	./time_hash_map -t $t -n $ITEMS_DEF -s $sl || exit 4
     done
 done

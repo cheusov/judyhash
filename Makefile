@@ -13,11 +13,11 @@ selftest : selftest.o
 
 time_hash_map.o : time_hash_map.cc *.h judyarray/*.h
 	$(CXX) -o $@ $(CFLAGS_O) -c time_hash_map.cc
-time_hash_map : time_hash_map.o hash_func.o
+time_hash_map : time_hash_map.o slow_compare.o
 	$(CXX) -o $@ $(LDFLAGS_O) $^
 
-hash_func.o : hash_func.cc
-	$(CXX) -o $@ $(CFLAGS_T) -c hash_func.cc
+slow_compare.o : slow_compare.cc
+	$(CXX) -o $@ $(CFLAGS_T) -DSLOW_LEVEL=$(SLOW_LEVEL) -c slow_compare.cc
 
 .PHONY : clean
 clean:
