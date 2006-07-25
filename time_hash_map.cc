@@ -169,152 +169,152 @@ static const int default_iters = 5000000;
  */
 
 class Rusage {
- public:
-  /* Start collecting usage */
-  Rusage() { Reset(); }
+public:
+	/* Start collecting usage */
+	Rusage() { Reset(); }
 
-  /* Reset collection */
-  void Reset();
+	/* Reset collection */
+	void Reset();
     
-  /* Show usage */
-  double UserTime();
+	/* Show usage */
+	double UserTime();
 
- private:
+private:
 #ifdef HAVE_SYS_RESOURCE_H
-  struct rusage start;
+	struct rusage start;
 #else
-  time_t start_time_t;
+	time_t start_time_t;
 #endif
 };
 
 inline void Rusage::Reset() {
 #ifdef HAVE_SYS_RESOURCE_H
-  getrusage(RUSAGE_SELF, &start);
+	getrusage(RUSAGE_SELF, &start);
 #else
-  time(&start_time_t);
+	time(&start_time_t);
 #endif
 }
 
 inline double Rusage::UserTime() {
 #ifdef HAVE_SYS_RESOURCE_H
-  struct rusage u;
-  
-  getrusage(RUSAGE_SELF, &u);
-  
-  struct timeval result;
-  result.tv_sec  = u.ru_utime.tv_sec  - start.ru_utime.tv_sec;
-  result.tv_usec = u.ru_utime.tv_usec - start.ru_utime.tv_usec;
-  
-  return double(result.tv_sec) + double(result.tv_usec) / 1000000.0;
+	struct rusage u;
+
+	getrusage(RUSAGE_SELF, &u);
+
+	struct timeval result;
+	result.tv_sec  = u.ru_utime.tv_sec  - start.ru_utime.tv_sec;
+	result.tv_usec = u.ru_utime.tv_usec - start.ru_utime.tv_usec;
+
+	return double(result.tv_sec) + double(result.tv_usec) / 1000000.0;
 #else
-  time_t now;
-  time(&now);
-  return now - start_time_t;
+	time_t now;
+	time(&now);
+	return now - start_time_t;
 #endif
 }
 
 
 static void print_uname() {
 #ifdef HAVE_SYS_UTSNAME_H
-  struct utsname u;
-  if (uname(&u) == 0) {
-    printf("%s %s %s %s %s\n",
-           u.sysname, u.nodename, u.release, u.version, u.machine);
-  }
+	struct utsname u;
+	if (uname(&u) == 0) {
+		printf("%s %s %s %s %s\n",
+			   u.sysname, u.nodename, u.release, u.version, u.machine);
+	}
 #endif
 }
 
 // Generate stamp for this run
 static void stamp_run(int iters) {
-  time_t now = time(0);
-  printf("======\n");
-  fflush(stdout);
-  print_uname();
-  printf("Average over %d iterations\n", iters);
-  fflush(stdout);
-  // don't need asctime_r/gmtime_r: we're not threaded
-  printf("Current time (GMT): %s", asctime(gmtime(&now)));
+	time_t now = time(0);
+	printf("======\n");
+	fflush(stdout);
+	print_uname();
+	printf("Average over %d iterations\n", iters);
+	fflush(stdout);
+	// don't need asctime_r/gmtime_r: we're not threaded
+	printf("Current time (GMT): %s", asctime(gmtime(&now)));
 }
 
 static void report(char const* title, double t, int iters) {
-  printf("%-20s %8.02f ns\n",
-         title,
-         (t * 1000000000.0 / iters));
+	printf("%-20s %8.02f ns\n",
+		   title,
+		   (t * 1000000000.0 / iters));
 }
 
 template<class MapType>
 static void add_items_to_map (MapType& m, int iters)
 {
-  for (int i = 0; i < iters; i++) {
-    m[i] = i+1;
-  }
+	for (int i = 0; i < iters; i++) {
+		m[i] = i+1;
+	}
 }
 
 template<class MapType>
 static void time_map_grow(int iters) {
-  MapType set;
-  Rusage t;
+	MapType set;
+	Rusage t;
 
-  SET_EMPTY_KEY(set, -2);
+	SET_EMPTY_KEY(set, -2);
 
-  t.Reset();
-  add_items_to_map(set, iters);
-  double ut = t.UserTime();
+	t.Reset();
+	add_items_to_map(set, iters);
+	double ut = t.UserTime();
 
-  report("map_grow", ut, iters);
+	report("map_grow", ut, iters);
 }
 
 template<class MapType>
 static void time_map_grow_predicted(int iters) {
-  MapType set;
-  Rusage t;
+	MapType set;
+	Rusage t;
 
-  SET_EMPTY_KEY(set, -2);
-  RESIZE(set, iters);
+	SET_EMPTY_KEY(set, -2);
+	RESIZE(set, iters);
 
-  t.Reset();
-  add_items_to_map(set, iters);
-  double ut = t.UserTime();
+	t.Reset();
+	add_items_to_map(set, iters);
+	double ut = t.UserTime();
 
-  report("map_predict/grow", ut, iters);
+	report("map_predict/grow", ut, iters);
 }
 
 template<class MapType>
 static void time_map_replace(int iters) {
-  MapType set;
-  Rusage t;
-  int i;
+	MapType set;
+	Rusage t;
+	int i;
 
-  SET_EMPTY_KEY(set, -2);
-  add_items_to_map(set, iters);
+	SET_EMPTY_KEY(set, -2);
+	add_items_to_map(set, iters);
 
-  t.Reset();
-  for (i = 0; i < iters; i++) {
-    set[i] = i+1;
-  }
-  double ut = t.UserTime();
+	t.Reset();
+	for (i = 0; i < iters; i++) {
+		set[i] = i+1;
+	}
+	double ut = t.UserTime();
 
-  report("map_replace", ut, iters);
+	report("map_replace", ut, iters);
 }
 
 template<class MapType>
 static void time_map_fetch_base(int iters, int offs, const char *msg) {
-  MapType set;
-  Rusage t;
-  int r;
-  int i;
+	MapType set;
+	Rusage t;
+	int r;
+	int i;
 
-  SET_EMPTY_KEY(set, -2);
-  add_items_to_map(set, iters);
+	SET_EMPTY_KEY(set, -2);
+	add_items_to_map(set, iters);
 
-  r = 1;
-  t.Reset();
-  for (i = 0; i < iters; i++) {
-    r ^= (set.find(offs+i) != set.end());
-  }
-  double ut = t.UserTime();
+	r = 1;
+	t.Reset();
+	for (i = 0; i < iters; i++) {
+		r ^= (set.find(offs+i) != set.end());
+	}
+	double ut = t.UserTime();
 
-  report(msg, ut, iters);
+	report(msg, ut, iters);
 }
 
 template<class MapType>
@@ -329,54 +329,54 @@ static void time_map_fetch_absent(int iters) {
 
 template<class MapType>
 static void time_map_remove(int iters) {
-  MapType set;
-  Rusage t;
-  int i;
+	MapType set;
+	Rusage t;
+	int i;
 
-  SET_EMPTY_KEY(set, -2);
-  add_items_to_map(set, iters);
+	SET_EMPTY_KEY(set, -2);
+	add_items_to_map(set, iters);
 
-  t.Reset();
-  SET_DELETED_KEY(set, -1);
-  for (i = 0; i < iters; i++) {
-    set.erase(i);
-  }
-  double ut = t.UserTime();
+	t.Reset();
+	SET_DELETED_KEY(set, -1);
+	for (i = 0; i < iters; i++) {
+		set.erase(i);
+	}
+	double ut = t.UserTime();
 
-  report("map_remove", ut, iters);
+	report("map_remove", ut, iters);
 }
 
 static int iterate_accum = 0;
 template<class MapType>
 static void time_map_iterate(int iters) {
-  MapType set;
-  Rusage t;
-  int i;
+	MapType set;
+	Rusage t;
+	int i;
 
-  SET_EMPTY_KEY(set, -2);
-  add_items_to_map(set, iters);
+	SET_EMPTY_KEY(set, -2);
+	add_items_to_map(set, iters);
 
-  typename MapType::const_iterator beg = set.begin ();
-  typename MapType::const_iterator end = set.end ();
+	typename MapType::const_iterator beg = set.begin ();
+	typename MapType::const_iterator end = set.end ();
 
-  t.Reset();
-  for (; beg != end; ++beg) {
-    iterate_accum ^= (*beg).first;
-  }
-  double ut = t.UserTime();
+	t.Reset();
+	for (; beg != end; ++beg) {
+		iterate_accum ^= (*beg).first;
+	}
+	double ut = t.UserTime();
 
-  report("map_iterate", ut, iters);
+	report("map_iterate", ut, iters);
 }
 
 template<class MapType>
 static void measure_map(int iters) {
-  time_map_grow<MapType>(iters);
-  time_map_grow_predicted<MapType>(iters);
-  time_map_replace<MapType>(iters);
-  time_map_fetch_present<MapType>(iters);
-  time_map_fetch_absent<MapType>(iters);
-  time_map_remove<MapType>(iters);
-  time_map_iterate<MapType>(iters);
+	time_map_grow<MapType>(iters);
+	time_map_grow_predicted<MapType>(iters);
+	time_map_replace<MapType>(iters);
+	time_map_fetch_present<MapType>(iters);
+	time_map_fetch_absent<MapType>(iters);
+	time_map_remove<MapType>(iters);
+	time_map_iterate<MapType>(iters);
 }
 
 template <class Less, class Equal, class Hash>
@@ -485,10 +485,10 @@ int main(int argc, char** argv)
 	measure_all_maps <std::less <int>,
 		std::equal_to <int>,
 		HASH_NAMESPACE::hash <int> > (iters);
-//	measure_all_maps <less2,
-//		equal2,
-//		HASH_NAMESPACE::hash <int> > (iters);
-//  measure_all_maps <less2, equal2, hash2 > (iters);
+	//	measure_all_maps <less2,
+	//		equal2,
+	//		HASH_NAMESPACE::hash <int> > (iters);
+	//  measure_all_maps <less2, equal2, hash2 > (iters);
 
 	return 0;
 }
