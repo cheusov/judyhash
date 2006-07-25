@@ -3,7 +3,8 @@
 ##### bench options #####
 ITEMS='50000 500000'
 ITEMS_DEF=500000
-TYPES='sparse dense judy_l judy_m judy_kd hash map'
+TYPES_UNI='sparse dense judy_l judy_m hash map'
+TYPES="$TYPES_UNI judy_kd"
 SLOW_LEVELS='0 50 100 150 200 250 300'
 SLOW_LEVEL_DEF=20
 #########################
@@ -17,12 +18,14 @@ $GMAKE_PROG time_hash_map || exit 2
 for n in $ITEMS; do
     for t in $TYPES; do
 	./time_hash_map -t $t -n $n -s $SLOW_LEVEL_DEF || exit 3
+	echo
     done
 done
 
-for t in $TYPES; do
+for t in $TYPES_UNI; do
     for sl in $SLOW_LEVELS; do
-	echo "slowness level: $sl"
+	printf "\nslowness level: $sl\n"
 	./time_hash_map -t $t -n $ITEMS_DEF -s $sl || exit 4
+	echo
     done
 done
