@@ -1,12 +1,13 @@
 #!/bin/sh
 
 ##### bench options
-ITEMS='500 5000 50000 500000 5000000'
-
-#. ./Makefile.config || exit 1
+ITEMS='50000 500000 5000000'
+TYPES='sparse dense judy_l judy_m judy_kd hash map'
 
 gmake time_hash_map || exit 2
 
-for items in $ITEMS; do
-    ./time_hash_map $items
+for n in $ITEMS; do
+    for t in $TYPES; do
+	./time_hash_map -t $t -n $n
+    done
 done

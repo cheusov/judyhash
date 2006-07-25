@@ -384,37 +384,37 @@ void measure_all_maps (int n)
 {
 	switch (map_type){
 		case mt_sparse:
-			printf("\nSPARSE_HASH_MAP:\n");
+			printf("\nSPARSE_HASH_MAP ( %d iterations ):\n", n);
 			measure_map< sparse_hash_map<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_dense:
-			printf("\nDENSE_HASH_MAP:\n");
+			printf("\nDENSE_HASH_MAP ( %d iterations ):\n", n);
 			measure_map< dense_hash_map<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_judy_l:
-			printf("\nJUDY_MAP_L:\n");
+			printf("\nJUDY_MAP_L ( %d iterations ):\n", n);
 			measure_map< judy_map_l<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_judy_m:
-			printf("\nJUDY_MAP_M:\n");
+			printf("\nJUDY_MAP_M ( %d iterations ):\n", n);
 			measure_map< judy_map_m<int, int, Hash, Less, Equal> >(n);
 			break;
 
 		case mt_judy_kd:
-			printf("\nJUDY_MAP_KDCELL:\n");
+			printf("\nJUDY_MAP_KDCELL ( %d iterations ):\n", n);
 			measure_map< judy_map_kdcell<int, int> >(n);
 			break;
 
 		case mt_hash:
-			printf("\nSTANDARD HASH_MAP:\n");
+			printf("\nSTANDARD HASH_MAP ( %d iterations ):\n", n);
 			measure_map< hash_map<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_map:
-			printf("\nSTANDARD MAP:\n");
+			printf("\nSTANDARD MAP ( %d iterations ):\n", n);
 			measure_map< map<int, int, Less> >(n);
 			break;
 	}
@@ -423,17 +423,17 @@ void measure_all_maps (int n)
 static void usage (void)
 {
 	fprintf (stderr, "\
-usage: time_hash [OPTIONS]\n\
+usage: time_hash_map [OPTIONS]\n\
 OPTIONS:\n\
   -h            this help message\n\
   -n <num>      iteration count\n\
-  -s sparse     google's sparse_map<...>\n\
-  -s dense      google's dense_map<...>\n\
-  -s map        std::map<...>\n\
-  -s hash       hash_map<...>\n\
-  -s judy_l     judy_map_l<...>\n\
-  -s judy_l     judy_map_m<...>\n\
-  -s judy_kd    judy_map_kdcell<...>\n\
+  -t sparse     google's sparse_map<...>\n\
+  -t dense      google's dense_map<...>\n\
+  -t map        std::map<...>\n\
+  -t hash       hash_map<...>\n\
+  -t judy_l     judy_map_l<...>\n\
+  -t judy_l     judy_map_m<...>\n\
+  -t judy_kd    judy_map_kdcell<...>\n\
 ");
 }
 
