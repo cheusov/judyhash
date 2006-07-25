@@ -42,6 +42,7 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 extern "C" {
 #include <time.h>
@@ -163,6 +164,20 @@ static const int default_iters = 5000000;
  * Measure resource usage.
  */
 
+static int memory_occupied ()
+{
+	char path [200];
+	snprintf (path, sizeof (path), "/proc/%d/mem", (int) getpid ());
+
+	struct stat sb;
+	if (stat (path, &sb)){
+		fprintf (stderr, "Cannot obtain amount of occupied memory from %s\n", path);
+		return 0;
+	}
+
+	return (int) sb.st_size;
+}
+
 class Rusage {
 public:
 	/* Start collecting usage */
@@ -170,9 +185,14 @@ public:
 
 	/* Reset collection */
 	void Reset();
-    
+	void ResetMemory();
+	void ResetTime();
+
 	/* Show usage */
 	double UserTime();
+
+	/* Memory usage */
+	int Memory ();
 
 private:
 #ifdef HAVE_SYS_RESOURCE_H
@@ -180,9 +200,20 @@ private:
 #else
 	time_t start_time_t;
 #endif
+
+	int start_memory;
 };
 
-inline void Rusage::Reset() {
+void Rusage::Reset() {
+	ResetMemory ();
+	ResetTime ();
+}
+
+void Rusage::ResetMemory() {
+	start_memory = memory_occupied ();
+}
+
+void Rusage::ResetTime() {
 #ifdef HAVE_SYS_RESOURCE_H
 	getrusage(RUSAGE_SELF, &start);
 #else
@@ -208,6 +239,9 @@ inline double Rusage::UserTime() {
 #endif
 }
 
+int Rusage::Memory () {
+	return memory_occupied () - start_memory;
+}
 
 static void print_uname() {
 #ifdef HAVE_SYS_UTSNAME_H
@@ -231,10 +265,17 @@ static void stamp_run(int iters) {
 	printf("Current time (GMT): %s", asctime(gmtime(&now)));
 }
 
-static void report(char const* title, double t, int iters) {
-	printf("%-20s %8.02f ns\n",
+static void report(char const* title, double t, int iters, int memory)
+{
+	printf("%-20s %8.02f ns",
 		   title,
 		   (t * 1000000000.0 / iters));
+
+	if (memory){
+		printf("   %d b\n", memory);
+	}else{
+		printf ("\n");
+	}
 }
 
 template<class MapType>
@@ -256,7 +297,7 @@ static void time_map_grow(int iters) {
 	add_items_to_map(set, iters);
 	double ut = t.UserTime();
 
-	report("map_grow", ut, iters);
+	report("map_grow", ut, iters, t.Memory ());
 }
 
 template<class MapType>
@@ -265,13 +306,13 @@ static void time_map_grow_predicted(int iters) {
 	Rusage t;
 
 	SET_EMPTY_KEY(set, -2);
+	t.ResetMemory ();
 	RESIZE(set, iters);
-
-	t.Reset();
+	t.ResetTime ();
 	add_items_to_map(set, iters);
 	double ut = t.UserTime();
 
-	report("map_predict/grow", ut, iters);
+	report("map_predict/grow", ut, iters, t.Memory ());
 }
 
 template<class MapType>
@@ -289,7 +330,7 @@ static void time_map_replace(int iters) {
 	}
 	double ut = t.UserTime();
 
-	report("map_replace", ut, iters);
+	report("map_replace", ut, iters, 0);
 }
 
 template<class MapType>
@@ -309,7 +350,7 @@ static void time_map_fetch_base(int iters, int offs, const char *msg) {
 	}
 	double ut = t.UserTime();
 
-	report(msg, ut, iters);
+	report(msg, ut, iters, 0);
 }
 
 template<class MapType>
@@ -338,7 +379,7 @@ static void time_map_remove(int iters) {
 	}
 	double ut = t.UserTime();
 
-	report("map_remove", ut, iters);
+	report("map_remove", ut, iters, t.Memory ());
 }
 
 static int iterate_accum = 0;
@@ -360,7 +401,7 @@ static void time_map_iterate(int iters) {
 	}
 	double ut = t.UserTime();
 
-	report("map_iterate", ut, iters);
+	report("map_iterate", ut, iters, 0);
 }
 
 template<class MapType>
