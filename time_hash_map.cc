@@ -1,3 +1,7 @@
+//
+// Heavily modified by Aleksey Cheusov <vle@gmx.net>
+//
+
 // Copyright (c) 2005, Google Inc.
 // All rights reserved.
 // 
@@ -31,14 +35,13 @@
 // Authors: Sanjay Ghemawat and Craig Silverstein
 //
 // Time various hash map implementations
-//
-// See PERFORMANCE for the output of one example run.
 
 #include <google/sparsehash/config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <unistd.h>
 
 extern "C" {
 #include <time.h>
@@ -78,6 +81,19 @@ using GOOGLE_NAMESPACE::sparse_hash_map;
 using GOOGLE_NAMESPACE::dense_hash_map;
 using STL_NAMESPACE::map;
 
+// map type for testing
+enum {
+	mt_sparse,
+	mt_dense,
+	mt_map,
+	mt_hash,
+	mt_judy_l,
+	mt_judy_m,
+	mt_judy_kd,
+};
+int map_type = -1;
+
+// external function for slower hash function 
 int func (int a);
 
 struct hash2 {
@@ -366,49 +382,113 @@ static void measure_map(int iters) {
 template <class Less, class Equal, class Hash>
 void measure_all_maps (int n)
 {
-  printf("\nSPARSE_HASH_MAP:\n");
-  measure_map< sparse_hash_map<int, int, Hash, Equal> >(n);
+	switch (map_type){
+		case mt_sparse:
+			printf("\nSPARSE_HASH_MAP:\n");
+			measure_map< sparse_hash_map<int, int, Hash, Equal> >(n);
+			break;
 
-  printf("\nDENSE_HASH_MAP:\n");
-  measure_map< dense_hash_map<int, int, Hash, Equal> >(n);
+		case mt_dense:
+			printf("\nDENSE_HASH_MAP:\n");
+			measure_map< dense_hash_map<int, int, Hash, Equal> >(n);
+			break;
 
-  printf("\nJUDY_MAP_L:\n");
-  measure_map< judy_map_l<int, int, Hash, Equal> >(n);
+		case mt_judy_l:
+			printf("\nJUDY_MAP_L:\n");
+			measure_map< judy_map_l<int, int, Hash, Equal> >(n);
+			break;
 
-  printf("\nJUDY_MAP_M:\n");
-  measure_map< judy_map_m<int, int, Hash, Less, Equal> >(n);
+		case mt_judy_m:
+			printf("\nJUDY_MAP_M:\n");
+			measure_map< judy_map_m<int, int, Hash, Less, Equal> >(n);
+			break;
 
-  printf("\nJUDY_MAP_KDCELL:\n");
-  measure_map< judy_map_kdcell<int, int> >(n);
+		case mt_judy_kd:
+			printf("\nJUDY_MAP_KDCELL:\n");
+			measure_map< judy_map_kdcell<int, int> >(n);
+			break;
 
-  printf("\nSTANDARD HASH_MAP:\n");
-  measure_map< hash_map<int, int, Hash, Equal> >(n);
+		case mt_hash:
+			printf("\nSTANDARD HASH_MAP:\n");
+			measure_map< hash_map<int, int, Hash, Equal> >(n);
+			break;
 
-  printf("\nSTANDARD MAP:\n");
-  measure_map< map<int, int, Less> >(n);
+		case mt_map:
+			printf("\nSTANDARD MAP:\n");
+			measure_map< map<int, int, Less> >(n);
+			break;
+	}
 }
 
-int main(int argc, char** argv) {
-  int iters = default_iters;
-  if (argc > 1) {            // first arg is # of iterations
-    iters = atoi(argv[1]);
-  }
+static void usage (void)
+{
+	fprintf (stderr, "\
+usage: time_hash [OPTIONS]\n\
+OPTIONS:\n\
+  -h            this help message\n\
+  -n <num>      iteration count\n\
+  -s sparse     google's sparse_map<...>\n\
+  -s dense      google's dense_map<...>\n\
+  -s map        std::map<...>\n\
+  -s hash       hash_map<...>\n\
+  -s judy_l     judy_map_l<...>\n\
+  -s judy_l     judy_map_m<...>\n\
+  -s judy_kd    judy_map_kdcell<...>\n\
+");
+}
 
-  stamp_run(iters);
+int main(int argc, char** argv)
+{
+	int iters = default_iters;
+	int c = 0;
+
+	while (c = getopt (argc, argv, "ht:n:"), c != EOF){
+		switch (c) {
+			case 'h':
+				usage ();
+				exit (0);
+			case 't':
+				if      (!strcmp ("sparse", optarg))  map_type = mt_sparse;
+				else if (!strcmp ("dense", optarg))   map_type = mt_dense;
+				else if (!strcmp ("map", optarg))     map_type = mt_map;
+				else if (!strcmp ("hash", optarg))    map_type = mt_hash;
+				else if (!strcmp ("judy_l", optarg))  map_type = mt_judy_l;
+				else if (!strcmp ("judy_m", optarg))  map_type = mt_judy_m;
+				else if (!strcmp ("judy_kd", optarg)) map_type = mt_judy_kd;
+				else{
+					usage ();
+					exit (1);
+				}
+				break;
+			case 'n':
+				iters = atoi (optarg);
+				break;
+			default:
+				usage ();
+				exit (1);
+		}
+	}
+
+	if (map_type == -1){
+		fprintf (stderr, "-t is mandatory option\n");
+		exit (1);
+	}
+
+	stamp_run(iters);
 
 #ifndef HAVE_SYS_RESOURCE_H
-  printf("\n*** WARNING ***: sys/resources.h was not found, so all times\n"
-         "                 reported are wall-clock time, not user time\n");
+	printf("\n*** WARNING ***: sys/resources.h was not found, so all times\n"
+		   "                 reported are wall-clock time, not user time\n");
 #endif
 
-//  measure_all_maps <std::less <int>, std::equal_to <int>, std::less <int> > ();
-  measure_all_maps <std::less <int>,
-                    std::equal_to <int>,
-                    HASH_NAMESPACE::hash <int> > (iters);
-  measure_all_maps <less2,
-                    equal2,
-                    HASH_NAMESPACE::hash <int> > (iters);
+	//  measure_all_maps <std::less <int>, std::equal_to <int>, std::less <int> > ();
+	measure_all_maps <std::less <int>,
+		std::equal_to <int>,
+		HASH_NAMESPACE::hash <int> > (iters);
+//	measure_all_maps <less2,
+//		equal2,
+//		HASH_NAMESPACE::hash <int> > (iters);
 //  measure_all_maps <less2, equal2, hash2 > (iters);
 
-  return 0;
+	return 0;
 }
