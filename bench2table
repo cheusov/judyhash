@@ -1,0 +1,36 @@
+#!/bin/sh
+
+#
+# usage: bench2table hash_map map_replace [files...]
+#
+
+map_type="$1"
+shift
+
+test_type="$1"
+shift
+
+awk -v map_type="$map_type" -v test_type="$test_type" '
+NF == 0 {
+   skip = 0
+   next
+}
+
+skip {
+   next
+}
+
+$4 == "iterations" {
+   if (map_type != $1){
+      skip=1
+      next
+   }
+
+   iters = $3
+   next
+}
+
+$1 == test_type {
+   print iters, $2
+}
+' "$@"
