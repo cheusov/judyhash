@@ -1,5 +1,5 @@
 ############################################################
-include Makefile.config
+.include "Makefile.config"
 
 ############################################################
 
@@ -14,7 +14,7 @@ selftest : selftest.o
 time_hash_map.o : time_hash_map.cc *.h judyarray/*.h
 	$(CXX) -o $@ $(CFLAGS_O) -c time_hash_map.cc
 time_hash_map : time_hash_map.o slow_compare.o
-	$(CXX) -o $@ $(LDFLAGS_O) $^
+	$(CXX) -o $@ $(LDFLAGS_O) $>
 
 slow_compare.o : slow_compare.cc
 	$(CXX) -o $@ $(CFLAGS_T) -DSLOW_LEVEL=$(SLOW_LEVEL) -c slow_compare.cc
@@ -180,12 +180,38 @@ test : selftest
 .PHONY : bench
 bench: bench_count bench_slowness
 
+#MAP_TYPES_UNI=sparse_hash_map dense_hash_map judy_map_l judy_map_m hash_map map
+MAP_TYPES_UNI=dense_hash_map judy_map_l judy_map_m hash_map map
+MAP_TYPES=${MAP_TYPES_UNI} judy_map_kd
+
+TEST_TYPES=map_grow map_grow_predict map_replace map_fetch_present map_fetch_absent map_remove map_iterate
+
+ITEMS=50000 100000 200000 400000 800000 1600000
+ITEMS_DEF=500000
+SLOW_LEVELS=0 50 100 150 200 250 300
+SLOW_LEVEL_DEF=20
+
 .PHONY : bench_count
 bench_count : bench_count.tmp
-bench_count.tmp : time_hash_map
-	./run_bench count | tee bench_count.tmp
+bench_count.tmp : #time_hash_map
+	for m in ${MAP_TYPES}; do \
+	for n in ${ITEMS}; do \
+	./time_hash_map -n $${n} -t $${m} -s ${SLOW_LEVEL_DEF}; \
+	done; \
+	done | tee bench_count.tmp
+
+.for t in ${TEST_TYPES}
+.for m in ${MAP_TYPES}
+bench_count          : bench_count_${m}_${t}.tmp
+bench_count_${t}.tmp : bench_count_${m}_${t}.tmp
+bench_count_${m}_${t}.tmp : bench_count.tmp
+	./bench2table ${m} ${t} < bench_count.tmp > $@
+.endfor
+bench_count_${t}.tmp :
+	
+.endfor
 
 .PHONY : bench_slowness
-bench_slowness : bench_slowness.tmp
+bench_slowness : #bench_slowness.tmp
 bench_slowness.tmp : time_hash_map
 	./run_bench slowness | tee bench_slowness.tmp
