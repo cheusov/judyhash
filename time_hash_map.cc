@@ -445,12 +445,12 @@ void measure_all_maps (int n)
 			break;
 
 		case mt_hash:
-			printf("STANDARD HASH_MAP ( %d iterations ):\n", n);
+			printf("HASH_MAP ( %d iterations ):\n", n);
 			measure_map< hash_map<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_map:
-			printf("STANDARD MAP ( %d iterations ):\n", n);
+			printf("MAP ( %d iterations ):\n", n);
 			measure_map< map<int, int, Less> >(n);
 			break;
 	}
