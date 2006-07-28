@@ -21,7 +21,7 @@ slow_compare.o : slow_compare.cc
 
 .PHONY : clean
 clean:
-	rm -f *.o selftest expected.txt
+	rm -f *.o selftest expected.txt *.tmp
 	rm -f *.tmp core* *~ semantic.cache judyhash log*
 
 .PHONY : test
@@ -178,5 +178,14 @@ test : selftest
 	true
 
 .PHONY : bench
-bench:
-	./run_bench
+bench: bench_count bench_slowness
+
+.PHONY : bench_count
+bench_count : bench_count.tmp
+bench_count.tmp : time_hash_map
+	./run_bench count | tee bench_count.tmp
+
+.PHONY : bench_slowness
+bench_slowness : bench_slowness.tmp
+bench_slowness.tmp : time_hash_map
+	./run_bench slowness | tee bench_slowness.tmp
