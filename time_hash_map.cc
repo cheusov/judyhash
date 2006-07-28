@@ -312,7 +312,7 @@ static void time_map_grow_predicted(int iters) {
 	add_items_to_map(set, iters);
 	double ut = t.UserTime();
 
-	report("map_predict/grow", ut, iters, t.Memory ());
+	report("map_grow_predict", ut, iters, t.Memory ());
 }
 
 template<class MapType>
@@ -355,12 +355,12 @@ static void time_map_fetch_base(int iters, int offs, const char *msg) {
 
 template<class MapType>
 static void time_map_fetch_present(int iters) {
-	time_map_fetch_base <MapType> (iters, 0, "map_fetch(present)");
+	time_map_fetch_base <MapType> (iters, 0, "map_fetch_present");
 }
 
 template<class MapType>
 static void time_map_fetch_absent(int iters) {
-	time_map_fetch_base <MapType> (iters, iters, "map_fetch(absent)");
+	time_map_fetch_base <MapType> (iters, iters, "map_fetch_absent");
 }
 
 template<class MapType>
@@ -420,37 +420,37 @@ void measure_all_maps (int n)
 {
 	switch (map_type){
 		case mt_sparse:
-			printf("SPARSE_HASH_MAP ( %d iterations ):\n", n);
+			printf("sparse_hash_map ( %d iterations ):\n", n);
 			measure_map< sparse_hash_map<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_dense:
-			printf("DENSE_HASH_MAP ( %d iterations ):\n", n);
+			printf("dense_hash_map ( %d iterations ):\n", n);
 			measure_map< dense_hash_map<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_judy_l:
-			printf("JUDY_MAP_L ( %d iterations ):\n", n);
+			printf("judy_map_l ( %d iterations ):\n", n);
 			measure_map< judy_map_l<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_judy_m:
-			printf("JUDY_MAP_M ( %d iterations ):\n", n);
+			printf("judy_map_m ( %d iterations ):\n", n);
 			measure_map< judy_map_m<int, int, Hash, Less, Equal> >(n);
 			break;
 
 		case mt_judy_kd:
-			printf("JUDY_MAP_KDCELL ( %d iterations ):\n", n);
+			printf("judy_map_kdcell ( %d iterations ):\n", n);
 			measure_map< judy_map_kdcell<int, int> >(n);
 			break;
 
 		case mt_hash:
-			printf("HASH_MAP ( %d iterations ):\n", n);
+			printf("hash_map ( %d iterations ):\n", n);
 			measure_map< hash_map<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_map:
-			printf("MAP ( %d iterations ):\n", n);
+			printf("map ( %d iterations ):\n", n);
 			measure_map< map<int, int, Less> >(n);
 			break;
 	}
@@ -464,13 +464,13 @@ OPTIONS:\n\
   -h            this help message\n\
   -n <num>      iteration count\n\
   -s <num>      slowness level\n\
-  -t sparse     google's sparse_map<...>\n\
-  -t dense      google's dense_map<...>\n\
-  -t map        std::map<...>\n\
-  -t hash       hash_map<...>\n\
-  -t judy_l     judy_map_l<...>\n\
-  -t judy_l     judy_map_m<...>\n\
-  -t judy_kd    judy_map_kdcell<...>\n\
+  -t sparse_hash_map     google's sparse_hash_map<...>\n\
+  -t dense_hash_map      google's dense_map<...>\n\
+  -t map                 std::map<...>\n\
+  -t hash_map            hash_map<...>\n\
+  -t judy_map_l          judy_map_l<...>\n\
+  -t judy_hash_m         judy_map_m<...>\n\
+  -t judy_hash_kd        judy_map_kdcell<...>\n\
 ");
 }
 
@@ -485,13 +485,20 @@ int main(int argc, char** argv)
 				usage ();
 				exit (0);
 			case 't':
-				if      (!strcmp ("sparse", optarg))  map_type = mt_sparse;
-				else if (!strcmp ("dense", optarg))   map_type = mt_dense;
-				else if (!strcmp ("map", optarg))     map_type = mt_map;
-				else if (!strcmp ("hash", optarg))    map_type = mt_hash;
-				else if (!strcmp ("judy_l", optarg))  map_type = mt_judy_l;
-				else if (!strcmp ("judy_m", optarg))  map_type = mt_judy_m;
-				else if (!strcmp ("judy_kd", optarg)) map_type = mt_judy_kd;
+				if      (!strcmp ("sparse_hash_map", optarg))
+					map_type = mt_sparse;
+				else if (!strcmp ("dense_hash_map", optarg))
+					map_type = mt_dense;
+				else if (!strcmp ("map", optarg))
+					map_type = mt_map;
+				else if (!strcmp ("hash_map", optarg))
+					map_type = mt_hash;
+				else if (!strcmp ("judy_map_l", optarg))
+					map_type = mt_judy_l;
+				else if (!strcmp ("judy_map_m", optarg))
+					map_type = mt_judy_m;
+				else if (!strcmp ("judy_map_kd", optarg))
+					map_type = mt_judy_kd;
 				else{
 					usage ();
 					exit (1);
