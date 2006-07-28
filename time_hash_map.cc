@@ -158,8 +158,6 @@ REDEF_SET_DELETED_KEY2(int, int, HASH_NAMESPACE::hash <int>, slow_equal )
 REDEF_SET_EMPTY_KEY2(int, int, HASH_NAMESPACE::hash <int>, slow_equal )
 REDEF_RESIZE2(int, int, HASH_NAMESPACE::hash <int>, slow_equal )
 
-static const int default_iters = 5000000;
-
 /*
  * Measure resource usage.
  */
@@ -413,6 +411,7 @@ static void measure_map(int iters) {
 	time_map_fetch_absent<MapType>(iters);
 	time_map_remove<MapType>(iters);
 	time_map_iterate<MapType>(iters);
+	printf ("\n");
 }
 
 template <class Less, class Equal, class Hash>
@@ -476,7 +475,7 @@ OPTIONS:\n\
 
 int main(int argc, char** argv)
 {
-	int iters = default_iters;
+	int iters = -1;
 	int c = 0;
 
 	while (c = getopt (argc, argv, "ht:n:s:"), c != EOF){
@@ -523,6 +522,11 @@ int main(int argc, char** argv)
 
 	if (slowness_level == -1){
 		fprintf (stderr, "-s is mandatory option\n");
+		exit (1);
+	}
+
+	if (iters == -1){
+		fprintf (stderr, "-n is mandatory option\n");
 		exit (1);
 	}
 
