@@ -422,7 +422,7 @@ void measure_all_maps (int n)
 {
 	switch (map_type){
 		case mt_sparse:
-			printf("sparse_hash_map ( %d iterations , slowness level %d):\n",
+			printf("sparse_hash_map ( %d iterations , slowness level %d ):\n",
 				   n, slowness_level);
 			measure_map< sparse_hash_map<int, int, Hash, Equal> >(n);
 			break;
