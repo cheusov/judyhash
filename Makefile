@@ -180,20 +180,18 @@ test : selftest
 .PHONY : bench
 bench: bench_count bench_slowness
 
-#MAP_TYPES_UNI=sparse_hash_map dense_hash_map judy_map_l judy_map_m hash_map map
 MAP_TYPES_UNI=dense_hash_map judy_map_l judy_map_m hash_map map
-MAP_TYPES=${MAP_TYPES_UNI} judy_map_kd
+MAP_TYPES=${MAP_TYPES_UNI} judy_map_kdcell
+TEST_TYPES=grow grow_predict replace fetch_present fetch_absent remove iterate
 
-TEST_TYPES=map_grow map_grow_predict map_replace map_fetch_present map_fetch_absent map_remove map_iterate
-
-ITEMS=50000 100000 200000 400000 800000 1600000
+ITEMS=50000 100000 200000 400000 800000
 ITEMS_DEF=500000
 SLOW_LEVELS=0 50 100 150 200 250 300
-SLOW_LEVEL_DEF=20
+SLOW_LEVEL_DEF=5
 
 .PHONY : bench_count
 bench_count : bench_count.tmp
-bench_count.tmp : #time_hash_map
+bench_count.tmp : time_hash_map
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
 	./time_hash_map -n $${n} -t $${m} -s ${SLOW_LEVEL_DEF}; \
@@ -207,8 +205,18 @@ bench_count_${t}.tmp : bench_count_${m}_${t}.tmp
 bench_count_${m}_${t}.tmp : bench_count.tmp
 	./bench2table ${m} ${t} < bench_count.tmp > $@
 .endfor
+bench_count : bench_count_${t}.tmp
 bench_count_${t}.tmp :
-	
+	cat bench_count_template.gnuplot > $@; \
+	printf "plot [*:*] [0:] " >> $@; \
+	cnt=0; \
+	for i in $>; do \
+		j=`echo $${i} | sed -e 's/^bench_count_//' -e 's/_[^_]*[.]tmp$$//'`; \
+		test $$cnt = 0 || printf , >> $@; \
+		printf "%s" " \"$${i}\" title \"$${j}\" with linespoints" >> $@; \
+		cnt=$$(($$cnt+1)); \
+	done; \
+	printf '\n' >> $@
 .endfor
 
 .PHONY : bench_slowness
