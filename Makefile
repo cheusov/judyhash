@@ -178,7 +178,7 @@ test : selftest
 	true
 
 .PHONY : bench
-bench: bench_count bench_slowness
+bench: bench_size bench_slowness
 
 MAP_TYPES_UNI=sparse_hash_map dense_hash_map judy_map_l judy_map_m hash_map map
 MAP_TYPES=${MAP_TYPES_UNI} judy_map_kdcell
@@ -190,46 +190,46 @@ ITEMS_DEF=500000
 SLOW_LEVELS=0 2 4 8 16 32 64 128 256
 SLOW_LEVEL_DEF=5
 
-.PHONY : bench_count
-bench_count.tmp : #time_hash_map
+.PHONY : bench_size
+bench_size.tmp : #time_hash_map
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
 	./time_hash_map -n $${n} -t $${m} -s ${SLOW_LEVEL_DEF}; \
 	done; \
 	done | tee $@
-
-.for t in ${TEST_TYPES}
-.for m in ${MAP_TYPES}
-bench_count_${t}.plot : bench_count_${m}_${t}.tmp
-bench_count_${m}_${t}.tmp : bench_count.tmp
-	./bench2table_size ${m} ${t} < bench_count.tmp > $@ && \
-	test -s $@ || echo 0 0 >> $@
-.endfor
-bench_count : bench_count_${t}.png
-bench_count_${t}.plot :
-	if test -r bench_count_template_${t}.gnuplot; then \
-		cat bench_count_template_${t}.gnuplot; \
-	else \
-		cat bench_count_template.gnuplot; \
-	fi > $@; \
-	printf "plot [*:*] [0:] " >> $@; \
-	cnt=0; \
-	for i in $>; do \
-		j=`echo $${i} | sed -e 's/^bench_count_//' -e 's/_[^_]*[.]tmp$$//'`; \
-		test $$cnt = 0 || printf , >> $@; \
-		printf "%s" " \"$${i}\" title \"$${j}\" with linespoints" >> $@; \
-		cnt=$$(($$cnt+1)); \
-	done; \
-	printf '\n' >> $@
-bench_count_${t}.png : bench_count_${t}.plot
-	gnuplot bench_count_${t}.plot > $@
-.endfor
-
 .PHONY : bench_slowness
-bench_slowness : #bench_slowness.tmp
 bench_slowness.tmp : #time_hash_map
 	for m in ${MAP_TYPES_UNI}; do \
 	for s in ${SLOW_LEVELS}; do \
 	./time_hash_map -n ${ITEMS_DEF} -t $${m} -s $${s}; \
 	done; \
 	done | tee $@
+
+.for b in size slowness
+.for t in ${TEST_TYPES}
+.for m in ${MAP_TYPES}
+bench_${b}_${t}.plot : bench_${b}_${m}_${t}.tmp
+bench_${b}_${m}_${t}.tmp : bench_${b}.tmp
+	./bench2table_${b} ${m} ${t} < bench_${b}.tmp > $@ && \
+	test -s $@ || echo 0 0 >> $@
+.endfor
+bench_${b} : bench_${b}_${t}.png
+bench_${b}_${t}.plot :
+	if test -r bench_${b}_template_${t}.gnuplot; then \
+		cat bench_${b}_template_${t}.gnuplot; \
+	else \
+		cat bench_${b}_template.gnuplot; \
+	fi > $@; \
+	printf "plot [*:*] [0:] " >> $@; \
+	cnt=0; \
+	for i in $>; do \
+		j=`echo $${i} | sed -e 's/^bench_${b}_//' -e 's/_[^_]*[.]tmp$$//'`; \
+		test $$cnt = 0 || printf , >> $@; \
+		printf "%s" " \"$${i}\" title \"$${j}\" with linespoints" >> $@; \
+		cnt=$$(($$cnt+1)); \
+	done; \
+	printf '\n' >> $@
+bench_${b}_${t}.png : bench_${b}_${t}.plot
+	gnuplot bench_${b}_${t}.plot > $@
+.endfor
+.endfor
