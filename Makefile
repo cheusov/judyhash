@@ -182,12 +182,13 @@ bench: bench_count bench_slowness
 
 MAP_TYPES_UNI=sparse_hash_map dense_hash_map judy_map_l judy_map_m hash_map map
 MAP_TYPES=${MAP_TYPES_UNI} judy_map_kdcell
-TEST_TYPES=grow grow_predict replace fetch-present fetch-absent remove iterate
+TEST_TYPES=memory-grow grow grow-predict replace fetch-present \
+fetch-absent remove iterate
 
 ITEMS=50000 100000 200000 400000 800000
 ITEMS_DEF=500000
 SLOW_LEVELS=0 50 100 150 200 250 300
-SLOW_LEVEL_DEF=0
+SLOW_LEVEL_DEF=5
 
 .PHONY : bench_count
 bench_count.tmp : time_hash_map
@@ -205,7 +206,11 @@ bench_count_${m}_${t}.tmp : bench_count.tmp
 .endfor
 bench_count : bench_count_${t}.png
 bench_count_${t}.plot :
-	cat bench_count_template.gnuplot > $@; \
+	if test -r bench_count_template_${t}.gnuplot; then \
+		cat bench_count_template_${t}.gnuplot; \
+	else \
+		cat bench_count_template.gnuplot; \
+	fi > $@; \
 	printf "plot [*:*] [0:] " >> $@; \
 	cnt=0; \
 	for i in $>; do \

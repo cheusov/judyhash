@@ -265,15 +265,13 @@ static void stamp_run(int iters) {
 
 static void report(char const* title, double t, int iters, int memory)
 {
-	printf("%-20s %8.02f ns",
+	if (memory){
+		printf("memory-%-14s %d b\n", title, memory);
+	}
+
+	printf("%-20s %8.02f ns\n",
 		   title,
 		   (t * 1000000000.0 / iters));
-
-	if (memory){
-		printf("   %d b\n", memory);
-	}else{
-		printf ("\n");
-	}
 }
 
 template<class MapType>
@@ -310,7 +308,8 @@ static void time_map_grow_predicted(int iters) {
 	add_items_to_map(set, iters);
 	double ut = t.UserTime();
 
-	report("grow_predict", ut, iters, t.Memory ());
+//	report("grow-predict", ut, iters, t.Memory ()); // internal pool
+	report("grow-predict", ut, iters, 0);
 }
 
 template<class MapType>
