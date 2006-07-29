@@ -21,7 +21,7 @@ slow_compare.o : slow_compare.cc
 
 .PHONY : clean
 clean:
-	rm -f *.o selftest expected.txt *.tmp
+	rm -f *.o selftest expected.txt *.tmp *.plot *.png
 	rm -f *.tmp core* *~ semantic.cache judyhash log*
 
 .PHONY : test
@@ -180,17 +180,16 @@ test : selftest
 .PHONY : bench
 bench: bench_count bench_slowness
 
-MAP_TYPES_UNI=dense_hash_map judy_map_l judy_map_m hash_map map
+MAP_TYPES_UNI=sparse_hash_map dense_hash_map judy_map_l judy_map_m hash_map map
 MAP_TYPES=${MAP_TYPES_UNI} judy_map_kdcell
-TEST_TYPES=grow grow_predict replace fetch_present fetch_absent remove iterate
+TEST_TYPES=grow grow_predict replace fetch-present fetch-absent remove iterate
 
 ITEMS=50000 100000 200000 400000 800000
 ITEMS_DEF=500000
 SLOW_LEVELS=0 50 100 150 200 250 300
-SLOW_LEVEL_DEF=5
+SLOW_LEVEL_DEF=0
 
 .PHONY : bench_count
-bench_count : bench_count.tmp
 bench_count.tmp : time_hash_map
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
@@ -200,13 +199,12 @@ bench_count.tmp : time_hash_map
 
 .for t in ${TEST_TYPES}
 .for m in ${MAP_TYPES}
-bench_count          : bench_count_${m}_${t}.tmp
-bench_count_${t}.tmp : bench_count_${m}_${t}.tmp
+bench_count_${t}.plot : bench_count_${m}_${t}.tmp
 bench_count_${m}_${t}.tmp : bench_count.tmp
 	./bench2table ${m} ${t} < bench_count.tmp > $@
 .endfor
-bench_count : bench_count_${t}.tmp
-bench_count_${t}.tmp :
+bench_count : bench_count_${t}.png
+bench_count_${t}.plot :
 	cat bench_count_template.gnuplot > $@; \
 	printf "plot [*:*] [0:] " >> $@; \
 	cnt=0; \
@@ -217,6 +215,8 @@ bench_count_${t}.tmp :
 		cnt=$$(($$cnt+1)); \
 	done; \
 	printf '\n' >> $@
+bench_count_${t}.png : bench_count_${t}.plot
+	gnuplot bench_count_${t}.plot > $@
 .endfor
 
 .PHONY : bench_slowness

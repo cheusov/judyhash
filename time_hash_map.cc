@@ -90,7 +90,7 @@ enum {
 	mt_hash,
 	mt_judy_l,
 	mt_judy_m,
-	mt_judy_kd,
+	mt_judy_kdcell,
 };
 int map_type       = -1;
 int slowness_level = -1;
@@ -353,12 +353,12 @@ static void time_map_fetch_base(int iters, int offs, const char *msg) {
 
 template<class MapType>
 static void time_map_fetch_present(int iters) {
-	time_map_fetch_base <MapType> (iters, 0, "fetch_present");
+	time_map_fetch_base <MapType> (iters, 0, "fetch-present");
 }
 
 template<class MapType>
 static void time_map_fetch_absent(int iters) {
-	time_map_fetch_base <MapType> (iters, iters, "fetch_absent");
+	time_map_fetch_base <MapType> (iters, iters, "fetch-absent");
 }
 
 template<class MapType>
@@ -438,7 +438,7 @@ void measure_all_maps (int n)
 			measure_map< judy_map_m<int, int, Hash, Less, Equal> >(n);
 			break;
 
-		case mt_judy_kd:
+		case mt_judy_kdcell:
 			printf("judy_map_kdcell ( %d iterations ):\n", n);
 			measure_map< judy_map_kdcell<int, int> >(n);
 			break;
@@ -496,8 +496,8 @@ int main(int argc, char** argv)
 					map_type = mt_judy_l;
 				else if (!strcmp ("judy_map_m", optarg))
 					map_type = mt_judy_m;
-				else if (!strcmp ("judy_map_kd", optarg))
-					map_type = mt_judy_kd;
+				else if (!strcmp ("judy_map_kdcell", optarg))
+					map_type = mt_judy_kdcell;
 				else{
 					usage ();
 					exit (1);
