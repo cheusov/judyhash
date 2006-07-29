@@ -185,24 +185,25 @@ MAP_TYPES=${MAP_TYPES_UNI} judy_map_kdcell
 TEST_TYPES=memory-grow grow grow-predict replace fetch-present \
 fetch-absent remove iterate
 
-ITEMS=50000 100000 200000 400000 800000
+ITEMS=50000 100000 150000 200000 250000 300000 350000 400000 450000 500000 550000 600000 650000 700000 750000 800000
 ITEMS_DEF=500000
-SLOW_LEVELS=0 50 100 150 200 250 300
+SLOW_LEVELS=0 2 4 8 16 32 64 128 256
 SLOW_LEVEL_DEF=5
 
 .PHONY : bench_count
-bench_count.tmp : time_hash_map
+bench_count.tmp : #time_hash_map
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
 	./time_hash_map -n $${n} -t $${m} -s ${SLOW_LEVEL_DEF}; \
 	done; \
-	done | tee bench_count.tmp
+	done | tee $@
 
 .for t in ${TEST_TYPES}
 .for m in ${MAP_TYPES}
 bench_count_${t}.plot : bench_count_${m}_${t}.tmp
 bench_count_${m}_${t}.tmp : bench_count.tmp
-	./bench2table ${m} ${t} < bench_count.tmp > $@
+	./bench2table ${m} ${t} < bench_count.tmp > $@ && \
+	test -s $@ || echo 0 0 >> $@
 .endfor
 bench_count : bench_count_${t}.png
 bench_count_${t}.plot :
@@ -227,4 +228,8 @@ bench_count_${t}.png : bench_count_${t}.plot
 .PHONY : bench_slowness
 bench_slowness : #bench_slowness.tmp
 bench_slowness.tmp : time_hash_map
-	./run_bench slowness | tee bench_slowness.tmp
+	for m in ${MAP_TYPES_UNI}; do \
+	for s in ${SLOW_LEVELS}; do \
+	./time_hash_map -n ${ITEMS_DEF} -t $${m} -s $${s}; \
+	done; \
+	done | tee $@
