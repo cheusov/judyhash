@@ -212,24 +212,11 @@ bench_${b}_${t}.plot : bench_${b}_${m}_${t}.tmp
 bench_${b}_${m}_${t}.tmp : bench_${b}.tmp
 	./bench2table_${b} ${m} ${t} < bench_${b}.tmp > $@ && \
 	test -s $@ || echo 0 0 >> $@
-.endfor
+.endfor # m
 bench_${b} : bench_${b}_${t}.png
 bench_${b}_${t}.plot :
-	if test -r bench_${b}_template_${t}.gnuplot; then \
-		cat bench_${b}_template_${t}.gnuplot; \
-	else \
-		cat bench_${b}_template.gnuplot; \
-	fi > $@; \
-	printf "plot [*:*] [0:] " >> $@; \
-	cnt=0; \
-	for i in $>; do \
-		j=`echo $${i} | sed -e 's/^bench_${b}_//' -e 's/_[^_]*[.]tmp$$//'`; \
-		test $$cnt = 0 || printf , >> $@; \
-		printf "%s" " \"$${i}\" title \"$${j}\" with linespoints" >> $@; \
-		cnt=$$(($$cnt+1)); \
-	done; \
-	printf '\n' >> $@
+	./tables2plot ${b} ${t} $> > $@
 bench_${b}_${t}.png : bench_${b}_${t}.plot
 	gnuplot bench_${b}_${t}.plot > $@
-.endfor
-.endfor
+.endfor # t
+.endfor # b
