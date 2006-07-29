@@ -295,7 +295,7 @@ static void time_map_grow(int iters) {
 	add_items_to_map(set, iters);
 	double ut = t.UserTime();
 
-	report("map_grow", ut, iters, t.Memory ());
+	report("grow", ut, iters, t.Memory ());
 }
 
 template<class MapType>
@@ -310,7 +310,7 @@ static void time_map_grow_predicted(int iters) {
 	add_items_to_map(set, iters);
 	double ut = t.UserTime();
 
-	report("map_grow_predict", ut, iters, t.Memory ());
+	report("grow_predict", ut, iters, t.Memory ());
 }
 
 template<class MapType>
@@ -328,7 +328,7 @@ static void time_map_replace(int iters) {
 	}
 	double ut = t.UserTime();
 
-	report("map_replace", ut, iters, 0);
+	report("replace", ut, iters, 0);
 }
 
 template<class MapType>
@@ -353,12 +353,12 @@ static void time_map_fetch_base(int iters, int offs, const char *msg) {
 
 template<class MapType>
 static void time_map_fetch_present(int iters) {
-	time_map_fetch_base <MapType> (iters, 0, "map_fetch_present");
+	time_map_fetch_base <MapType> (iters, 0, "fetch_present");
 }
 
 template<class MapType>
 static void time_map_fetch_absent(int iters) {
-	time_map_fetch_base <MapType> (iters, iters, "map_fetch_absent");
+	time_map_fetch_base <MapType> (iters, iters, "fetch_absent");
 }
 
 template<class MapType>
@@ -377,7 +377,7 @@ static void time_map_remove(int iters) {
 	}
 	double ut = t.UserTime();
 
-	report("map_remove", ut, iters, t.Memory ());
+	report("remove", ut, iters, t.Memory ());
 }
 
 static int iterate_accum = 0;
@@ -399,7 +399,7 @@ static void time_map_iterate(int iters) {
 	}
 	double ut = t.UserTime();
 
-	report("map_iterate", ut, iters, 0);
+	report("iterate", ut, iters, 0);
 }
 
 template<class MapType>
