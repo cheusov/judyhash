@@ -407,7 +407,11 @@ static void measure_map(int iters) {
 	time_map_grow_predicted<MapType>(iters);
 	time_map_replace<MapType>(iters);
 	time_map_fetch_present<MapType>(iters);
-	time_map_fetch_absent<MapType>(iters);
+	// sparse_hash_map disabled because its fetch-absent operation is
+	// extreeeemly slow
+	if (mt_sparse != map_type){
+		time_map_fetch_absent<MapType>(iters);
+	}
 	time_map_remove<MapType>(iters);
 	time_map_iterate<MapType>(iters);
 	printf ("\n");
