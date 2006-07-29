@@ -16,7 +16,7 @@ else
     cat bench_${bench_type}_template.gnuplot
 fi
 
-printf "plot [*:*] [0:] "
+printf "plot "
 
 cnt=0
 for i; do

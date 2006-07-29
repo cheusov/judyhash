@@ -191,14 +191,14 @@ SLOW_LEVELS=0 2 4 8 16 32 64 128 256
 SLOW_LEVEL_DEF=5
 
 .PHONY : bench_size
-bench_size.tmp : #time_hash_map
+bench_size.bench : #time_hash_map
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
 	./time_hash_map -n $${n} -t $${m} -s ${SLOW_LEVEL_DEF}; \
 	done; \
 	done | tee $@
 .PHONY : bench_slowness
-bench_slowness.tmp : #time_hash_map
+bench_slowness.bench : #time_hash_map
 	for m in ${MAP_TYPES_UNI}; do \
 	for s in ${SLOW_LEVELS}; do \
 	./time_hash_map -n ${ITEMS_DEF} -t $${m} -s $${s}; \
@@ -209,8 +209,8 @@ bench_slowness.tmp : #time_hash_map
 .for t in ${TEST_TYPES}
 .for m in ${MAP_TYPES}
 bench_${b}_${t}.plot : bench_${b}_${m}_${t}.tmp
-bench_${b}_${m}_${t}.tmp : bench_${b}.tmp
-	./bench2table_${b} ${m} ${t} < bench_${b}.tmp > $@ && \
+bench_${b}_${m}_${t}.tmp : bench_${b}.bench
+	./bench2table_${b} ${m} ${t} < bench_${b}.bench > $@ && \
 	test -s $@ || echo 0 0 >> $@
 .endfor # m
 bench_${b} : bench_${b}_${t}.png
