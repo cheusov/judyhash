@@ -422,37 +422,44 @@ void measure_all_maps (int n)
 {
 	switch (map_type){
 		case mt_sparse:
-			printf("sparse_hash_map ( %d iterations ):\n", n);
+			printf("sparse_hash_map ( %d iterations , slowness level %d):\n",
+				   n, slowness_level);
 			measure_map< sparse_hash_map<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_dense:
-			printf("dense_hash_map ( %d iterations ):\n", n);
+			printf("dense_hash_map ( %d iterations , slowness level %d ):\n",
+				   n, slowness_level);
 			measure_map< dense_hash_map<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_judy_l:
-			printf("judy_map_l ( %d iterations ):\n", n);
+			printf("judy_map_l ( %d iterations , slowness level %d ):\n",
+				   n, slowness_level);
 			measure_map< judy_map_l<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_judy_m:
-			printf("judy_map_m ( %d iterations ):\n", n);
+			printf("judy_map_m ( %d iterations , slowness level %d ):\n",
+				   n, slowness_level);
 			measure_map< judy_map_m<int, int, Hash, Less, Equal> >(n);
 			break;
 
 		case mt_judy_kdcell:
-			printf("judy_map_kdcell ( %d iterations ):\n", n);
+			printf("judy_map_kdcell ( %d iterations , slowness level %d ):\n",
+				   n, slowness_level);
 			measure_map< judy_map_kdcell<int, int> >(n);
 			break;
 
 		case mt_hash:
-			printf("hash_map ( %d iterations ):\n", n);
+			printf("hash_map ( %d iterations , slowness level %d ):\n",
+				   n, slowness_level);
 			measure_map< hash_map<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_map:
-			printf("map ( %d iterations ):\n", n);
+			printf("map ( %d iterations , slowness level %d ):\n",
+				   n, slowness_level);
 			measure_map< map<int, int, Less> >(n);
 			break;
 	}
