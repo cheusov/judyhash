@@ -202,7 +202,7 @@ bench_count.tmp : #time_hash_map
 .for m in ${MAP_TYPES}
 bench_count_${t}.plot : bench_count_${m}_${t}.tmp
 bench_count_${m}_${t}.tmp : bench_count.tmp
-	./bench2table ${m} ${t} < bench_count.tmp > $@ && \
+	./bench2table_size ${m} ${t} < bench_count.tmp > $@ && \
 	test -s $@ || echo 0 0 >> $@
 .endfor
 bench_count : bench_count_${t}.png
@@ -227,7 +227,7 @@ bench_count_${t}.png : bench_count_${t}.plot
 
 .PHONY : bench_slowness
 bench_slowness : #bench_slowness.tmp
-bench_slowness.tmp : time_hash_map
+bench_slowness.tmp : #time_hash_map
 	for m in ${MAP_TYPES_UNI}; do \
 	for s in ${SLOW_LEVELS}; do \
 	./time_hash_map -n ${ITEMS_DEF} -t $${m} -s $${s}; \

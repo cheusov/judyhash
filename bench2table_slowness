@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-# usage: bench2table hash_map map_replace [files...]
+# usage: bench2table_slowness <map_type> <test_type> [files...]
 #
 
 map_type="$1"
@@ -26,11 +26,11 @@ $4 == "iterations" {
       next
    }
 
-   iters = $3
+   slowness = $8
    next
 }
 
 $1 == test_type {
-   print iters, $2
+   print slowness, $2
 }
 ' "$@"
