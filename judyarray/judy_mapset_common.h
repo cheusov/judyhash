@@ -644,11 +644,9 @@ public:
 	void erase (iterator it)
 	{
 		if (it.m_it.m_end){
-			// standard says about undefined behaviour in such situations :(
-			abort ();
-
-			// I assume, 'return' is much better
-			//return;
+			// C++ standard says about undefined behaviour in such
+			// situations :-(. I assume, 'return' is much better
+			return;
 		}
 
 		assert (this == it.m_it.m_obj);
