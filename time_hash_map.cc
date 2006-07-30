@@ -65,6 +65,7 @@ extern "C" {
 #include <google/dense_hash_map>
 #include "judy_map.h"
 #include "judy_map_kdcell.h"
+#include "hash_funcs.h"
 
 // hash_map
 #ifndef _STLP_BEGIN_NAMESPACE
@@ -101,7 +102,14 @@ enum {
 	mt_judy_kdcell,
 };
 int map_type       = -1;
+
 int slowness_level = -1;
+
+enum {
+	ht_identity = 0,
+	ht_random   = -1,
+};
+int hash_func_type = 0;
 
 // external function for slower hash function 
 int slow_compare_int (int a, int b, int slowness);
@@ -485,9 +493,11 @@ static void usage (void)
 	fprintf (stderr, "\
 usage: time_hash_map [OPTIONS]\n\
 OPTIONS:\n\
-  -h            this help message\n\
-  -n <num>      iteration count\n\
-  -s <num>      slowness level\n\
+  -h                     this help message\n\
+  -n <num>               iteration count\n\
+  -s <num>               slowness level\n\
+  -a <hash_func_type>    'identity', 'random' or 0|7|31|...\n\
+                         0 means 'identity'\n\
   -t sparse_hash_map     google's sparse_hash_map<...>\n\
   -t dense_hash_map      google's dense_map<...>\n\
   -t map                 std::map<...>\n\
@@ -503,7 +513,7 @@ int main(int argc, char** argv)
 	int iters = -1;
 	int c = 0;
 
-	while (c = getopt (argc, argv, "ht:n:s:"), c != EOF){
+	while (c = getopt (argc, argv, "ht:n:s:a:"), c != EOF){
 		switch (c) {
 			case 'h':
 				usage ();
@@ -534,6 +544,15 @@ int main(int argc, char** argv)
 			case 's':
 				slowness_level = atoi (optarg);
 				break;
+			case 'a':
+				if (!strcmp (optarg, "identity"))
+					hash_func_type = ht_identity;
+				else if (!strcmp (optarg, "random"))
+					hash_func_type = ht_random;
+				else
+					hash_func_type = atoi (optarg);
+
+				break;
 			default:
 				usage ();
 				exit (1);
@@ -562,13 +581,37 @@ int main(int argc, char** argv)
 		   "                 reported are wall-clock time, not user time\n");
 #endif
 
-	if (!slowness_level){
-		measure_all_maps <std::less <int>,
-			std::equal_to <int>,
-			hash_ident <int> > (iters);
-	}else{
-		measure_all_maps <slow_less, slow_equal,
-			hash_ident <int> > (iters);
+	switch (hash_func_type){
+		case ht_identity:
+			if (!slowness_level){
+				measure_all_maps <std::less <int>,
+					std::equal_to <int>,
+					hash_ident <int> > (iters);
+			}else{
+				measure_all_maps <slow_less, slow_equal,
+					hash_ident <int> > (iters);
+			}
+			break;
+//		case ht_random:
+//			if (!slowness_level){
+//				measure_all_maps <std::less <int>,
+//					std::equal_to <int>,
+//					hashfunc_random> (iters);
+//			}else{
+//				measure_all_maps <slow_less, slow_equal,
+//					hashfunc_random> (iters);
+//			}
+//			break;
+		default:
+			if (!slowness_level){
+				measure_all_maps <std::less <int>,
+					std::equal_to <int>,
+					hashfunc_poly <65599> > (iters);
+			}else{
+				measure_all_maps <slow_less, slow_equal,
+					hashfunc_poly <65599> > (iters);
+			}
+			break;
 	}
 
 	return 0;

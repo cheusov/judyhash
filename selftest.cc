@@ -62,7 +62,7 @@ public:
 	}
 };
 
-typedef hashfunc_mixed <31> hsh_string_hash0;
+typedef hashfunc_random hsh_string_hash0;
 
 struct hsh_string_hash2 {
 	size_t operator () (const char *) const

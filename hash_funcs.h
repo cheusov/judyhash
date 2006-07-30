@@ -34,27 +34,37 @@ struct hashfunc_poly {
 	{
 		return operator () (key.c_str ());
 	}
+	size_t operator () (int key) const
+	{
+		int b1 = key & 255;
+		key >>= 8;
+		int b2 = key & 255;
+		key >>= 8;
+		int b3 = key & 255;
+		key >>= 8;
+		int b4 = key & 255;
+
+		unsigned h = 0;
+		h = b1;
+		h = h * M ^ b2;
+		h = h * M ^ b3;
+		h = h * M ^ b4;
+		return h;
+	}
 };
 
 extern const unsigned rand_256_array [256];
 
 // mixed
-template <int M>
-struct hashfunc_mixed {
+struct hashfunc_random {
 	size_t operator () (const char *key) const
 	{
 		unsigned h = 0;
 
-		const unsigned *p=rand_256_array;
-		int cnt = 256;
-		for (; *key; ++key){
-			if (cnt--){
-				cnt = 256;
-				p=rand_256_array;
-			}
-
+		int cnt = 0;
+		for (; *key; ++key, ++cnt){
 			int ch = (unsigned char) *key;
-			h = h * M ^ ch ^ *p++;
+			h = h ^ rand_256_array [(ch + cnt) & 255];
 		}
 
 		return h;
