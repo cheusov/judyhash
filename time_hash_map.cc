@@ -67,14 +67,22 @@ extern "C" {
 #include <judy_map_kdcell.h>
 
 // hash_map
-#if __GNUC__ >= 3
-#undef HASH_NAMESPACE
-#define HASH_NAMESPACE __gnu_cxx
-#include <ext/hash_map>
+#ifndef _STLP_BEGIN_NAMESPACE
+   // not stlport
+#  if __GNUC__ >= 3
+#    undef HASH_NAMESPACE
+#    define HASH_NAMESPACE __gnu_cxx
+#    include <ext/hash_map>
+#  else
+#    undef HASH_NAMESPACE
+#    define HASH_NAMESPACE std
+#    include <ext/hash_map>
+#  endif
 #else
-#undef HASH_NAMESPACE
-#define HASH_NAMESPACE std
-#include <ext/hash_map>
+   // stlport
+#  undef HASH_NAMESPACE
+#  define HASH_NAMESPACE std
+#  include <hash_map>
 #endif
 
 using HASH_NAMESPACE::hash_map;
