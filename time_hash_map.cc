@@ -63,8 +63,8 @@ extern "C" {
 #include <map>
 #include <google/sparse_hash_map>
 #include <google/dense_hash_map>
-#include <judy_map.h>
-#include <judy_map_kdcell.h>
+#include "judy_map.h"
+#include "judy_map_kdcell.h"
 
 // hash_map
 #ifndef _STLP_BEGIN_NAMESPACE
@@ -105,6 +105,13 @@ int slowness_level = -1;
 
 // external function for slower hash function 
 int slow_compare_int (int a, int b, int slowness);
+
+template <class T>
+struct hash_ident {
+	size_t operator () (int a) const {
+		return (size_t) a;
+	}
+};
 
 struct slow_less {
 	bool operator () (int a, int b) const {
@@ -158,13 +165,13 @@ template<class MapType> inline void RESIZE(MapType& map, int iters) {}
   REDEF_RESIZE(dense_hash_map,  Key, Data, Hash, Equal) \
   REDEF_RESIZE(hash_map,        Key, Data, Hash, Equal)
 
-REDEF_SET_DELETED_KEY2(int, int, HASH_NAMESPACE::hash <int>, std::equal_to <int> )
-REDEF_SET_EMPTY_KEY2(int, int, HASH_NAMESPACE::hash <int>, std::equal_to <int> )
-REDEF_RESIZE2(int, int, HASH_NAMESPACE::hash <int>, std::equal_to <int> )
+REDEF_SET_DELETED_KEY2(int, int, hash_ident <int>, std::equal_to <int> )
+REDEF_SET_EMPTY_KEY2(int, int, hash_ident <int>, std::equal_to <int> )
+REDEF_RESIZE2(int, int, hash_ident <int>, std::equal_to <int> )
 
-REDEF_SET_DELETED_KEY2(int, int, HASH_NAMESPACE::hash <int>, slow_equal )
-REDEF_SET_EMPTY_KEY2(int, int, HASH_NAMESPACE::hash <int>, slow_equal )
-REDEF_RESIZE2(int, int, HASH_NAMESPACE::hash <int>, slow_equal )
+REDEF_SET_DELETED_KEY2(int, int, hash_ident <int>, slow_equal )
+REDEF_SET_EMPTY_KEY2(int, int, hash_ident <int>, slow_equal )
+REDEF_RESIZE2(int, int, hash_ident <int>, slow_equal )
 
 /*
  * Measure resource usage.
@@ -558,10 +565,10 @@ int main(int argc, char** argv)
 	if (!slowness_level){
 		measure_all_maps <std::less <int>,
 			std::equal_to <int>,
-			HASH_NAMESPACE::hash <int> > (iters);
+			hash_ident <int> > (iters);
 	}else{
 		measure_all_maps <slow_less, slow_equal,
-			HASH_NAMESPACE::hash <int> > (iters);
+			hash_ident <int> > (iters);
 	}
 
 	return 0;

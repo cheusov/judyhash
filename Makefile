@@ -4,17 +4,20 @@
 ############################################################
 
 .PHONY : all
-all : selftest
+all : selftest time_hash_map
 
 selftest.o : selftest.cc *.h judyarray/*.h
 	$(CXX) -o $@ $(CFLAGS_T) -c selftest.cc
-selftest : selftest.o
-	$(CXX) -o $@ $(LDFLAGS_T) selftest.o
+selftest : selftest.o hash_funcs.o
+	$(CXX) -o $@ $(LDFLAGS_T) $>
 
 time_hash_map.o : time_hash_map.cc *.h judyarray/*.h
 	$(CXX) -o $@ $(CFLAGS_O) -c time_hash_map.cc
-time_hash_map : time_hash_map.o slow_compare.o
+time_hash_map : time_hash_map.o slow_compare.o hash_funcs.o
 	$(CXX) -o $@ $(LDFLAGS_O) $>
+
+hash_funcs.o : hash_funcs.cc hash_funcs.h
+	$(CXX) -o $@ $(CFLAGS_O) -c hash_funcs.cc
 
 slow_compare.o : slow_compare.cc
 	$(CXX) -o $@ $(CFLAGS_T) -DSLOW_LEVEL=$(SLOW_LEVEL) -c slow_compare.cc
