@@ -21,7 +21,7 @@ slow_compare.o : slow_compare.cc
 
 .PHONY : clean
 clean:
-	rm -f *.o selftest expected.txt *.tmp *.plot *.png
+	rm -f *.o selftest expected.txt *.tmp *.plot *.png time_hash_map
 	rm -f *.tmp core* *~ semantic.cache judyhash log*
 
 .PHONY : test
