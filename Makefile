@@ -16,6 +16,11 @@ time_hash_map.o : time_hash_map.cc *.h judyarray/*.h
 time_hash_map : time_hash_map.o slow_compare.o hash_funcs.o
 	$(CXX) -o $@ $(LDFLAGS_O) $>
 
+time_hash_map__debug.o : time_hash_map.cc *.h judyarray/*.h
+	$(CXX) -o $@ $(CFLAGS_T) -c time_hash_map.cc
+time_hash_map__debug : time_hash_map__debug.o slow_compare.o hash_funcs.o
+	$(CXX) -o $@ $(LDFLAGS_O) $>
+
 hash_funcs.o : hash_funcs.cc hash_funcs.h
 	$(CXX) -o $@ $(CFLAGS_O) -c hash_funcs.cc
 
@@ -184,6 +189,7 @@ test : selftest
 bench: bench_size bench_slowness
 
 MAP_TYPES_UNI=sparse_hash_map dense_hash_map judy_map_l judy_map_m hash_map map
+MAP_TYPES_UNI=sparse_hash_map dense_hash_map judy_map_l judy_map_m hash_map
 MAP_TYPES=${MAP_TYPES_UNI} judy_map_kdcell
 TEST_TYPES=memory-grow grow grow-predict replace fetch-present \
 fetch-absent remove iterate

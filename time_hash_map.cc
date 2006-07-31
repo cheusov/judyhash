@@ -105,6 +105,8 @@ int map_type       = -1;
 
 int slowness_level = -1;
 
+unsigned hash_mask = JUDYARRAY_HASH_MASK;
+
 enum {
 	ht_identity = 0,
 	ht_random   = -1,
@@ -136,50 +138,97 @@ struct slow_equal {
 // Normally I don't like non-const references, but using them here ensures
 // the inlined code ends up as efficient as possible.
 
-template<class MapType> inline void SET_DELETED_KEY(MapType& map, int key) {}
-template<class MapType> inline void SET_EMPTY_KEY(MapType& map, int key) {}
-template<class MapType> inline void RESIZE(MapType& map, int iters) {}
+template<class MapType> void SET_DELETED_KEY(MapType& map, int key) {}
+template<class MapType> void SET_EMPTY_KEY(MapType& map, int key) {}
+template<class MapType> void SET_HASH_MASK(MapType& map, unsigned mask) {}
+template<class MapType> void RESIZE(MapType& map, int iters) {}
+template<class MapType> void SHOW_DEBUG(const MapType& map) {}
 
 #define REDEF_SET_DELETED_KEY(Type, Key, Data, Hash, Equal) \
-	template<> inline void SET_DELETED_KEY(        \
-		Type <Key, Data, Hash, Equal>& m, int key) \
+    template<> void SET_DELETED_KEY(               \
+        Type <Key, Data, Hash, Equal>& m, int key) \
 	{                                              \
 		m.set_deleted_key(key);                    \
 	}
 
 #define REDEF_SET_EMPTY_KEY(Type, Key, Data, Hash, Equal) \
-	template<> inline void SET_EMPTY_KEY(          \
-		Type <Key, Data, Hash, Equal>& m, int key) \
+    template<> void SET_EMPTY_KEY(                 \
+        Type <Key, Data, Hash, Equal>& m, int key) \
 	{                                              \
 		m.set_empty_key(key);                      \
 	}
 
 #define REDEF_RESIZE(Type, Key, Data, Hash, Equal)   \
-	template<> inline void RESIZE(                   \
-		Type <Key, Data, Hash, Equal>& m, int iters) \
+    template<> void RESIZE(                          \
+        Type <Key, Data, Hash, Equal>& m, int iters) \
 	{                                                \
 		m.resize(iters);                             \
 	}
 
-#define REDEF_SET_DELETED_KEY2(Key, Data, Hash, Equal) \
-  REDEF_SET_DELETED_KEY(sparse_hash_map, Key, Data, Hash, Equal) \
-  REDEF_SET_DELETED_KEY(dense_hash_map,  Key, Data, Hash, Equal)
+#define REDEF_SET_HASH_MASK4(Type, Key, Data, Hash, Equal)\
+    template<> void SET_HASH_MASK(                       \
+        Type <Key, Data, Hash, Equal>& m, unsigned mask) \
+	{                                                    \
+		m.set_hash_mask(mask);                           \
+	}
 
-#define REDEF_SET_EMPTY_KEY2(Key, Data, Hash, Equal) \
-  REDEF_SET_EMPTY_KEY(dense_hash_map, Key, Data, Hash, Equal)
+#define REDEF_SET_HASH_MASK5(Type, Key, Data, Hash, Less, Equal)\
+    template<> void SET_HASH_MASK(                       \
+        Type <Key, Data, Hash, Less, Equal>& m, unsigned mask) \
+	{                                                    \
+		m.set_hash_mask(mask);                           \
+	}
 
-#define REDEF_RESIZE2(Key, Data, Hash, Equal) \
-  REDEF_RESIZE(sparse_hash_map, Key, Data, Hash, Equal) \
-  REDEF_RESIZE(dense_hash_map,  Key, Data, Hash, Equal) \
-  REDEF_RESIZE(hash_map,        Key, Data, Hash, Equal)
+template <class T>
+static void show_debug_judyarray (const T& ht)
+{
+#ifdef JUDYARRAY_DEBUGINFO
+	std::cout << "single item count: "
+			  << ht.get_debug_info ().m_value_count << '\n';
+	std::cout << "list item count:   "
+			  << ht.get_debug_info ().m_list_item_count << '\n';
+	std::cout << "list count:        "
+			  << ht.get_debug_info ().m_list_count << '\n';
+#endif
+}
 
-REDEF_SET_DELETED_KEY2(int, int, hash_ident <int>, std::equal_to <int> )
-REDEF_SET_EMPTY_KEY2(int, int, hash_ident <int>, std::equal_to <int> )
-REDEF_RESIZE2(int, int, hash_ident <int>, std::equal_to <int> )
+#define REDEF_SHOW_DEBUG5(Type, Key, Data, Hash, Less, Equal)\
+    template<> void SHOW_DEBUG(                       \
+        const Type <Key, Data, Hash, Less, Equal>& m) \
+	{\
+		show_debug_judyarray (m);\
+	}
 
-REDEF_SET_DELETED_KEY2(int, int, hash_ident <int>, slow_equal )
-REDEF_SET_EMPTY_KEY2(int, int, hash_ident <int>, slow_equal )
-REDEF_RESIZE2(int, int, hash_ident <int>, slow_equal )
+#define REDEF_SHOW_DEBUG4(Type, Key, Data, Hash, Equal)\
+    template<> void SHOW_DEBUG(                       \
+        const Type <Key, Data, Hash, Equal>& m) \
+	{\
+		show_debug_judyarray (m);\
+	}
+
+//
+#define REDEF_GLOBAL(Hash, Less, Equal)\
+  REDEF_SET_DELETED_KEY(sparse_hash_map, int, int, Hash, Equal)\
+  \
+  REDEF_SET_DELETED_KEY( dense_hash_map, int, int, Hash, Equal)\
+  \
+  REDEF_SET_EMPTY_KEY(dense_hash_map, int, int, Hash, Equal)\
+  \
+  REDEF_RESIZE(sparse_hash_map, int, int, Hash, Equal)      \
+  REDEF_RESIZE( dense_hash_map, int, int, Hash, Equal)      \
+  REDEF_RESIZE(       hash_map, int, int, Hash, Equal)      \
+  \
+  REDEF_SET_HASH_MASK4(judy_map_l, int, int, Hash, Equal)   \
+  REDEF_SET_HASH_MASK5(judy_map_m, int, int, Hash, Less, Equal)\
+  \
+  REDEF_SHOW_DEBUG4(judy_map_l, int, int, Hash, Equal)   \
+  REDEF_SHOW_DEBUG5(judy_map_m, int, int, Hash, Less, Equal)
+
+//
+REDEF_GLOBAL(hash_ident <int>,      std::less <int>, std::equal_to <int>)
+REDEF_GLOBAL(hash_ident <int>,      slow_less,       slow_equal)
+REDEF_GLOBAL(hashfunc_poly <65599>, std::less <int>, std::equal_to <int>)
+REDEF_GLOBAL(hashfunc_poly <65599>, slow_less,       slow_equal)
 
 /*
  * Measure resource usage.
@@ -311,12 +360,14 @@ static void time_map_grow(int iters) {
 	Rusage t;
 
 	SET_EMPTY_KEY(set, -2);
+	SET_HASH_MASK(set, hash_mask);
 
 	t.Reset();
 	add_items_to_map(set, iters);
 	double ut = t.UserTime();
 
 	report("grow", ut, iters, t.Memory ());
+	SHOW_DEBUG(set);
 }
 
 template<class MapType>
@@ -325,6 +376,8 @@ static void time_map_grow_predicted(int iters) {
 	Rusage t;
 
 	SET_EMPTY_KEY(set, -2);
+	SET_HASH_MASK(set, hash_mask);
+
 	t.ResetMemory ();
 	RESIZE(set, iters);
 	t.ResetTime ();
@@ -342,6 +395,8 @@ static void time_map_replace(int iters) {
 	int i;
 
 	SET_EMPTY_KEY(set, -2);
+	SET_HASH_MASK(set, hash_mask);
+
 	add_items_to_map(set, iters);
 
 	t.Reset();
@@ -361,6 +416,8 @@ static void time_map_fetch_base(int iters, int offs, const char *msg) {
 	int i;
 
 	SET_EMPTY_KEY(set, -2);
+	SET_HASH_MASK(set, hash_mask);
+
 	add_items_to_map(set, iters);
 
 	r = 1;
@@ -390,6 +447,8 @@ static void time_map_remove(int iters) {
 	int i;
 
 	SET_EMPTY_KEY(set, -2);
+	SET_HASH_MASK(set, hash_mask);
+
 	add_items_to_map(set, iters);
 
 	t.Reset();
@@ -410,6 +469,8 @@ static void time_map_iterate(int iters) {
 	int i;
 
 	SET_EMPTY_KEY(set, -2);
+	SET_HASH_MASK(set, hash_mask);
+
 	add_items_to_map(set, iters);
 
 	typename MapType::const_iterator beg = set.begin ();
@@ -496,8 +557,7 @@ OPTIONS:\n\
   -h                     this help message\n\
   -n <num>               iteration count\n\
   -s <num>               slowness level\n\
-  -a <hash_func_type>    'identity', 'random' or 0|7|31|...\n\
-                         0 means 'identity'\n\
+  -a <hash_func_type>    'identity', 'random' or 65599\n\
   -t sparse_hash_map     google's sparse_hash_map<...>\n\
   -t dense_hash_map      google's dense_map<...>\n\
   -t map                 std::map<...>\n\
@@ -505,6 +565,7 @@ OPTIONS:\n\
   -t judy_map_l          judy_map_l<...>\n\
   -t judy_hash_m         judy_map_m<...>\n\
   -t judy_hash_kd        judy_map_kdcell<...>\n\
+  -m <hex_value>         judy_map_[lm].set_hash_mask (hex_value)\n\
 ");
 }
 
@@ -513,7 +574,7 @@ int main(int argc, char** argv)
 	int iters = -1;
 	int c = 0;
 
-	while (c = getopt (argc, argv, "ht:n:s:a:"), c != EOF){
+	while (c = getopt (argc, argv, "ht:n:s:a:m:"), c != EOF){
 		switch (c) {
 			case 'h':
 				usage ();
@@ -544,13 +605,21 @@ int main(int argc, char** argv)
 			case 's':
 				slowness_level = atoi (optarg);
 				break;
+			case 'm':
+				hash_mask = strtoul (optarg, NULL, 16);
+				fprintf (stderr, "mask=%d\n", hash_mask);
+				break;
 			case 'a':
 				if (!strcmp (optarg, "identity"))
 					hash_func_type = ht_identity;
 				else if (!strcmp (optarg, "random"))
 					hash_func_type = ht_random;
-				else
-					hash_func_type = atoi (optarg);
+				else if (!strcmp (optarg, "65599"))
+					hash_func_type = 65599;
+				else{
+					usage ();
+					exit (1);
+				}
 
 				break;
 			default:
@@ -602,7 +671,7 @@ int main(int argc, char** argv)
 //					hashfunc_random> (iters);
 //			}
 //			break;
-		default:
+		case 65599:
 			if (!slowness_level){
 				measure_all_maps <std::less <int>,
 					std::equal_to <int>,
@@ -612,6 +681,8 @@ int main(int argc, char** argv)
 					hashfunc_poly <65599> > (iters);
 			}
 			break;
+		default:
+			abort ();
 	}
 
 	return 0;

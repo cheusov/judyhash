@@ -24,6 +24,10 @@
 
 #include "judy_common.h"
 
+#ifndef JUDYARRAY_HASH_MASK
+#define JUDYARRAY_HASH_MASK 0x00FFFFFF
+#endif
+
 template <
 	typename TKey,
 	typename TData,
@@ -85,6 +89,7 @@ private:
 	THashFunc            m_hash_func;
 	TEqualFunc           m_eq_func;
 	allocator_type       m_alloc;
+	unsigned             m_hash_mask;
 
 	inline pointer allocate (const value_type &v)
 	{
@@ -110,8 +115,9 @@ private:
 public:
 	__judy_mapset_base ()
 	{
-		m_judy = 0;
-		m_size = 0;
+		m_judy      = 0;
+		m_size      = 0;
+		m_hash_mask = JUDYARRAY_HASH_MASK;
 	}
 
 	__judy_mapset_base (
@@ -124,8 +130,9 @@ public:
 		m_eq_func   (k),
 		m_alloc     (a)
 	{
-		m_judy = 0;
-		m_size = 0;
+		m_judy      = 0;
+		m_size      = 0;
+		m_hash_mask = JUDYARRAY_HASH_MASK;
 	}
 
 	template <class Tit>
@@ -140,20 +147,23 @@ public:
 		m_eq_func   (k),
 		m_alloc     (a)
 	{
-		m_judy = 0;
-		m_size = 0;
+		m_judy      = 0;
+		m_size      = 0;
+		m_hash_mask = JUDYARRAY_HASH_MASK;
 
 		insert (beg, end);
 	}
 
 	__judy_mapset_base (const __this_type& a)
 		:
-		m_judy (0),
-		m_size (0),
 		m_hash_func (a.m_hash_func),
 		m_eq_func   (a.m_eq_func),
 		m_alloc     (a.m_alloc)
 	{
+		m_judy      = 0;
+		m_size      = 0;
+		m_hash_mask = JUDYARRAY_HASH_MASK;
+
 		// optimize me!!!
 		insert (a.begin (), a.end ());
 	}
@@ -295,6 +305,16 @@ public:
 	size_type max_size () const
 	{
 		return size_type (-1);
+	}
+
+	void set_hash_mask (unsigned mask)
+	{
+		m_hash_mask = mask;
+	}
+
+	unsigned get_hash_mask () const
+	{
+		return m_hash_mask;
 	}
 
 private:
@@ -691,7 +711,8 @@ public:
 private:
 	iterator find_base (const key_type& key) const
 	{
-		unsigned long h = m_hash_func (key);
+		unsigned long h = m_hash_func (key) & m_hash_mask;
+
 		judyarray_union_type *ptr
 			= (judyarray_union_type *) ::JudyLGet (m_judy, h, 0);
 
@@ -774,7 +795,7 @@ public:
 	{
 		const TKey &key = value2key (value);
 
-		Word_t h = m_hash_func (key);
+		Word_t h = m_hash_func (key) & m_hash_mask;
 		judyarray_union_type *ptr
 			= (judyarray_union_type *) ::JudyLIns (&m_judy, h, 0);
 
@@ -1053,6 +1074,14 @@ public:
 		const debug_info &get_debug_info () const\
 		{\
 			return macrosarg__to_member.m_debug_info;\
+		}\
+		void set_hash_mask (unsigned mask)\
+		{\
+			macrosarg__to_member.set_hash_mask (mask);\
+		}\
+		unsigned get_hash_mask () const\
+		{\
+			return macrosarg__to_member.get_hash_mask ();\
 		}
 
 #endif // _JUDY_MAPSET_COMMON_H_
