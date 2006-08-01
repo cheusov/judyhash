@@ -329,10 +329,10 @@ private:
 	public:
 		__JUDYARRAY_TYPEDEFS(TTraits)
 
-		const __this_type *m_obj;
+		Pcvoid_t               *m_pjudy;
 
 		Word_t                 m_index;
-		judyarray_union_type    m_value;
+		judyarray_union_type   m_value;
 		bool                   m_end;
 		bool                   m_inside_list;
 
@@ -355,7 +355,7 @@ private:
 
 		void init ()
 		{
-			m_obj              = NULL;
+			m_pjudy            = NULL;
 			m_index            = 0;
 			m_value.m_judy_int = 0;
 			m_end              = true;
@@ -387,10 +387,10 @@ private:
 			operator = (a);
 		}
 
-		iterator_base (const __this_type *obj,
+		iterator_base (Pcvoid_t * pjudy,
 					   Word_t index, Word_t value)
 			:
-			m_obj (obj),
+			m_pjudy (pjudy),
 			m_index (index),
 			m_end (false)
 		{
@@ -398,11 +398,11 @@ private:
 			init_list_it ();
 		}
 
-		iterator_base (const __this_type *obj,
+		iterator_base (Pcvoid_t *pjudy,
 		               Word_t index, Word_t value,
 		               typename pointers_list_type::iterator it)
 			:
-			m_obj (obj),
+			m_pjudy (pjudy),
 			m_index (index),
 			m_end (false),
 			m_inside_list (true),
@@ -411,16 +411,16 @@ private:
 			m_value.m_judy_int = value;
 		}
 
-		iterator_base (const __this_type *obj)
+		iterator_base (Pcvoid_t *pjudy)
 		{
 			init ();
 
 			m_end = false;
 
-			m_obj = obj;
+			m_pjudy = pjudy;
 
 			m_value.m_judy_ptr
-				= (PWord_t) JudyLFirst(m_obj -> m_judy, &m_index, 0);
+				= (PWord_t) JudyLFirst(*m_pjudy, &m_index, 0);
 
 			if (m_value.m_judy_ptr){
 				m_value.m_judy_int = *m_value.m_judy_ptr;
@@ -437,7 +437,7 @@ private:
 
 			m_index       = a.m_index;
 			m_value       = a.m_value;
-			m_obj         = a.m_obj;
+			m_pjudy       = a.m_pjudy;
 			m_end         = a.m_end;
 			m_inside_list = a.m_inside_list;
 			m_list_it     = a.m_list_it;
@@ -474,7 +474,7 @@ private:
 
 			if (goto_next_judy_cell){
 				m_value.m_judy_ptr
-					= (PWord_t) JudyLNext (m_obj -> m_judy, &m_index, 0);
+					= (PWord_t) JudyLNext (*m_pjudy, &m_index, 0);
 
 				if (m_value.m_judy_ptr){
 					m_value.m_judy_int = *m_value.m_judy_ptr;
@@ -498,7 +498,7 @@ private:
 			if (m_end && i.m_end)
 				return true;
 
-			if (m_obj != i.m_obj)
+			if (m_pjudy != i.m_pjudy)
 				return false;
 
 			return (m_index       == i.m_index)
@@ -531,8 +531,8 @@ public:
 			: m_it (a.m_it)
 		{
 		}
-		iterator (const __this_type *obj)
-			: m_it (obj)
+		iterator (Pcvoid_t *pjudy)
+			: m_it (pjudy)
 		{
 		}
 		iterator & operator = (const iterator& a)
@@ -601,8 +601,8 @@ public:
 			: m_it (a.m_it)
 		{
 		}
-		const_iterator (const __this_type *obj)
-			: m_it (obj)
+		const_iterator (Pcvoid_t *pjudy)
+			: m_it (pjudy)
 		{
 		}
 		const_iterator & operator = (const const_iterator& a)
@@ -669,7 +669,7 @@ public:
 			return;
 		}
 
-		assert (this == it.m_it.m_obj);
+		assert (&m_judy == it.m_it.m_pjudy);
 
 		if (it.m_it.m_inside_list){
 			assert ((it.m_it.m_value.m_judy_int & 1) == 1);
@@ -724,9 +724,9 @@ private:
 
 			if ((value.m_judy_int & 1) == 0){
 				if (m_eq_func (value2key (*value.m_pointer), key)){
-					return iterator (iterator_base (this, h, value.m_judy_int));
+					return iterator (iterator_base ((Pcvoid_t *) &m_judy, h, value.m_judy_int));
 				}else{
-					iterator ret (iterator_base (this, h, value.m_judy_int));
+					iterator ret (iterator_base ((Pcvoid_t *) &m_judy, h, value.m_judy_int));
 					ret.m_it.make_end ();
 					return ret;
 				}
@@ -742,7 +742,7 @@ private:
 
 				if (found != end){
 					return iterator (iterator_base
-									 (this, h, value.m_judy_int, found));
+									 ((Pcvoid_t *) &m_judy, h, value.m_judy_int, found));
 				}
 #else
 				typename pointers_list_type::iterator beg
@@ -751,12 +751,12 @@ private:
 				for (; !(beg == end); ++beg){
 					if (m_eq_func (value2key (**beg), key)){
 						return iterator (iterator_base
-										 (this, h, value.m_judy_int, beg));
+										 ((Pcvoid_t *) &m_judy, h, value.m_judy_int, beg));
 					}
 				}
 #endif
 
-				iterator ret (iterator_base (this, h, value.m_judy_int, end));
+				iterator ret (iterator_base ((Pcvoid_t *) &m_judy, h, value.m_judy_int, end));
 				ret.m_it.make_end ();
 				return ret;
 			}
@@ -809,7 +809,7 @@ public:
 				{
 					// JudyL cell points to the same value
 					return std::make_pair
-						(iterator (iterator_base (this, h, ptr -> m_judy_int)),
+						(iterator (iterator_base ((Pcvoid_t *) &m_judy, h, ptr -> m_judy_int)),
 						 false);
 				}else{
 					// collision is detected.
@@ -835,7 +835,7 @@ public:
 
 					return std::make_pair (
 						iterator (iterator_base (
-									  this, h, ptr -> m_judy_int, ret_it)),
+									  (Pcvoid_t *) &m_judy, h, ptr -> m_judy_int, ret_it)),
 						true);
 				}
 			}else{
@@ -874,7 +874,7 @@ public:
 
 				return std::make_pair (
 					iterator (iterator_base (
-								  this, h, ptr -> m_judy_int, ret_it.first
+								  (Pcvoid_t *) &m_judy, h, ptr -> m_judy_int, ret_it.first
 								  )),
 					ret_it.second);
 			}
@@ -890,18 +890,18 @@ public:
 			++m_size;
 
 			return std::make_pair (
-				iterator (iterator_base (this, h, ptr -> m_judy_int)),
+				iterator (iterator_base ((Pcvoid_t *) &m_judy, h, ptr -> m_judy_int)),
 				true);
 		}
 	}
 
 	iterator begin ()
 	{
-		return iterator (iterator_base (this));
+		return iterator (iterator_base ((Pcvoid_t *) &m_judy));
 	}
 	const_iterator begin () const
 	{
-		return const_iterator (iterator_base (this));
+		return const_iterator (iterator_base ((Pcvoid_t *) &m_judy));
 	}
 
 	iterator end ()
