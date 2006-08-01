@@ -236,6 +236,7 @@ REDEF_GLOBAL(hashfunc_poly <65599>, slow_less,       slow_equal)
 
 static int memory_occupied ()
 {
+#if defined(__NetBSD__)
 	char path [200];
 	snprintf (path, sizeof (path), "/proc/%d/mem", (int) getpid ());
 
@@ -246,6 +247,28 @@ static int memory_occupied ()
 	}
 
 	return (int) sb.st_size;
+#else
+#	if defined(__linux)
+	char path [200];
+	snprintf (path, sizeof (path), "/proc/%d/stat", (int) getpid ());
+	FILE *fd = fopen (path, "r");
+	if (!fd)
+		return 0;
+
+	char buf [20480];
+	if (!fgets (buf, sizeof (buf), fd))
+		return 0;
+
+	char *p = NULL;
+	strtok (buf, " ");
+	for (int cnt=22; cnt--; ){
+		p = strtok (NULL, " ");
+	}
+	return strtol (p, NULL, 10);
+#	else
+	return 0;
+#	endif
+#endif
 }
 
 class Rusage {
@@ -607,7 +630,6 @@ int main(int argc, char** argv)
 				break;
 			case 'm':
 				hash_mask = strtoul (optarg, NULL, 16);
-				fprintf (stderr, "mask=%d\n", hash_mask);
 				break;
 			case 'a':
 				if (!strcmp (optarg, "identity"))
