@@ -186,7 +186,7 @@ test : selftest
 	true
 
 .PHONY : bench
-bench: bench_size bench_slowness
+bench: bench_size bench_size65599 bench_slowness
 
 MAP_TYPES_UNI=sparse_hash_map dense_hash_map judy_map_l judy_map_m hash_map map
 MAP_TYPES=${MAP_TYPES_UNI} judy_map_kdcell
@@ -196,13 +196,20 @@ fetch-absent remove iterate
 ITEMS=50000 100000 150000 200000 250000 300000 350000 400000 450000 500000 550000 600000 650000 700000 750000 800000
 ITEMS_DEF=500000
 SLOW_LEVELS=0 2 4 8 16 32 64 128 256
-SLOW_LEVEL_DEF=0
+SLOW_LEVEL_DEF=8
 
 .PHONY : bench_size
 bench_size.bench : #time_hash_map
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
-	./time_hash_map -n $${n} -t $${m} -s ${SLOW_LEVEL_DEF}; \
+	./time_hash_map -n $${n} -t $${m} -s 0; \
+	done; \
+	done | tee $@
+.PHONY : bench_size65599
+bench_size65599.bench : #time_hash_map
+	for m in ${MAP_TYPES}; do \
+	for n in ${ITEMS}; do \
+	./time_hash_map -n $${n} -t $${m} -s ${SLOW_LEVEL_DEF} -a 65599; \
 	done; \
 	done | tee $@
 .PHONY : bench_slowness
@@ -213,7 +220,7 @@ bench_slowness.bench : #time_hash_map
 	done; \
 	done | tee $@
 
-.for b in size slowness
+.for b in size size65599 slowness
 .for t in ${TEST_TYPES}
 .for m in ${MAP_TYPES}
 bench_${b}_${t}.plot : bench_${b}_${m}_${t}.tmp
