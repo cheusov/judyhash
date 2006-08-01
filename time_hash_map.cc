@@ -146,35 +146,35 @@ template<class MapType> void SHOW_DEBUG(const MapType& map) {}
 
 #define REDEF_SET_DELETED_KEY(Type, Key, Data, Hash, Equal) \
     template<> void SET_DELETED_KEY(               \
-        Type <Key, Data, Hash, Equal>& m, int key) \
+        Type <Key, Data, Hash, Equal >& m, int key) \
 	{                                              \
 		m.set_deleted_key(key);                    \
 	}
 
 #define REDEF_SET_EMPTY_KEY(Type, Key, Data, Hash, Equal) \
     template<> void SET_EMPTY_KEY(                 \
-        Type <Key, Data, Hash, Equal>& m, int key) \
+        Type <Key, Data, Hash, Equal >& m, int key) \
 	{                                              \
 		m.set_empty_key(key);                      \
 	}
 
 #define REDEF_RESIZE(Type, Key, Data, Hash, Equal)   \
     template<> void RESIZE(                          \
-        Type <Key, Data, Hash, Equal>& m, int iters) \
+        Type <Key, Data, Hash, Equal >& m, int iters) \
 	{                                                \
 		m.resize(iters);                             \
 	}
 
 #define REDEF_SET_HASH_MASK4(Type, Key, Data, Hash, Equal)\
     template<> void SET_HASH_MASK(                       \
-        Type <Key, Data, Hash, Equal>& m, unsigned mask) \
+        Type <Key, Data, Hash, Equal >& m, unsigned mask) \
 	{                                                    \
 		m.set_hash_mask(mask);                           \
 	}
 
 #define REDEF_SET_HASH_MASK5(Type, Key, Data, Hash, Less, Equal)\
     template<> void SET_HASH_MASK(                       \
-        Type <Key, Data, Hash, Less, Equal>& m, unsigned mask) \
+        Type <Key, Data, Hash, Less, Equal >& m, unsigned mask) \
 	{                                                    \
 		m.set_hash_mask(mask);                           \
 	}
@@ -194,14 +194,14 @@ static void show_debug_judyarray (const T& ht)
 
 #define REDEF_SHOW_DEBUG5(Type, Key, Data, Hash, Less, Equal)\
     template<> void SHOW_DEBUG(                       \
-        const Type <Key, Data, Hash, Less, Equal>& m) \
+        const Type <Key, Data, Hash, Less, Equal >& m) \
 	{\
 		show_debug_judyarray (m);\
 	}
 
 #define REDEF_SHOW_DEBUG4(Type, Key, Data, Hash, Equal)\
     template<> void SHOW_DEBUG(                       \
-        const Type <Key, Data, Hash, Equal>& m) \
+        const Type <Key, Data, Hash, Equal >& m) \
 	{\
 		show_debug_judyarray (m);\
 	}
