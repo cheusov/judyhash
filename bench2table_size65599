@@ -1,0 +1,6 @@
+#!/bin/sh
+
+#
+# usage: bench2table_size65599 <map_type> <test_type> [files...]
+#
+./bench2table_size "$@"
