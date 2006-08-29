@@ -234,42 +234,7 @@ REDEF_GLOBAL(hashfunc_poly <65599>, slow_less,       slow_equal)
  * Measure resource usage.
  */
 
-static int memory_occupied ()
-{
-#if defined(__NetBSD__)
-	char path [200];
-	snprintf (path, sizeof (path), "/proc/%d/mem", (int) getpid ());
-
-	struct stat sb;
-	if (stat (path, &sb)){
-		fprintf (stderr, "Cannot obtain amount of occupied memory from %s\n", path);
-		return 0;
-	}
-
-	return (int) sb.st_size;
-#else
-#	if defined(__linux)
-	char path [200];
-	snprintf (path, sizeof (path), "/proc/%d/stat", (int) getpid ());
-	FILE *fd = fopen (path, "r");
-	if (!fd)
-		return 0;
-
-	char buf [20480];
-	if (!fgets (buf, sizeof (buf), fd))
-		return 0;
-
-	char *p = NULL;
-	strtok (buf, " ");
-	for (int cnt=22; cnt--; ){
-		p = strtok (NULL, " ");
-	}
-	return strtol (p, NULL, 10);
-#	else
-	return 0;
-#	endif
-#endif
-}
+unsigned memory_used ();
 
 class Rusage {
 public:
@@ -303,7 +268,7 @@ void Rusage::Reset() {
 }
 
 void Rusage::ResetMemory() {
-	start_memory = memory_occupied ();
+	start_memory = memory_used ();
 }
 
 void Rusage::ResetTime() {
@@ -333,7 +298,7 @@ inline double Rusage::UserTime() {
 }
 
 int Rusage::Memory () {
-	return memory_occupied () - start_memory;
+	return memory_used () - start_memory;
 }
 
 static void print_uname() {
@@ -378,7 +343,7 @@ static void add_items_to_map (MapType& m, int iters)
 }
 
 template<class MapType>
-static void time_map_grow(int iters) {
+static void time_map_add_absent(int iters) {
 	MapType set;
 	Rusage t;
 
@@ -389,12 +354,12 @@ static void time_map_grow(int iters) {
 	add_items_to_map(set, iters);
 	double ut = t.UserTime();
 
-	report("grow", ut, iters, t.Memory ());
+	report("add-absent", ut, iters, t.Memory ());
 	SHOW_DEBUG(set);
 }
 
 template<class MapType>
-static void time_map_grow_predicted(int iters) {
+static void time_map_add_absent_predict (int iters) {
 	MapType set;
 	Rusage t;
 
@@ -407,12 +372,12 @@ static void time_map_grow_predicted(int iters) {
 	add_items_to_map(set, iters);
 	double ut = t.UserTime();
 
-//	report("grow-predict", ut, iters, t.Memory ()); // internal pool
-	report("grow-predict", ut, iters, 0);
+//	report("add_absent-predict", ut, iters, t.Memory ()); // internal pool
+	report("add-absent-predict", ut, iters, 0);
 }
 
 template<class MapType>
-static void time_map_replace(int iters) {
+static void time_map_add_present(int iters) {
 	MapType set;
 	Rusage t;
 	int i;
@@ -423,16 +388,14 @@ static void time_map_replace(int iters) {
 	add_items_to_map(set, iters);
 
 	t.Reset();
-	for (i = 0; i < iters; i++) {
-		set[i] = i+1;
-	}
+	add_items_to_map(set, iters);
 	double ut = t.UserTime();
 
-	report("replace", ut, iters, 0);
+	report("add-present", ut, iters, 0);
 }
 
 template<class MapType>
-static void time_map_fetch_base(int iters, int offs, const char *msg) {
+static void time_map_find_base(int iters, int offs, const char *msg) {
 	MapType set;
 	Rusage t;
 	int r;
@@ -445,8 +408,10 @@ static void time_map_fetch_base(int iters, int offs, const char *msg) {
 
 	r = 1;
 	t.Reset();
+
+	const typename MapType::iterator e = set.end();
 	for (i = 0; i < iters; i++) {
-		r ^= (set.find(offs+i) != set.end());
+		r ^= (set.find(offs+i) != e);
 	}
 	double ut = t.UserTime();
 
@@ -454,17 +419,17 @@ static void time_map_fetch_base(int iters, int offs, const char *msg) {
 }
 
 template<class MapType>
-static void time_map_fetch_present(int iters) {
-	time_map_fetch_base <MapType> (iters, 0, "fetch-present");
+static void time_map_find_present(int iters) {
+	time_map_find_base <MapType> (iters, 0, "find-present");
 }
 
 template<class MapType>
-static void time_map_fetch_absent(int iters) {
-	time_map_fetch_base <MapType> (iters, iters, "fetch-absent");
+static void time_map_find_absent(int iters) {
+	time_map_find_base <MapType> (iters, iters, "find-absent");
 }
 
 template<class MapType>
-static void time_map_remove(int iters) {
+static void time_map_remove_base (int iters, int offs, const char *msg) {
 	MapType set;
 	Rusage t;
 	int i;
@@ -477,11 +442,21 @@ static void time_map_remove(int iters) {
 	t.Reset();
 	SET_DELETED_KEY(set, -1);
 	for (i = 0; i < iters; i++) {
-		set.erase(i);
+		set.erase(offs+i);
 	}
 	double ut = t.UserTime();
 
-	report("remove", ut, iters, t.Memory ());
+	report(msg, ut, iters, t.Memory ());
+}
+
+template<class MapType>
+static void time_map_remove_present(int iters) {
+	time_map_remove_base <MapType> (iters, 0, "remove-present");
+}
+
+template<class MapType>
+static void time_map_remove_absent(int iters) {
+	time_map_remove_base <MapType> (iters, iters, "remove-absent");
 }
 
 static int iterate_accum = 0;
@@ -510,17 +485,18 @@ static void time_map_iterate(int iters) {
 
 template<class MapType>
 static void measure_map(int iters) {
-	time_map_grow<MapType>(iters);
-	time_map_grow_predicted<MapType>(iters);
-	time_map_replace<MapType>(iters);
-	time_map_fetch_present<MapType>(iters);
-	// sparse_hash_map disabled because its fetch-absent operation is
+	time_map_add_absent           <MapType> (iters);
+	time_map_add_absent_predict <MapType> (iters);
+	time_map_add_present       <MapType> (iters);
+	time_map_find_present     <MapType> (iters);
+	// sparse_hash_map disabled because its find-absent operation is
 	// extreeeemly slow
 	if (mt_sparse != map_type){
-		time_map_fetch_absent<MapType>(iters);
+		time_map_find_absent <MapType> (iters);
+		time_map_remove_absent <MapType> (iters);
 	}
-	time_map_remove<MapType>(iters);
-	time_map_iterate<MapType>(iters);
+	time_map_remove_present <MapType> (iters);
+	time_map_iterate <MapType> (iters);
 	printf ("\n");
 }
 

@@ -11,14 +11,20 @@ selftest.o : selftest.cc *.h judyarray/*.h
 selftest : selftest.o hash_funcs.o
 	$(CXX) -o $@ $(LDFLAGS_T) $>
 
+memory_used.o : memory_used.cc
+	$(CXX) -o $@ $(CFLAGS_O) -c $<
+
+sort_uniq : hash_funcs.o memory_used.o sort_uniq.cc 
+	$(CXX) -o $@ $(CFLAGS_O) $(LDFLAGS_O) $>
+
 time_hash_map.o : time_hash_map.cc *.h judyarray/*.h
 	$(CXX) -o $@ $(CFLAGS_O) -c time_hash_map.cc
-time_hash_map : time_hash_map.o slow_compare.o hash_funcs.o
+time_hash_map : time_hash_map.o slow_compare.o hash_funcs.o memory_used.o
 	$(CXX) -o $@ $(LDFLAGS_O) $>
 
 time_hash_map__debug.o : time_hash_map.cc *.h judyarray/*.h
 	$(CXX) -o $@ $(CFLAGS_T) -c time_hash_map.cc
-time_hash_map__debug : time_hash_map__debug.o slow_compare.o hash_funcs.o
+time_hash_map__debug : time_hash_map__debug.o slow_compare.o hash_funcs.o memory_used.o
 	$(CXX) -o $@ $(LDFLAGS_O) $>
 
 hash_funcs.o : hash_funcs.cc hash_funcs.h
@@ -30,7 +36,7 @@ slow_compare.o : slow_compare.cc
 .PHONY : clean
 clean:
 	rm -f *.o selftest expected.txt *.tmp *.plot *.png time_hash_map
-	rm -f *.tmp core* *~ semantic.cache judyhash log*
+	rm -f *.tmp core* *~ semantic.cache judyhash log* sort_uniq
 
 .PHONY : test
 test : selftest
@@ -190,8 +196,7 @@ bench: bench_size bench_size65599 bench_slowness
 
 MAP_TYPES_UNI=sparse_hash_map dense_hash_map judy_map_l judy_map_m hash_map map
 MAP_TYPES=${MAP_TYPES_UNI} judy_map_kdcell
-TEST_TYPES=memory-grow grow grow-predict replace fetch-present \
-fetch-absent remove iterate
+TEST_TYPES=memory-add-absent add-absent add-absent-predict add-present find-absent find-present remove-absent remove-present iterate
 
 ITEMS=50000 100000 150000 200000 250000 300000 350000 400000 450000 500000 550000 600000 650000 700000 750000 800000
 ITEMS_DEF=500000
