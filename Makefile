@@ -1,5 +1,6 @@
 ############################################################
 .include "Makefile.config"
+.include "Makefile.benchmark"
 
 ############################################################
 
@@ -193,15 +194,6 @@ test : selftest
 
 .PHONY : bench
 bench: bench_size bench_size65599 bench_slowness
-
-MAP_TYPES_UNI=sparse_hash_map dense_hash_map judy_map_l judy_map_m hash_map map
-MAP_TYPES=${MAP_TYPES_UNI} judy_map_kdcell
-TEST_TYPES=memory-add-absent add-absent add-absent-predict add-present find-absent find-present remove-absent remove-present iterate
-
-ITEMS=50000 100000 150000 200000 250000 300000 350000 400000 450000 500000 550000 600000 650000 700000 750000 800000
-ITEMS_DEF=500000
-SLOW_LEVELS=0 2 4 8 16 32 64 128 256
-SLOW_LEVEL_DEF=8
 
 .PHONY : bench_size
 bench_size.bench : #time_hash_map
