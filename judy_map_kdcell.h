@@ -167,7 +167,7 @@ public:
 	size_type size () const
 	{
 		// this function works sloooowly :(
-		return ::JudyLCount (m_judy, 0, -1, 0);
+		return ::JudyLCount (m_judy, 0, (Word_t) -1, 0);
 	}
 
 	hasher hash_funct () const
