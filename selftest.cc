@@ -555,6 +555,7 @@ void test (judyhash_type &ht, int num)
 	//           iterator::operator*() etc.
 	// finding "layout"
 	hash_iterator layout_iterator = ht.find ("layout");
+	assert (layout_iterator != ht.end ());
 	hash_iterator layout_next_iterator;
 	print_iterator ("ht", ht, layout_iterator);
 //	(*layout_iterator).second = 75;
