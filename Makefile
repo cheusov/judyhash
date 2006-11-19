@@ -7,32 +7,32 @@
 .PHONY : all
 all : selftest time_hash_map
 
-selftest.o : selftest.cc *.h judyarray/*.h
-	$(CXX) -o $@ $(CFLAGS_T) -c selftest.cc
+selftest.o : src_tools/selftest.cc *.h judyarray/*.h
+	$(CXX) -o $@ $(CFLAGS_T) -c src_tools/selftest.cc
 selftest : selftest.o hash_funcs.o
 	$(CXX) -o $@ $(LDFLAGS_T) $>
 
-memory_used.o : memory_used.cc
+memory_used.o : src_tools/memory_used.cc
 	$(CXX) -o $@ $(CFLAGS_O) -c $<
 
-sort_uniq : hash_funcs.o memory_used.o sort_uniq.cc 
+sort_uniq : hash_funcs.o memory_used.o src_tools/sort_uniq.cc
 	$(CXX) -o $@ $(CFLAGS_O) $(LDFLAGS_O) $>
 
-time_hash_map.o : time_hash_map.cc *.h judyarray/*.h
-	$(CXX) -o $@ $(CFLAGS_O) -c time_hash_map.cc
+time_hash_map.o : src_tools/time_hash_map.cc *.h judyarray/*.h
+	$(CXX) -o $@ $(CFLAGS_O) -c src_tools/time_hash_map.cc
 time_hash_map : time_hash_map.o slow_compare.o hash_funcs.o memory_used.o
 	$(CXX) -o $@ $(LDFLAGS_O) $>
 
-time_hash_map__debug.o : time_hash_map.cc *.h judyarray/*.h
-	$(CXX) -o $@ $(CFLAGS_T) -c time_hash_map.cc
+time_hash_map__debug.o : src_tools/time_hash_map.cc *.h judyarray/*.h
+	$(CXX) -o $@ $(CFLAGS_T) -c src_tools/time_hash_map.cc
 time_hash_map__debug : time_hash_map__debug.o slow_compare.o hash_funcs.o memory_used.o
 	$(CXX) -o $@ $(LDFLAGS_O) $>
 
-hash_funcs.o : hash_funcs.cc hash_funcs.h
-	$(CXX) -o $@ $(CFLAGS_O) -c hash_funcs.cc
+hash_funcs.o : src_tools/hash_funcs.cc src_tools/hash_funcs.h
+	$(CXX) -o $@ $(CFLAGS_O) -c src_tools/hash_funcs.cc
 
-slow_compare.o : slow_compare.cc
-	$(CXX) -o $@ $(CFLAGS_T) -DSLOW_LEVEL=$(SLOW_LEVEL) -c slow_compare.cc
+slow_compare.o : src_tools/slow_compare.cc
+	$(CXX) -o $@ $(CFLAGS_T) -DSLOW_LEVEL=$(SLOW_LEVEL) -c src_tools/slow_compare.cc
 
 .PHONY : clean
 clean:
