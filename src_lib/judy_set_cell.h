@@ -288,8 +288,7 @@ public:
 		if (!it.m_end){
 			erase (*it);
 		}else{
-			// Does nothing here.
-			// IMHO, it is much better than "undefined behaviour"
+			// Do nothing for cont.erase (cont.end ())
 		}
 	}
 

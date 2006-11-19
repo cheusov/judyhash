@@ -23,6 +23,7 @@
 #include <set>
 
 #include "judy_common.h"
+#include "judy_funcs_wrappers.h"
 
 #ifndef JUDYARRAY_HASH_MASK
 #define JUDYARRAY_HASH_MASK 0x00FFFFFF
@@ -207,7 +208,7 @@ public:
 		// Deleting object from JudyL cells
 		Word_t index = 0;
 		judyarray_union_type *pvalue
-			= (judyarray_union_type *) JudyLFirst (m_judy, &index, 0);
+			= (judyarray_union_type *) judyl_first (m_judy, &index);
 
 		while (pvalue){
 			if (pvalue -> m_judy_int & 1){
@@ -235,10 +236,10 @@ public:
 
 				deallocate (pvalue -> m_pointer);
 			}
-			pvalue = (judyarray_union_type *) JudyLNext (m_judy, &index, 0);
+			pvalue = (judyarray_union_type *) judyl_next (m_judy, &index);
 		}
 
-		::JudyLFreeArray (&m_judy, 0);
+		judyl_freearray (m_judy);
 #endif // JUDYARRAY_DEBUG
 
 		m_size = 0;
@@ -420,7 +421,7 @@ private:
 			m_pjudy = pjudy;
 
 			m_value.m_judy_ptr
-				= (PWord_t) JudyLFirst(*m_pjudy, &m_index, 0);
+				= (PWord_t) judyl_first (*m_pjudy, &m_index);
 
 			if (m_value.m_judy_ptr){
 				m_value.m_judy_int = *m_value.m_judy_ptr;
@@ -474,7 +475,7 @@ private:
 
 			if (goto_next_judy_cell){
 				m_value.m_judy_ptr
-					= (PWord_t) JudyLNext (*m_pjudy, &m_index, 0);
+					= (PWord_t) judyl_next (*m_pjudy, &m_index);
 
 				if (m_value.m_judy_ptr){
 					m_value.m_judy_int = *m_value.m_judy_ptr;
@@ -689,7 +690,7 @@ public:
 			if (lst -> empty ()){
 				delete lst;
 
-				::JudyLDel (&m_judy, it.m_it.m_index, 0);
+				judyl_del (m_judy, it.m_it.m_index);
 #ifdef JUDYARRAY_DEBUGINFO
 				m_debug_info.m_list_count -= 1;
 #endif
@@ -704,7 +705,7 @@ public:
 			m_debug_info.m_value_count -= 1;
 #endif
 
-			::JudyLDel (&m_judy, it.m_it.m_index, 0);
+			judyl_del (m_judy, it.m_it.m_index);
 		}
 	}
 
@@ -714,7 +715,7 @@ private:
 		unsigned long h = m_hash_func (key) & m_hash_mask;
 
 		judyarray_union_type *ptr
-			= (judyarray_union_type *) ::JudyLGet (m_judy, h, 0);
+			= (judyarray_union_type *) judyl_get (m_judy, h);
 
 		if (!ptr || !ptr -> m_judy_int){
 			return iterator ();
@@ -797,7 +798,7 @@ public:
 
 		Word_t h = m_hash_func (key) & m_hash_mask;
 		judyarray_union_type *ptr
-			= (judyarray_union_type *) ::JudyLIns (&m_judy, h, 0);
+			= (judyarray_union_type *) judyl_ins (m_judy, h);
 
 		assert (ptr);
 

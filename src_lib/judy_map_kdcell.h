@@ -117,7 +117,7 @@ public:
 #else // JUDYARRAY_DEBUG
 		// Much faster implementation
 
-		::JudyLFreeArray (&m_judy, 0);
+		judyl_freearray (m_judy);
 		m_judy = 0;
 #endif // JUDYARRAY_DEBUG
 
@@ -155,7 +155,7 @@ public:
 
 	size_type bucket_count () const
 	{
-		return ::JudyLCount (m_judy, 0, -1, 0);
+		return judyl_count (m_judy, 0, (Word_t) -1);
 	}
 
 	void swap (__this_type& a)
@@ -167,7 +167,7 @@ public:
 	size_type size () const
 	{
 		// this function works sloooowly :(
-		return ::JudyLCount (m_judy, 0, (Word_t) -1, 0);
+		return judyl_count (m_judy, 0, (Word_t) -1);
 	}
 
 	hasher hash_funct () const
@@ -237,7 +237,7 @@ public:
 			m_insdel_count = obj -> m_insdel_count;
 			m_end          = false;
 
-			m_pvalue = (PWord_t) ::JudyLFirst (m_obj -> m_judy, &m_index, 0);
+			m_pvalue = (PWord_t) judyl_first (m_obj -> m_judy, &m_index);
 
 			if (m_pvalue){
 				m_value  = * (data_type *) m_pvalue;
@@ -272,7 +272,7 @@ public:
 			if (m_obj -> m_insdel_count == m_insdel_count){
 				return value_type ((key_type) m_index, m_value);
 			}else{
-				m_pvalue = (PWord_t) ::JudyLGet (m_obj -> m_judy, m_index, 0);
+				m_pvalue = (PWord_t) judyl_get (m_obj -> m_judy, m_index);
 
 				assert (m_pvalue); // key was already removed
 
@@ -295,7 +295,7 @@ public:
 			if (m_obj -> m_insdel_count == m_insdel_count){
 				return value_type ((key_type) m_index, m_value);
 			}else{
-				data_type *p = (data_type *) ::JudyLGet (m_obj -> m_judy, m_index, 0);
+				data_type *p = (data_type *) judyl_get (m_obj -> m_judy, m_index);
 
 				assert (p); // key was already removed
 
@@ -307,7 +307,7 @@ public:
 		{
 			assert (!m_end);
 
-			m_pvalue = (PWord_t) ::JudyLNext (m_obj -> m_judy, &m_index, 0);
+			m_pvalue = (PWord_t) judyl_next (m_obj -> m_judy, &m_index);
 
 			if (m_pvalue){
 				m_value = * (data_type *) m_pvalue;
@@ -346,7 +346,7 @@ public:
 
 	void erase (key_type key)
 	{
-		if (JudyLDel (&m_judy, (Word_t) key, 0))
+		if (judyl_del (m_judy, (Word_t) key))
 			++m_insdel_count;
 	}
 
@@ -362,14 +362,13 @@ public:
 		if (!it.m_end){
 			erase ((key_type) it.m_index);
 		}else{
-			// Does nothing here.
-			// IMHO, it is much better than "undefined behaviour"
+			// Do nothing for cont.erase (cont.end())
 		}
 	}
 
 	const_iterator find (key_type key) const
 	{
-		PWord_t p = (PWord_t) ::JudyLGet (m_judy, (Word_t) key, 0);
+		PWord_t p = (PWord_t) judyl_get (m_judy, (Word_t) key);
 
 		if (p){
 			return iterator (this, (Word_t) key, p);
@@ -380,7 +379,7 @@ public:
 
 	iterator find (key_type key)
 	{
-		PWord_t p = (PWord_t) ::JudyLGet (m_judy, (Word_t) key, 0);
+		PWord_t p = (PWord_t) judyl_get (m_judy, (Word_t) key);
 
 		if (p){
 			return iterator (this, (Word_t) key, p);
@@ -391,12 +390,12 @@ public:
 
 	size_type count (const key_type& key) const
 	{
-		return ::JudyLCount (m_judy, (Word_t) key, (Word_t) key, 0);
+		return judyl_count (m_judy, (Word_t) key, (Word_t) key);
 	}
 
 	data_type &operator [] (key_type key)
 	{
-		PWord_t p = (PWord_t) ::JudyLIns (&m_judy, (Word_t) key, 0);
+		PWord_t p = (PWord_t) judyl_ins (m_judy, (Word_t) key);
 		assert (p);
 
 		++m_insdel_count;
@@ -409,10 +408,10 @@ public:
 		// Unfortunately JudyLIns doesn't return value
 		// which tells whether inserted value is new or not.
 		// So, operator [] can work twice (approximately) faster.
-		PWord_t p = (PWord_t) ::JudyLGet (m_judy, (Word_t) v.first, 0);
+		PWord_t p = (PWord_t) judyl_get (m_judy, (Word_t) v.first);
 
 		if (p == NULL){
-			p = (PWord_t) ::JudyLIns (&m_judy, (Word_t) v.first, 0);
+			p = (PWord_t) judyl_ins (m_judy, (Word_t) v.first);
 			assert (p);
 			*p = (Word_t) v.second;
 
