@@ -196,21 +196,21 @@ test : selftest
 bench: bench_size bench_size65599 bench_slowness
 
 .PHONY : bench_size
-bench_size.bench : #time_hash_map
+bench_size.bench : time_hash_map
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
 	./time_hash_map -n $${n} -t $${m} -s 0; \
 	done; \
 	done | tee $@
 .PHONY : bench_size65599
-bench_size65599.bench : #time_hash_map
+bench_size65599.bench : time_hash_map
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
 	./time_hash_map -n $${n} -t $${m} -s ${SLOW_LEVEL_DEF} -a 65599; \
 	done; \
 	done | tee $@
 .PHONY : bench_slowness
-bench_slowness.bench : #time_hash_map
+bench_slowness.bench : time_hash_map
 	for m in ${MAP_TYPES_UNI}; do \
 	for s in ${SLOW_LEVELS}; do \
 	./time_hash_map -n ${ITEMS_DEF} -t $${m} -s $${s}; \
@@ -222,12 +222,12 @@ bench_slowness.bench : #time_hash_map
 .for m in ${MAP_TYPES}
 bench_${b}_${t}.plot : bench_${b}_${m}_${t}.tmp
 bench_${b}_${m}_${t}.tmp : bench_${b}.bench
-	./bench2table_${b} ${m} ${t} < bench_${b}.bench > $@ && \
+	sh src_scripts/bench2table_${b} ${m} ${t} < bench_${b}.bench > $@ && \
 	test -s $@ || echo 0 0 >> $@
 .endfor # m
 bench_${b} : bench_${b}_${t}.png
 bench_${b}_${t}.plot :
-	./tables2plot ${b} ${t} $> > $@
+	sh src_scripts/tables2plot ${b} ${t} $> > $@
 bench_${b}_${t}.png : bench_${b}_${t}.plot
 	gnuplot bench_${b}_${t}.plot > $@
 .endfor # t
