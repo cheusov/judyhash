@@ -108,7 +108,7 @@ public:
 #else // JUDYARRAY_DEBUG
 		// Much faster implementation
 
-		::Judy1FreeArray (&m_judy, 0);
+		judy1_freearray (m_judy);
 		m_judy = 0;
 		m_size = 0;
 #endif // JUDYARRAY_DEBUG
@@ -206,7 +206,7 @@ public:
 			m_index (0),
 			m_end (false)
 		{
-			if (!::Judy1First (m_obj -> m_judy, &m_index, 0))
+			if (!judy1_first (m_obj -> m_judy, &m_index))
 				m_end = true;
 		}
 
@@ -237,7 +237,7 @@ public:
 		{
 			assert (!m_end);
 
-			if (!Judy1Next (m_obj -> m_judy, &m_index, 0)){
+			if (!judy1_next (m_obj -> m_judy, &m_index)){
 				m_end = true;
 			}
 
@@ -272,7 +272,7 @@ public:
 
 	void erase (key_type key)
 	{
-		if (::Judy1Unset (&m_judy, (Word_t) key, 0))
+		if (judy1_unset (m_judy, (Word_t) key))
 			--m_size;
 	}
 
@@ -294,7 +294,7 @@ public:
 
 	const_iterator find (key_type key) const
 	{
-		if (::Judy1Test (m_judy, (Word_t) key, 0)){
+		if (judy1_test (m_judy, (Word_t) key)){
 			return iterator (this, (Word_t) key);
 		}else{
 			return iterator ();
@@ -303,7 +303,7 @@ public:
 
 	iterator find (key_type key)
 	{
-		if (::Judy1Test (m_judy, (Word_t) key, 0)){
+		if (judy1_test (m_judy, (Word_t) key)){
 			return iterator (this, (Word_t) key);
 		}else{
 			return iterator ();
@@ -312,7 +312,7 @@ public:
 
 	size_type count (const key_type& key) const
 	{
-		if (::Judy1Test (m_judy, (Word_t) key, 0))
+		if (judy1_test (m_judy, (Word_t) key))
 			return 1;
 		else
 			return 0;
@@ -320,7 +320,7 @@ public:
 
 	std::pair <iterator, bool> insert (key_type key)
 	{
-		if (::Judy1Set (&m_judy, (Word_t) key, 0)){
+		if (judy1_set (m_judy, (Word_t) key)){
 			++m_size;
 			return std::make_pair (iterator (this, (Word_t) key), true);
 		}else{
