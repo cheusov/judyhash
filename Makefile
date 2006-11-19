@@ -232,3 +232,23 @@ bench_${b}_${t}.png : bench_${b}_${t}.plot
 	gnuplot bench_${b}_${t}.plot > $@
 .endfor # t
 .endfor # b
+
+src_files1=judy_map.h judy_map_kdcell.h judy_map_l.h judy_map_m.h \
+   judy_map_vcell.h judy_set.h judy_set_cell.h judy_set_l.h judy_set_m.h
+src_files2= \
+   judyarray/judy_common.h judyarray/judy_map_common.h \
+   judyarray/judy_mapset_common.h judyarray/judy_mapset_list.h \
+   judyarray/judy_mapset_map.h judyarray/judy_mapset_vcell_common.h \
+   judyarray/judy_set_common.h
+
+include_dir=${DESTDIR}/${PREFIX}/include
+.PHONY : install uninstall
+install :
+	cd src_lib && \
+	${INSTALL_DIR} ${include_dir} ${include_dir}/judyarray && \
+	${INSTALL_FILE} ${src_files1} ${include_dir} && \
+	${INSTALL_FILE} ${src_files2} ${include_dir}/judyarray
+uninstall :
+.for f in ${src_files2} ${src_files1}
+	rm -f ${include_dir}/${f}
+.endfor
