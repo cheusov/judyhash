@@ -90,3 +90,10 @@ this library, only C++ headers files are installed by
 'make install'
 
 command
+
+BENCHMARKING
+================
+
+Edit Makefile.bench and then run the following
+
+'make bench'
