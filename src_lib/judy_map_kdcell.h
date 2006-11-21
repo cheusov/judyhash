@@ -187,7 +187,7 @@ public:
 
 	class iterator {
 	private:
-		friend class __this_type;
+		friend class judy_map_kdcell <TKey, TData, THashFunc, TEqualFunc, TAllocator>;
 
 	public:
 		__JUDYARRAY_TYPEDEFS(__this_type);

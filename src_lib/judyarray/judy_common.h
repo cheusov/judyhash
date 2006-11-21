@@ -66,7 +66,7 @@ public:
 		m_pointer = NULL;
 	}
 
-	judy_reference (const judy_reference &)
+	judy_reference (const judy_reference &a)
 	{
 		m_pointer = a.m_pointer;
 	}

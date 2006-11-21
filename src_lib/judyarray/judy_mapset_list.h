@@ -46,8 +46,8 @@ public:
 
 		iterator find (const TKey &key)
 		{
-			iterator b = begin ();
-			iterator e = end ();
+			iterator b = this -> begin ();
+			iterator e = this -> end ();
 
 			for (; !(b == e); ++b){
 				if (m_eq_func (TTraits::value2key (**b), key)){
@@ -60,8 +60,8 @@ public:
 
 		std::pair <iterator, bool> insert (const value_type& v)
 		{
-			const iterator e = end ();
-			const iterator f = find (TTraits::value2key(*v));
+			const iterator e = this -> end ();
+			const iterator f = this -> find (TTraits::value2key(*v));
 
 			if (e == f){
 				return std::make_pair (
