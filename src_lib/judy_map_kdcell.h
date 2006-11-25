@@ -19,16 +19,11 @@
 
 #include "judyarray/judy_common.h"
 
-template <
-	typename TKey,
-	typename TData,
-	typename THashFunc  = __judy_always_zero,
-	typename TEqualFunc = std::equal_to <TKey>,
-	typename TAllocator = std::allocator <std::pair <TKey, TData> > >
+template <typename TKey, typename TData>
 //<std::pair <const TKey, judy_reference <TData> > > >
 class judy_map_kdcell {
 private:
-	typedef judy_map_kdcell <TKey, TData, THashFunc, TEqualFunc, TAllocator> __this_type;
+	typedef judy_map_kdcell <TKey, TData> __this_type;
 
 
 	Pvoid_t              m_judy;
@@ -51,10 +46,6 @@ public:
 	typedef size_t                    size_type;
 	typedef ptrdiff_t                 difference_type;
 
-	typedef THashFunc                 hasher;
-	typedef TEqualFunc                key_equal;
-	typedef TAllocator                allocator_type;
-
 	// ???
 	typedef value_type *              pointer;
 	typedef const value_type *        const_pointer;
@@ -70,23 +61,8 @@ public:
 		m_insdel_count = 0;
 	}
 
-	judy_map_kdcell (
-		size_type n,
-		const hasher&, 
-		const key_equal&,
-		const allocator_type&)
-	{
-		m_judy         = 0;
-		m_insdel_count = 0;
-	}
-
 	template <class Tit>
-	judy_map_kdcell (
-		Tit beg, Tit end,
-		size_type = 0,
-		const hasher& = hasher (), 
-		const key_equal& = key_equal (),
-		const allocator_type& = allocator_type ())
+	judy_map_kdcell (Tit beg, Tit end)
 	{
 		m_judy         = 0;
 		m_insdel_count = 0;
@@ -170,16 +146,6 @@ public:
 		return judyl_count (m_judy, 0, (Word_t) -1);
 	}
 
-	hasher hash_funct () const
-	{
-		return hasher ();
-	}
-
-	key_equal key_eq () const
-	{
-		return key_equal ();
-	}
-
 	size_type max_size () const
 	{
 		return size_type (-1);
@@ -187,7 +153,7 @@ public:
 
 	class iterator {
 	private:
-		friend class judy_map_kdcell <TKey, TData, THashFunc, TEqualFunc, TAllocator>;
+		friend class judy_map_kdcell <TKey, TData>;
 
 	public:
 		__JUDYARRAY_TYPEDEFS(__this_type);

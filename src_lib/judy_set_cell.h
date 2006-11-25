@@ -17,17 +17,13 @@
 
 #include "judyarray/judy_common.h"
 
-template <
-	typename TKey,
-	typename THashFunc  = __judy_always_zero,
-	typename TEqualFunc = std::equal_to <TKey>,
-	typename TAllocator = std::allocator < TKey> >
+template <typename TKey>
 class judy_set_cell {
 private:
 	Pvoid_t              m_judy;
 	size_t               m_size;
 
-	typedef judy_set_cell <TKey, THashFunc, TEqualFunc, TAllocator> __this_type;
+	typedef judy_set_cell <TKey> __this_type;
 
 // types
 public:
@@ -38,10 +34,6 @@ public:
 
 	typedef size_t                    size_type;
 	typedef ptrdiff_t                 difference_type;
-
-	typedef THashFunc                 hasher;
-	typedef TEqualFunc                key_equal;
-	typedef TAllocator                allocator_type;
 
 	// I know about proxies, but I don't think they are really
 	// necessary in the class implemeting a set.
@@ -59,24 +51,8 @@ public:
 		m_size = 0;
 	}
 
-	judy_set_cell (
-		size_type n,
-		const hasher&, 
-		const key_equal&,
-		const allocator_type&)
-	{
-		m_judy = 0;
-		m_size = 0;
-	}
-
 	template <class Tit>
-	judy_set_cell (
-		Tit beg, Tit end,
-		size_type = 0,
-		const hasher& = hasher (), 
-		const key_equal& = key_equal (),
-		const allocator_type& = allocator_type ())
-	{
+	judy_set_cell (Tit beg, Tit end){
 		m_judy = 0;
 		m_size = 0;
 
@@ -88,7 +64,6 @@ public:
 		m_judy (0),
 		m_size (0)
 	{
-		// optimize me!!!
 		insert (a.begin (), a.end ());
 	}
 
@@ -157,16 +132,6 @@ public:
 	size_type size () const
 	{
 		return m_size;
-	}
-
-	hasher hash_funct () const
-	{
-		return hasher ();
-	}
-
-	key_equal key_eq () const
-	{
-		return key_equal ();
 	}
 
 	size_type max_size () const
