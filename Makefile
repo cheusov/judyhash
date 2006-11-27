@@ -210,7 +210,7 @@ bench_size65599.bench : time_hash_map
 	done; \
 	done | tee $@
 .PHONY : bench_size65599_32bit
-bench_size65599_32bit.bench : #time_hash_map
+bench_size65599_32bit.bench : time_hash_map
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
 	./time_hash_map -n $${n} -t $${m} -s ${SLOW_LEVEL_DEF} -a 65599 -m FFFFFFFF; \
@@ -259,3 +259,20 @@ uninstall :
 .for f in ${src_files2} ${src_files1}
 	rm -f ${include_dir}/${f}
 .endfor
+
+bench.html : bench_size_find-absent.png
+	m4 -DTABLE_NAME='size_find_absent' -DFIGURE_NUM='Figure: 1' \
+	   -DCAPTION='find() an element that is absent in array' \
+	   -DIMG_SRC='bench_size_find-absent.png' \
+	  <src_scripts/table_png.m4 >bench.html && \
+	m4 -DTABLE_NAME='size_find_absent' -DFIGURE_NUM='Figure: 1' \
+	   -DCAPTION='find() an element that is absent in array' \
+	   -DIMG_SRC='bench_size_find-absent.png' \
+	  <src_scripts/table_png.m4 >bench.html && \
+
+.PHONY : list_all
+list_all :
+
+.PHONY: show-var
+show-var:
+	@echo ${${VARNAME}}
