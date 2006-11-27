@@ -6,8 +6,9 @@
 #include <string>
 #include <vector>
 #include <string>
-//#include <utility>
+#ifndef NO_BOOST
 #include <pool/pool_alloc.hpp>
+#endif
 #include <map>
 #include <set>
 #include <sstream>
@@ -61,6 +62,14 @@ public:
 		assert (count == 1);
 	}
 };
+
+#ifdef NO_BOOST
+namespace boost {
+template <typename T>
+class fast_pool_allocator : public my_pool <T> {
+};
+};
+#endif
 
 typedef hashfunc_random hsh_string_hash0;
 
