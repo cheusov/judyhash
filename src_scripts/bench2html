@@ -19,7 +19,7 @@ done
 
 rm -f bench.html
 
-for t in size slowness; do
+for t in size65599 size slowness; do
     awk '
     BEGIN {
         while (getline op < "list.1.tmp" && getline capt < "list.2.tmp"){
