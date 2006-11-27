@@ -116,6 +116,9 @@ limitations| -       | 0==1&(maxint_t)m_alloc.allocate(1)   |
 INSTALL
 ================
 
+NOTE! BSD make programs is required!!!
+Under Linux you can probably find it under pmake name.
+
 Edit manually Makefile.config file for your preferences
 
 After editing Makefile.config you may want to test the library.
