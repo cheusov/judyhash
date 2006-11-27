@@ -1,0 +1,40 @@
+#!/bin/sh
+
+cat > list.2.tmp <<EOF
+insert() new element (memory usage)
+insert() new element
+insert() new element with prediction of the hash table size
+insert() an element that was already inserted
+find() an element that was NOT inserted
+find() an element that WAS already inserted
+erase() an element that was NOT inserted
+erase() an element that WAS already inserted
+iteration through all elements
+EOF
+
+rm list.1.tmp
+for i in `make show-var VARNAME=TEST_TYPES`; do
+    echo $i >> list.1.tmp
+done
+
+rm -f bench.html
+
+for t in size slowness; do
+    awk '
+    BEGIN {
+        while (getline op < "list.1.tmp" && getline capt < "list.2.tmp"){
+            print op, capt
+        }
+    }' |
+    (
+	while read op capt; do
+	    num=$(($num+1))
+	    op2=`echo $op | tr - _`
+	    m4 -DTABLE_NAME="size_$op2" -DFIGURE_NUM="Figure: $num" \
+		-DCAPTION="$capt" \
+		-DIMG_SRC="bench_${t}_$op.png" \
+		< src_scripts/table_png.m4 >> bench.html
+	done
+    )
+done
+
