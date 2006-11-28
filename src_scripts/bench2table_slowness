@@ -10,13 +10,17 @@ shift
 test_type="$1"
 shift
 
-awk -v map_type="$map_type" -v test_type="$test_type" '
+nawk -v map_type="$map_type" -v test_type="$test_type" '
+BEGIN {
+   skip = 0
+}
+
 NF == 0 {
    skip = 0
    next
 }
 
-skip {
+skip != 0 {
    next
 }
 
