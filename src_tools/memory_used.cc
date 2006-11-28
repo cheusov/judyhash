@@ -6,10 +6,13 @@
 
 unsigned memory_used ()
 {
-#if defined(__NetBSD__)
+#if defined(__NetBSD__) || defined(sun)
 	char path [200];
+#if defined(__NetBSD__)
 	snprintf (path, sizeof (path), "/proc/%d/mem", (int) getpid ());
-
+#else
+	snprintf (path, sizeof (path), "/proc/%d/as", (int) getpid ());
+#endif
 	struct stat sb;
 	if (stat (path, &sb)){
 		fprintf (stderr, "Cannot obtain amount of occupied memory from %s\n", path);
