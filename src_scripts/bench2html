@@ -33,7 +33,7 @@ for t in size65599 size slowness; do
 	    m4 -DTABLE_NAME="size_$op2" -DFIGURE_NUM="Figure: $num" \
 		-DCAPTION="$capt" \
 		-DIMG_SRC="bench_${t}_$op.png" \
-		< src_scripts/table_png.m4 >> bench.html
+		< src_scripts/table_png.m4 >> bench_"$t".html
 	done
     )
 done

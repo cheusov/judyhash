@@ -1,44 +1,42 @@
 OVERVIEW
 ================
 
-The libjudyhash project provides several hash map (and set)
+The judyhash project http://sourceforge/projects/judyhash
+provides several hash map (and set)
 implementations based on Judy array (http://sourceforge.net/projects/judy).
-All these maps and sets are implemented using C++ language
+All these maps and sets are implemented using C++ programming language
 and have an API similar to that of SGI STL's hash_map
 (or std::unordered_map) and STL classes.
-
-libjudyhash sources are available at
-http://mova.org/~cheusov/pub/libjudyhash/
 
 FEATURES
 ================
 
-libjudyhash project provides the following classes
+judyhash project provides the following classes
 
-judy_set_l    - A set similar to std::set
-judy_set_m    - Similar to judy_set_l but uses a bit different algorithm
-judy_set_cell - A set of of keys of integer type or pointer types
-                (sizeof which is less of equal than JudyL's Word_t)
-judy_map_l    - Associative array similar to std::map
-                and SGI STL's std::hash_map
-judy_map_m    - Similar to judy_map_l but with a bit different algorithm
-judy_map_cell - Associative array. Both key and data are of integer or
-                of pointer type.
+a) judy_set_l    A set similar to std::set
+b) judy_set_m    Similar to judy_set_l but uses a bit different algorithm
+c) judy_set_cell A set of of keys of integer type or pointer types
+                   (sizeof which is less of equal than JudyL's Word_t)
+d) judy_map_l    Associative array similar to std::map
+                   and SGI STL's std::hash_map
+e) judy_map_m    Similar to judy_map_l but with a bit different algorithm
+f) judy_map_cell Associative array. Both key and data are of integer or
+                   of pointer type.
 
 INCLUDES
 ================
 
-judy_map.h           - All classes for associative arrays
-  judy_map_kdcell.h  - judy_map_kdcell class only
-  judy_map_l.h       - judy_map_l class only
-  judy_map_m.h       - judy_map_m class only
-judy_set.h           - All classes for sets
-  judy_set_cell.h    - judy_set_cell class only
-  judy_set_l.h       - judy_set_l class only
-  judy_set_m.h       - judy_set_m class only
+1) judy_map.h           All classes for associative arrays
+  a) judy_map_kdcell.h    judy_map_kdcell class only
+  b) judy_map_l.h         judy_map_l class only
+  c) judy_map_m.h         judy_map_m class only
+2) judy_set.h           All classes for sets
+  a) judy_set_cell.h      judy_set_cell class only
+  b) judy_set_l.h         judy_set_l class only
+  c) judy_set_m.h         judy_set_m class only
 
 ALGORITHMS AND COMPLEXITY
-=========================
+================
 
 In traditional hash tables linear array is used for mapping
 a hash value to an element, most often by making modulo operation
@@ -48,7 +46,7 @@ Traditional hash tables has two main problems:
    and decreasing when only a few has table cells are actually used;
 2) collisions.
 
-Instead of linear array, libjudyhash classes
+Instead of linear array, judyhash classes
 use a JudyL set of functions from Judy library (See url below).
 JudyL implements a high-performance map from an integer type to a pointer type
 (actually a map from Word_t to Word_t which is capable
@@ -116,28 +114,27 @@ limitations| -       | 0==1&(maxint_t)m_alloc.allocate(1)   |
 INSTALL
 ================
 
-NOTE! BSD make programs is required!!!
-Under Linux you can probably find it under pmake name.
-
-Edit manually Makefile.config file for your preferences
-
-After editing Makefile.config you may want to test the library.
-Run the following for this
-
-'make test'
-
-Note that some libraries should be properly installed
-(and configured in Makefile.config) for this to work.
+NOTE! BSD make program is required!!!
+Under Linux you can probably find it under name 'pmake'.
 
 There is nothing to be built for installing
 this library, only C++ headers files are installed by
 
 'make install'
 
+You can also test judyhash library.
+Edit manually Makefile.config file for your preferences
+for this and then run
+
+'make test'
+
+Note that some libraries should be properly installed
+(and configured in Makefile.config) for this to work.
+
 BENCHMARKING
 ================
 
-Edit Makefile.bench and then run the following
+Edit Makefile.bench, read Makefile carefully and then run the following
 
 'make bench'
 
