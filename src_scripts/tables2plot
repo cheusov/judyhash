@@ -19,10 +19,10 @@ fi
 printf "plot "
 
 cnt=0
-for i; do
+for i in "$@"; do
     j=`echo ${i} | sed -e 's/^bench_'"$bench_type"'_//' -e 's/_[^_]*[.]tmp$//'`
     test $cnt = 0 || printf ,
     printf "%s" " \"${i}\" title \"${j}\" with linespoints"
-    cnt=$(($cnt+1))
+    cnt=`echo $cnt+1 | bc`
 done
 printf '\n'
