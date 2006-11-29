@@ -1,15 +1,15 @@
 OVERVIEW
-================
+==========
 
-The judyhash project http://sourceforge/projects/judyhash
+The judyhash project http://judyhash.sourceforge.net
 provides several hash map (and set)
-implementations based on Judy array (http://sourceforge.net/projects/judy).
+implementations based on Judy array (http://judy.sourceforge.net).
 All these maps and sets are implemented using C++ programming language
 and have an API similar to that of SGI STL's hash_map
 (or std::unordered_map) and STL classes.
 
 FEATURES
-================
+==========
 
 judyhash project provides the following classes
 
@@ -24,7 +24,7 @@ f) judy_map_cell Associative array. Both key and data are of integer or
                    of pointer type.
 
 INCLUDES
-================
+==========
 
 1) judy_map.h           All classes for associative arrays
   a) judy_map_kdcell.h    judy_map_kdcell class only
@@ -36,7 +36,7 @@ INCLUDES
   c) judy_set_m.h         judy_set_m class only
 
 ALGORITHMS AND COMPLEXITY
-================
+==========
 
 In traditional hash tables linear array is used for mapping
 a hash value to an element, most often by making modulo operation
@@ -111,7 +111,7 @@ limitations| -       | 0==1&(maxint_t)m_alloc.allocate(1)   |
 
 
 INSTALL
-================
+==========
 
 NOTE! BSD make program is required!!!
 Under Linux you can probably find it under the name 'pmake'.
@@ -120,6 +120,9 @@ There is nothing to be built for installing
 this library, only C++ header files are installed by
 
 'make install'
+
+Of course, you can install all header files manually,
+they are in src_lib directory.
 
 You can also test judyhash library.
 For this, edit manually Makefile.config file for your preferences
@@ -131,13 +134,16 @@ Note that some libraries should be properly installed
 (and configured in Makefile.config) for this to work.
 
 BENCHMARKING
-================
+==========
+
+Benchmarks for several platforms are available
+here http://judyhash.sourceforge.net/benchmark
 
 Edit Makefile.bench, read Makefile carefully and then run the following
 
 'make bench'
 
 CONCLUSION
-================
+==========
 An associative array of type (integer -> pointer) is one of the most important
 data structure that ever exists ;-)
