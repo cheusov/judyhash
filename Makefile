@@ -193,31 +193,38 @@ test : selftest
 	true
 
 .PHONY : bench
-bench: bench_size bench_size65599 bench_size65599_32bit bench_slowness
+bench: 
+	${MAKE} time_hash_map && \
+	${MAKE} bench_size bench_size65599 \
+	        bench_size65599_32bit bench_slowness
 
 .PHONY : bench_size
-bench_size.bench : time_hash_map
+bench_size : bench_size.bench
+bench_size.bench :
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
 	./time_hash_map -n $${n} -t $${m} -s 0; \
 	done; \
 	done | tee $@
 .PHONY : bench_size65599
-bench_size65599.bench : time_hash_map
+bench_size65599 : bench_size65599.bench
+bench_size65599.bench :
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
 	./time_hash_map -n $${n} -t $${m} -s ${SLOW_LEVEL_DEF} -a 65599; \
 	done; \
 	done | tee $@
 .PHONY : bench_size65599_32bit
-bench_size65599_32bit.bench : time_hash_map
+bench_size65599_32bit : bench_size65599_32bit.bench
+bench_size65599_32bit.bench :
 	for m in ${MAP_TYPES}; do \
 	for n in ${ITEMS}; do \
 	./time_hash_map -n $${n} -t $${m} -s ${SLOW_LEVEL_DEF} -a 65599 -m FFFFFFFF; \
 	done; \
 	done | tee $@
 .PHONY : bench_slowness
-bench_slowness.bench : time_hash_map
+bench_slowness : bench_slowness.bench
+bench_slowness.bench :
 	for m in ${MAP_TYPES_UNI}; do \
 	for s in ${SLOW_LEVELS}; do \
 	./time_hash_map -n ${ITEMS_DEF} -t $${m} -s $${s}; \
