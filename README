@@ -74,7 +74,6 @@ and therefore the type of key should be integer or pointer.
 
 TTX: ;-)
 
----------------------------------------------------------------------------
            |         |          |                           |
            | SGI's   |judy_map_l|judy_map_m                 |judy_map_kdcell
            | hash_map|judy_set_l|judy_set_m                 |judy_set_cell
@@ -109,22 +108,22 @@ smooth     | no      | yes      | yes                       | yes
 resizing   |         |          |                           |
 ---------------------------------------------------------------------------
 limitations| -       | 0==1&(maxint_t)m_alloc.allocate(1)   |
----------------------------------------------------------------------------
+
 
 INSTALL
 ================
 
 NOTE! BSD make program is required!!!
-Under Linux you can probably find it under name 'pmake'.
+Under Linux you can probably find it under the name 'pmake'.
 
 There is nothing to be built for installing
-this library, only C++ headers files are installed by
+this library, only C++ header files are installed by
 
 'make install'
 
 You can also test judyhash library.
-Edit manually Makefile.config file for your preferences
-for this and then run
+For this, edit manually Makefile.config file for your preferences
+and then run
 
 'make test'
 
