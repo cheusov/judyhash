@@ -1,0 +1,24 @@
+Key is of 'int' type in all benchmarks.
+
+bench_size) This test is artificial and
+       is actually about how fast is judy_map_kdcell (and JudyL functions).
+
+  a) Hash function is Identity function, i.e. hash_func(k) = k
+  b) Key compare function is as fast as it is possible, i.e.
+     bool operator < (int, int)
+  c) X-axis is a number of elements in array
+
+bench_size65599) Much more real test with real hash function
+       and compare function close to real one
+
+  a) Hash function is "polynom 65599" (Look at the source code ;-) )
+  b) Key compare function is slower than in 'bench_size'
+     but is not very slow (slowness_level=SLOW_LEVEL_DEF)
+  c) X-axis is a number of elements in array
+
+bench_slowness) This benchmark is about how performance is changed
+       in case of sloooow key comparing function.
+
+  a) Hash function is "polynom 65599" as in 'bench_size65599'
+  b) ITEMS_DEF elements in array
+  c) X-axis is a slowness of the key comparing function
