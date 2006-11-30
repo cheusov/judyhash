@@ -838,10 +838,10 @@ void test_two_sets (std::set <int> &set1, T &set2)
 	int rand_value_count = 100000;
 
 	for (int i=0; i < probs_count; ++i){
-		long v = random () % rand_value_count;
+		long v = rand () % rand_value_count;
 		int threshold = int (rand_value_count * i / probs_count);
 
-		if (random () > threshold){
+		if (rand () > threshold){
 			set1.insert (v);
 			set2.insert (v);
 		}else{
@@ -879,10 +879,10 @@ void test_two_maps (std::map <int, int> &map1, T &map2)
 	int rand_value_count = 100000;
 
 	for (int i=0; i < probs_count; ++i){
-		long v = random () % rand_value_count;
+		long v = rand () % rand_value_count;
 		int threshold = int (rand_value_count * i / probs_count);
 
-		if (random () > threshold){
+		if (rand () > threshold){
 			map1.insert (std::make_pair (v, i));
 			map2.insert (std::make_pair (v, i));
 		}else{
@@ -907,7 +907,7 @@ struct judy_test_hash_eq {
 int main (int argc, const char **argv)
 {
 	--argc, ++argv;
-	srandom (time (NULL));
+	srand (time (NULL));
 
 	// test for constructor
 	mapl_6 ht777 (
