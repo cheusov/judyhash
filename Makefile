@@ -227,7 +227,7 @@ bench_slowness : bench_slowness.bench
 bench_slowness.bench :
 	for m in ${MAP_TYPES_UNI}; do \
 	for s in ${SLOW_LEVELS}; do \
-	./time_hash_map -n ${ITEMS_DEF} -t $${m} -s $${s}; \
+	./time_hash_map -n ${ITEMS_DEF} -t $${m} -s $${s} -a 65599; \
 	done; \
 	done | tee $@
 
