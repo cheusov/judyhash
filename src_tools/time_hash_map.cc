@@ -524,18 +524,28 @@ static void time_map_iterate(int iters) {
 
 template<class MapType>
 static void measure_map(int iters) {
+	// 1
 	time_map_add_absent           <MapType> (iters);
 	time_map_add_absent_predict <MapType> (iters);
 	time_map_add_present       <MapType> (iters);
-	time_map_find_present     <MapType> (iters);
+
+	// 2
 	// sparse_hash_map disabled because its find-absent operation is
 	// extreeeemly slow
 	if (mt_sparse != map_type){
 		time_map_find_absent <MapType> (iters);
+	}
+	time_map_find_present     <MapType> (iters);
+
+	// 3
+	if (mt_sparse != map_type){
 		time_map_remove_absent <MapType> (iters);
 	}
 	time_map_remove_present <MapType> (iters);
+
+	// 4
 	time_map_iterate <MapType> (iters);
+
 	printf ("\n");
 }
 
