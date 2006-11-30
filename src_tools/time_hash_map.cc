@@ -36,12 +36,18 @@
 //
 // Time various hash map implementations
 
+#ifdef _WIN32
+#include <getopt.h>
+#endif
+
 #include <google/sparsehash/config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include <sys/stat.h>
 
 extern "C" {
@@ -67,6 +73,29 @@ extern "C" {
 #include "judy_map_kdcell.h"
 #include "hash_funcs.h"
 
+#ifdef NO_HASH_MAP
+template <typename T>
+size_t hash_func (const T&) { return 0; }
+template <
+  typename K, typename D,
+  typename H = hash_func <K>, typename E = std::equal_to <K>,
+  typename A = std::allocator <D>
+>
+class hash_map {
+public:
+  hash_map ()
+  {
+  }
+  void resize (size_t )
+  {
+  }
+};
+#ifdef HASH_NAMESPACE
+#undef HASH_NAMESPACE
+#define HASH_NAMESPACE
+#endif
+
+#else
 // hash_map
 #ifndef _STLP_BEGIN_NAMESPACE
    // not stlport
@@ -91,8 +120,12 @@ extern "C" {
 #  define HASH_NAMESPACE std
 #  include <hash_map>
 #endif
+#endif
 
+#ifndef NO_HASH_MAP
 using HASH_NAMESPACE::hash_map;
+#endif
+
 using GOOGLE_NAMESPACE::sparse_hash_map;
 using GOOGLE_NAMESPACE::dense_hash_map;
 using STL_NAMESPACE::map;
@@ -417,7 +450,7 @@ static void time_map_find_base(int iters, int offs, const char *msg) {
 
 	const typename MapType::iterator e = set.end();
 	for (i = 0; i < iters; i++) {
-		r ^= (set.find(offs+i) != e);
+		r ^= (int) (set.find(offs+i) != e);
 	}
 	double ut = t.UserTime();
 
@@ -540,12 +573,13 @@ void measure_all_maps (int n)
 			measure_map< judy_map_kdcell<int, int> >(n);
 			break;
 
+#ifndef NO_HASH_MAP
 		case mt_hash:
 			printf("hash_map ( %d iterations , slowness level %d ):\n",
 				   n, slowness_level);
 			measure_map< hash_map<int, int, Hash, Equal> >(n);
 			break;
-
+#endif
 		case mt_map:
 			printf("map ( %d iterations , slowness level %d ):\n",
 				   n, slowness_level);
