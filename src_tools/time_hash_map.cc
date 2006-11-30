@@ -75,9 +75,15 @@ extern "C" {
 #    define HASH_NAMESPACE __gnu_cxx
 #    include <ext/hash_map>
 #  else
+#   ifdef _MSC_VER
+#    undef HASH_NAMESPACE
+#    define HASH_NAMESPACE stdext
+#    include <hash_map>
+#   else
 #    undef HASH_NAMESPACE
 #    define HASH_NAMESPACE std
 #    include <ext/hash_map>
+#   endif
 #  endif
 #else
    // stlport
