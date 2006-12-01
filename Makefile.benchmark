@@ -10,6 +10,8 @@ TEST_TYPES=\
    remove-absent \
    remove-present \
    iterate
+BENCH_TYPES=bench_size bench_size65599 bench_size65599_32bit \
+   bench_slowness bench_masks
 TEST_CAPTION=\
    'insert() new element to array (memory usage)' \
    'insert() new element to array' \
@@ -25,3 +27,4 @@ ITEMS=50000 100000 150000 200000 250000 300000 350000 400000 450000 500000 55000
 ITEMS_DEF=500000
 SLOW_LEVELS=0 2 4 8 16 32 64 128 256
 SLOW_LEVEL_DEF=10
+MASKS=FFFFFFFF CFFFFFFF FFFFFFF CFFFFFF FFFFFF

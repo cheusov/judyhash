@@ -566,13 +566,13 @@ void measure_all_maps (int n)
 			break;
 
 		case mt_judy_l:
-			printf("judy_map_l ( %d iterations , slowness level %d , mask %x ):\n",
+			printf("judy_map_l ( %d iterations , slowness level %d , mask %X ):\n",
 				   n, slowness_level, hash_mask);
 			measure_map< judy_map_l<int, int, Hash, Equal> >(n);
 			break;
 
 		case mt_judy_m:
-			printf("judy_map_m ( %d iterations , slowness level %d , mask %x ):\n",
+			printf("judy_map_m ( %d iterations , slowness level %d , mask %X ):\n",
 				   n, slowness_level, hash_mask);
 			measure_map< judy_map_m<int, int, Hash, Less, Equal> >(n);
 			break;
