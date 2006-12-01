@@ -18,7 +18,7 @@
 #include <string>
 
 // multinomial
-template <int M>
+template <unsigned M>
 struct hashfunc_poly {
 	size_t operator () (const char *key) const
 	{
