@@ -10,10 +10,10 @@ all : selftest time_hash_map
 selftest.o : src_tools/selftest.cc *.h judyarray/*.h
 	$(CXX) -o $@ $(CFLAGS_T) -c src_tools/selftest.cc
 selftest : selftest.o hash_funcs.o
-	$(CXX) -o $@ $(LDFLAGS_T) $>
+	$(CXX) -o $@ $> $(LDFLAGS_T)
 
 memory_used.o : src_tools/memory_used.cc
-	$(CXX) -o $@ $(CFLAGS_O) -c $<
+	$(CXX) -o $@ $(CFLAGS_O) -c $>
 
 sort_uniq : hash_funcs.o memory_used.o src_tools/sort_uniq.cc
 	$(CXX) -o $@ $(CFLAGS_O) $(LDFLAGS_O) $>
