@@ -26,7 +26,7 @@
 #include "judy_funcs_wrappers.h"
 
 #ifndef JUDYARRAY_HASH_MASK
-#define JUDYARRAY_HASH_MASK 0x00FFFFFF
+#define JUDYARRAY_HASH_MASK 0xFFFFFFFF
 #endif
 
 template <
