@@ -419,7 +419,6 @@ template<class MapType>
 static void time_map_add_present(int iters) {
 	MapType set;
 	Rusage t;
-	int i;
 
 	SET_EMPTY_KEY(set, -2);
 	SET_HASH_MASK(set, hash_mask);
@@ -503,7 +502,6 @@ template<class MapType>
 static void time_map_iterate(int iters) {
 	MapType set;
 	Rusage t;
-	int i;
 
 	SET_EMPTY_KEY(set, -2);
 	SET_HASH_MASK(set, hash_mask);
