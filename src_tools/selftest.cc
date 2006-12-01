@@ -799,7 +799,7 @@ void test_set_int (set_type& obj, size_t probs)
 	time (&time_start);
 
 
-	for (int i=0; i < probs; ++i){
+	for (size_t i=0; i < probs; ++i){
 		obj.insert (i);
 	}
 
