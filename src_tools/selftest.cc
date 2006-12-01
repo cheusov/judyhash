@@ -502,6 +502,7 @@ void test (judyhash_type &ht, int num)
 	judyhash_type ht2 (
 		init_values,
 		init_values + sizeof (init_values)/sizeof (init_values [0]));
+	assert (ht.find ("layout") != ht.end ());
 	print_hash_it (ht2, "ht2 initial");
 
 	// test for operator =, erase, insert, operator []
@@ -715,6 +716,7 @@ void test_set (judyhash_type &ht, int num)
 	print_hash_const_it (ht, "ht before finding \"layout\"");
 	hash_iterator layout_iterator;
 	layout_iterator = ht.find ("layout");
+	assert (layout_iterator != ht.end ());
 	hash_iterator layout_next_iterator;
 	print_iterator ("ht", ht, layout_iterator);
 //	(*layout_iterator).second = 75;
@@ -825,9 +827,19 @@ template <typename T1, typename T2>
 void check_sequences (T1 b1, T1 e1, T2 b2, T2 e2)
 {
 	if (!sequences_are_equal (b1, e1, b2, e2)){
-		std::cerr << "Please, send a bug report to vle@gmx.net.";
+		std::cerr << "Test failed. Please, send a bug report to vle@gmx.net.";
 		exit (10);
 	}
+}
+
+template <typename T>
+void check_set (
+	const std::set <int> &m1,
+	const T& m2)
+{
+	std::set <int> m3 (m2.begin (), m2.end ());
+
+	check_sequences (m1.begin (), m1.end (), m3.begin (), m3.end ());
 }
 
 template <typename T>
@@ -851,14 +863,11 @@ void test_two_sets (std::set <int> &set1, T &set2)
 
 		if (0 == (i % (probs_count / print_count))){
 //			std::cerr << "theshold = " << threshold * 100 / RAND_MAX << "%\n";
-			check_sequences (
-				set1.begin (), set1.end (),
-				set2.begin (), set2.end ());
+			check_set (set1, set2);
 		}
 	}
-	check_sequences (
-		set1.begin (), set1.end (),
-		set2.begin (), set2.end ());
+
+	check_set (set1, set2);
 }
 
 template <typename T>
@@ -895,6 +904,7 @@ void test_two_maps (std::map <int, int> &map1, T &map2)
 			check_map (map1, map2);
 		}
 	}
+
 	check_map (map1, map2);
 }
 
@@ -1232,6 +1242,34 @@ int main (int argc, const char **argv)
 		judy_set_m <int, judy_test_hash_eq> set_m_int;
 		test_two_sets (std_set_int, set_m_int);
 		std::cout << "(std::set <int> == judy_set_m <int>) = true\n";
+
+
+
+	}else if (!strcmp (argv [0], "112")){
+		std::set <int> std_set_int;
+		judy_set_l <int, hashfunc_poly <2654435789U> > set_l_int;
+		test_two_sets (std_set_int, set_l_int);
+		std::cout << "(std::set <int> == judy_set_l <int>) = true\n";
+
+	}else if (!strcmp (argv [0], "114")){
+		std::map <int, int> std_map_int;
+		judy_map_l <int, int, hashfunc_poly <2654435789U> > map_l_int;
+		test_two_maps (std_map_int, map_l_int);
+		std::cout << "(std::map <int> == judy_map_l <int>) = true\n";
+
+	}else if (!strcmp (argv [0], "115")){
+		std::map <int, int> std_map_int;
+		judy_map_m <int, int, hashfunc_poly <2654435789U> > map_m_int;
+		test_two_maps (std_map_int, map_m_int);
+		std::cout << "(std::map <int> == judy_map_m <int>) = true\n";
+
+	}else if (!strcmp (argv [0], "116")){
+		std::set <int> std_set_int;
+		judy_set_m <int, hashfunc_poly <2654435789U> > set_m_int;
+		test_two_sets (std_set_int, set_m_int);
+		std::cout << "(std::set <int> == judy_set_m <int>) = true\n";
+
+
 
 	}else if (!strcmp (argv [0], "150")){
 		if (!argv [1])

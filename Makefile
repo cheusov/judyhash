@@ -190,6 +190,19 @@ test : selftest
 	./selftest "106" >/dev/null && \
 	echo "judy_set_m <int, int> 106 done" && \
 	\
+	printf "\n" && \
+	./selftest "112" >/dev/null && \
+	echo "judy_set_l <int> 102 done" && \
+	printf "\n" && \
+	./selftest "114" >/dev/null && \
+	echo "judy_map_l <int, int> 104 done" && \
+	printf "\n" && \
+	./selftest "115" >/dev/null && \
+	echo "judy_map_m <int, int> 105 done" && \
+	printf "\n" && \
+	./selftest "116" >/dev/null && \
+	echo "judy_set_m <int, int> 106 done" && \
+	\
 	true
 
 .PHONY : bench
