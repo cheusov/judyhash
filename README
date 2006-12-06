@@ -3,64 +3,39 @@ OVERVIEW
 
 The judyhash project http://judyhash.sourceforge.net
 provides several hash map (and set)
-implementations based on Judy array (http://judy.sourceforge.net).
+based on Judy array (http://judy.sourceforge.net).
 All these maps and sets are implemented using C++ programming language
 and have an API similar to that of SGI STL's hash_map
-(or std::unordered_map) and STL classes.
-
-FEATURES
-==========
-
-judyhash project provides the following classes
-
-a) judy_set_l    A set similar to std::set
-b) judy_set_m    Similar to judy_set_l but uses a bit different algorithm
-c) judy_set_cell A set of of keys of integer type or pointer types
-                   (sizeof which is less of equal than JudyL's Word_t)
-d) judy_map_l    Associative array similar to std::map
-                   and SGI STL's std::hash_map
-e) judy_map_m    Similar to judy_map_l but with a bit different algorithm
-f) judy_map_cell Associative array. Both key and data are of integer or
-                   of pointer type.
-
-header files:
-judy_map.h            All classes for associative arrays
-  a) judy_map_kdcell.h    judy_map_kdcell class only
-  b) judy_map_l.h         judy_map_l class only
-  c) judy_map_m.h         judy_map_m class only
-judy_set.h            All classes for sets
-  a) judy_set_cell.h      judy_set_cell class only
-  b) judy_set_l.h         judy_set_l class only
-  c) judy_set_m.h         judy_set_m class only
-
-Neither of judy_xxx_yyy are thread-safe.
+(or std::unordered_map) and STL library.
 
 ALGORITHMS AND COMPLEXITY
 ==========
 
-In traditional hash tables linear array is used for mapping
+In traditional hash tables http://en.wikipedia.org/wiki/Hash_table
+linear array is used for mapping
 a hash value to an element, most often by making modulo operation
-where divisor is the hash table size or something similar.
-Traditional hash tables has two main problems:
-1) hash table resizing, i.e. increasing it when there are too many elements
-   and decreasing when only a few has table cells are actually used;
-2) collisions.
+where divisor is the hash table size.
+Traditional hash tables has two main problems.
+The first one is hash table resizing, i.e. increasing it when there
+are too many elements and decreasing when only a few has table cells
+are actually used. The second problem is collisions.
 
 Instead of linear array, judyhash classes
 use a JudyL set of functions from Judy library (See url below).
 JudyL implements a high-performance map from an integer type to a pointer type
 (actually a map from Word_t to Word_t which is capable
-for storing both int and void *).
-Thus we have:
-1) some overhead for mapping a hash value to an element
+to store both int and void *).
+As a result we have:
+1) some overhead for mapping a hash value to an element (actually
+chain of elements)
    (JudyL is slower than 'pointer[index]');
-2) hash value in a range [0..2^32-1] (the default on 32/64 platforms) and,
-   as a result, (*very rare*) collisions;
+2) hash value in a range [0..2^32-1] (the default on 32/64 platforms) and
+   therefore <b>very rare</b> collisions;
 3) dynamic resizing of hash table, i.e. memory is allocated (and freed)
    as soon as it is needed (or unneeded anymore).
 
 In case of collisions judy_map_{l,m} and judy_set_{l,m} classes use
-chaining technique to resolve the collision, i.e. external storage is
+a chaining technique to resolve the collision, i.e. external storage is
 used for storing conflicting elements.  judy_{set,map}_l classes use
 list, while judy_{set,map}_m use map (or set),
 this is why judy_{set,map}_m classes require Less predicate in
@@ -109,6 +84,33 @@ resizing   |         |          |                           |
 ---------------------------------------------------------------------------
 limitations| -       | 0==1&(maxint_t)m_alloc.allocate(1)   |
 
+
+CLASS NAMES and HEADERS
+=======================
+
+judyhash project provides the following classes
+
+a) judy_set_l    A set similar to std::set
+b) judy_set_m    Similar to judy_set_l but uses a bit different algorithm
+c) judy_set_cell A set of of keys of integer type or pointer types
+                   (sizeof which is less of equal than JudyL's Word_t)
+d) judy_map_l    Associative array similar to std::map
+                   and SGI STL's std::hash_map
+e) judy_map_m    Similar to judy_map_l but with a bit different algorithm
+f) judy_map_cell Associative array. Both key and data are of integer or
+                   of pointer type.
+
+header files:
+judy_map.h            All classes for associative arrays
+  a) judy_map_kdcell.h    judy_map_kdcell class only
+  b) judy_map_l.h         judy_map_l class only
+  c) judy_map_m.h         judy_map_m class only
+judy_set.h            All classes for sets
+  a) judy_set_cell.h      judy_set_cell class only
+  b) judy_set_l.h         judy_set_l class only
+  c) judy_set_m.h         judy_set_m class only
+
+Neither of judy_xxx_yyy are thread-safe.
 
 INSTALL
 ==========
