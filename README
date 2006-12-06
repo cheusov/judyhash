@@ -139,7 +139,7 @@ BENCHMARKING
 ==========
 
 Benchmarks for several platforms are available
-here http://judyhash.sourceforge.net/benchmark
+here http://judyhash.sourceforge.net/benchmarks
 
 Edit Makefile.bench, read Makefile carefully and then run the following
 

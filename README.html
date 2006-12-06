@@ -9,67 +9,38 @@
 
 <P>The judyhash project <A HREF="http://judyhash.sourceforge.net">http://judyhash.sourceforge.net</A>
 provides several hash map (and set)<BR>
-implementations based on Judy array (<A HREF="http://judy.sourceforge.net">http://judy.sourceforge.net</A>).
+based on Judy array (<A HREF="http://judy.sourceforge.net">http://judy.sourceforge.net</A>).
 All these maps and sets are implemented using C++ programming language
 and have an API similar to that of SGI STL's hash_map
-(or std::unordered_map) and STL classes.
+(or std::unordered_map) and STL library.
 
-<H1><A NAME="section_2">FEATURES</A></H1>
+<H1><A NAME="section_2">ALGORITHMS AND COMPLEXITY</A></H1>
 
-<P>judyhash project provides the following classes
-
-<OL>
-  <LI>judy_set_l    A set similar to std::set
-  <LI>judy_set_m    Similar to judy_set_l but uses a bit different algorithm
-  <LI>judy_set_cell A set of of keys of integer type or pointer types
-<P>                   (sizeof which is less of equal than JudyL's Word_t)
-  <LI>judy_map_l    Associative array similar to std::map
-<P>                   and SGI STL's std::hash_map
-  <LI>judy_map_m    Similar to judy_map_l but with a bit different algorithm
-  <LI>judy_map_cell Associative array. Both key and data are of integer or
-<P>                   of pointer type.
-</OL>
-<H1><A NAME="section_3">INCLUDES</A></H1>
-
-<OL>
-  <LI>judy_map.h           All classes for associative arrays
-  <OL>
-    <LI>judy_map_kdcell.h    judy_map_kdcell class only
-    <LI>judy_map_l.h         judy_map_l class only
-    <LI>judy_map_m.h         judy_map_m class only
-  </OL>
-  <LI>judy_set.h           All classes for sets
-  <OL>
-    <LI>judy_set_cell.h      judy_set_cell class only
-    <LI>judy_set_l.h         judy_set_l class only
-    <LI>judy_set_m.h         judy_set_m class only
-  </OL>
-</OL>
-<H1><A NAME="section_4">ALGORITHMS AND COMPLEXITY</A></H1>
-
-<P>In traditional hash tables linear array is used for mapping
+<P>In traditional hash tables <A HREF="http://en.wikipedia.org/wiki/Hash_table">http://en.wikipedia.org/wiki/Hash_table</A>
+linear array is used for mapping<BR>
 a hash value to an element, most often by making modulo operation
-where divisor is the hash table size or something similar.
-Traditional hash tables has two main problems:
-1) hash table resizing, i.e. increasing it when there are too many elements
-<P>   and decreasing when only a few has table cells are actually used;
-2) collisions.
+where divisor is the hash table size.<BR>
+Traditional hash tables has two main problems.
+The first one is hash table resizing, i.e. increasing it when there
+are too many elements and decreasing when only a few has table cells
+are actually used. The second problem is collisions.
 
 <P>Instead of linear array, judyhash classes
 use a JudyL set of functions from Judy library (See url below).
 JudyL implements a high-performance map from an integer type to a pointer type
 (actually a map from Word_t to Word_t which is capable
-for storing both int and void *).<BR>
-Thus we have:<BR>
-1) some overhead for mapping a hash value to an element
+to store both int and void *).<BR>
+As a result we have:<BR>
+1) some overhead for mapping a hash value to an element (actually
+chain of elements)
 <P>   (JudyL is slower than 'pointer[index]');
-2) hash value in a range [0..2^32-1] (the default on 32/64 platforms) and,
-<P>   as a result, (<EM>very rare</EM>) collisions;
+2) hash value in a range [0..2^32-1] (the default on 32/64 platforms) and
+<P>   therefore &lt;b&gt;very rare&lt;/b&gt; collisions;
 3) dynamic resizing of hash table, i.e. memory is allocated (and freed)
 <P>   as soon as it is needed (or unneeded anymore).
 
 <P>In case of collisions judy_map_{l,m} and judy_set_{l,m} classes use
-chaining technique to resolve the collision, i.e. external storage is
+a chaining technique to resolve the collision, i.e. external storage is
 used for storing conflicting elements.  judy_{set,map}_l classes use
 list, while judy_{set,map}_m use map (or set),
 this is why judy_{set,map}_m classes require Less predicate in
@@ -119,7 +90,35 @@ resizing   |         |          |                           |
 ---------------------------------------------------------------------------
 limitations| -       | 0==1&amp;(maxint_t)m_alloc.allocate(1)   |
 </PRE>
-<H1><A NAME="section_5">INSTALL</A></H1>
+<H2><A NAME="section_2_1">CLASS NAMES and HEADERS</A></H2>
+
+<P>judyhash project provides the following classes
+
+<OL>
+  <LI>judy_set_l    A set similar to std::set
+  <LI>judy_set_m    Similar to judy_set_l but uses a bit different algorithm
+  <LI>judy_set_cell A set of of keys of integer type or pointer types
+<P>                   (sizeof which is less of equal than JudyL's Word_t)
+  <LI>judy_map_l    Associative array similar to std::map
+<P>                   and SGI STL's std::hash_map
+  <LI>judy_map_m    Similar to judy_map_l but with a bit different algorithm
+  <LI>judy_map_cell Associative array. Both key and data are of integer or
+<P>                   of pointer type.
+</OL>
+<P>header files:<BR>
+judy_map.h            All classes for associative arrays
+<OL>
+  <LI>judy_map_kdcell.h    judy_map_kdcell class only
+  <LI>judy_map_l.h         judy_map_l class only
+  <LI>judy_map_m.h         judy_map_m class only
+judy_set.h            All classes for sets
+  <LI>judy_set_cell.h      judy_set_cell class only
+  <LI>judy_set_l.h         judy_set_l class only
+  <LI>judy_set_m.h         judy_set_m class only
+</OL>
+<P>Neither of judy_xxx_yyy are thread-safe.
+
+<H1><A NAME="section_3">INSTALL</A></H1>
 
 <P>NOTE! BSD make program is required!!!<BR>
 Under Linux you can probably find it under the name 'pmake'.
@@ -141,17 +140,19 @@ and then run
 <P>Note that some libraries should be properly installed
 (and configured in Makefile.config) for this to work.
 
-<H1><A NAME="section_6">BENCHMARKING</A></H1>
+<H1><A NAME="section_4">BENCHMARKING</A></H1>
 
 <P>Benchmarks for several platforms are available
-here <A HREF="http://judyhash.sourceforge.net/benchmark">http://judyhash.sourceforge.net/benchmark</A>
+here <A HREF="http://judyhash.sourceforge.net/benchmarks">http://judyhash.sourceforge.net/benchmarks</A>
 
 <P>Edit Makefile.bench, read Makefile carefully and then run the following
 
 <P>'make bench'
 
-<H1><A NAME="section_7">CONCLUSION</A></H1>
-<P>An associative array of type (integer -&gt; pointer) is one of the most important
-data structure that ever exists ;-)
+<H1><A NAME="section_5">CONCLUSION</A></H1>
+<UL>
+  <LI>An associative array of type (integer -&gt; pointer) is one of
+   the most important data structure that ever exists ;-)
+</UL>
 </BODY>
 </HTML>
