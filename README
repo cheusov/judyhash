@@ -23,17 +23,17 @@ e) judy_map_m    Similar to judy_map_l but with a bit different algorithm
 f) judy_map_cell Associative array. Both key and data are of integer or
                    of pointer type.
 
-INCLUDES
-==========
-
-1) judy_map.h           All classes for associative arrays
+header files:
+judy_map.h            All classes for associative arrays
   a) judy_map_kdcell.h    judy_map_kdcell class only
   b) judy_map_l.h         judy_map_l class only
   c) judy_map_m.h         judy_map_m class only
-2) judy_set.h           All classes for sets
+judy_set.h            All classes for sets
   a) judy_set_cell.h      judy_set_cell class only
   b) judy_set_l.h         judy_set_l class only
   c) judy_set_m.h         judy_set_m class only
+
+Neither of judy_xxx_yyy are thread-safe.
 
 ALGORITHMS AND COMPLEXITY
 ==========
@@ -145,5 +145,5 @@ Edit Makefile.bench, read Makefile carefully and then run the following
 
 CONCLUSION
 ==========
-An associative array of type (integer -> pointer) is one of the most important
-data structure that ever exists ;-)
+- An associative array of type (integer -> pointer) is one of
+   the most important data structure that ever exists ;-)
