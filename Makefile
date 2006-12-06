@@ -257,7 +257,7 @@ bench_masks.bench :
 	done; \
 	done | tee $@
 
-.for b in ${BENCH_TYPES}
+.for b in size size65599 slowness
 .for t in ${TEST_TYPES}
 .for m in ${MAP_TYPES}
 bench_${b}_${t}.plot : bench_${b}_${m}_${t}.tmp
