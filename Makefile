@@ -21,12 +21,12 @@ sort_uniq : hash_funcs.o memory_used.o src_tools/sort_uniq.cc
 time_hash_map.o : src_tools/time_hash_map.cc *.h judyarray/*.h
 	$(CXX) -o $@ $(CFLAGS_O) -c src_tools/time_hash_map.cc
 time_hash_map : time_hash_map.o slow_compare.o hash_funcs.o memory_used.o
-	$(CXX) -o $@ $(LDFLAGS_O) $>
+	$(CXX) -o $@ $> $(LDFLAGS_O)
 
 time_hash_map__debug.o : src_tools/time_hash_map.cc *.h judyarray/*.h
 	$(CXX) -o $@ $(CFLAGS_T) -c src_tools/time_hash_map.cc
 time_hash_map__debug : time_hash_map__debug.o slow_compare.o hash_funcs.o memory_used.o
-	$(CXX) -o $@ $(LDFLAGS_O) $>
+	$(CXX) -o $@ $> $(LDFLAGS_O)
 
 hash_funcs.o : src_tools/hash_funcs.cc src_tools/hash_funcs.h
 	$(CXX) -o $@ $(CFLAGS_O) -c src_tools/hash_funcs.cc
