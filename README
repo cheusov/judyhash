@@ -116,7 +116,7 @@ Neither of judy_xxx_yyy are thread-safe.
 INSTALL
 ==========
 
-NOTE! BSD make program is required!!!
+NOTE! BSD make program is required, not GNU make!!!
 Under Linux you can probably find it under the name 'pmake'.
 
 There is nothing to be built for installing
