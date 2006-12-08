@@ -502,7 +502,7 @@ void test (judyhash_type &ht, int num)
 	judyhash_type ht2 (
 		init_values,
 		init_values + sizeof (init_values)/sizeof (init_values [0]));
-	assert (ht.find ("layout") != ht.end ());
+	assert (ht2.find ("layout") != ht2.end ());
 	print_hash_it (ht2, "ht2 initial");
 
 	// test for operator =, erase, insert, operator []
@@ -557,6 +557,7 @@ void test (judyhash_type &ht, int num)
 	// swapping 1 and 2
 	print_hash_it (ht2, "ht2 before swap");
 	print_hash_const_it (ht, "ht before swap");
+	assert (ht2.find ("layout") != ht2.end ());
 	ht.swap (ht2);
 	print_hash_it (ht2, "ht2 after swap");
 	print_hash_const_it (ht, "ht after swap");
