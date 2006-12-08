@@ -18,6 +18,10 @@
 #include <Judy.h>
 #include <stdexcept>
 
+/*
+  Error checking is not implemented !!!
+ */
+
 /////////////////
 // JudyL wrappers
 inline void judyl_freearray (Pvoid_t &array)
