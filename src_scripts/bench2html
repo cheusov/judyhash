@@ -12,14 +12,18 @@ erase() an element that WAS already inserted
 iteration through all elements
 EOF
 
-rm list.1.tmp
+rm -f list.1.tmp
 for i in `make show-var VARNAME=TEST_TYPES`; do
     echo $i >> list.1.tmp
 done
 
 rm -f bench.html
 
-for t in size65599 size slowness; do
+for t in size size65599 slowness masks; do
+    bench_html_fn=bench_"$t".html
+
+    rm -f "$bench_html_fn"
+
     awk '
     BEGIN {
         while (getline op < "list.1.tmp" && getline capt < "list.2.tmp"){
@@ -33,7 +37,7 @@ for t in size65599 size slowness; do
 	    m4 -DTABLE_NAME="size_$op2" -DFIGURE_NUM="Figure: $num" \
 		-DCAPTION="$capt" \
 		-DIMG_SRC="bench_${t}_$op.png" \
-		< src_scripts/table_png.m4 >> bench_"$t".html
+		< src_scripts/table_png.m4 >> "$bench_html_fn"
 	done
     )
 done
