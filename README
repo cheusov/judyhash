@@ -7,6 +7,8 @@ based on Judy array (http://judy.sourceforge.net).
 All these maps and sets are implemented using C++ programming language
 and have an API similar to that of SGI STL's hash_map
 (or std::unordered_map) and STL library.
+Sources are available for download from here
+http://sourceforge.net/projects/judyhash
 
 ALGORITHMS AND COMPLEXITY
 ==========
@@ -27,12 +29,11 @@ JudyL implements a high-performance map from an integer type to a pointer type
 to store both int and void *).
 As a result we have:
 1) some overhead for mapping a hash value to an element (actually
-chain of elements)
-   (JudyL is slower than 'pointer[index]');
+chain of elements) (JudyL is slower than 'pointer[index]');
 2) hash value in a range [0..2^32-1] (the default on 32/64 platforms) and
-   therefore <b>very rare</b> collisions;
+therefore <b>very rare</b> collisions;
 3) dynamic resizing of hash table, i.e. memory is allocated (and freed)
-   as soon as it is needed (or unneeded anymore).
+as soon as it is needed (or unneeded anymore).
 
 In case of collisions judy_map_{l,m} and judy_set_{l,m} classes use
 a chaining technique to resolve the collision, i.e. external storage is
@@ -101,14 +102,14 @@ f) judy_map_cell Associative array. Both key and data are of integer or
                    of pointer type.
 
 header files:
-judy_map.h            All classes for associative arrays
-  a) judy_map_kdcell.h    judy_map_kdcell class only
-  b) judy_map_l.h         judy_map_l class only
-  c) judy_map_m.h         judy_map_m class only
-judy_set.h            All classes for sets
-  a) judy_set_cell.h      judy_set_cell class only
-  b) judy_set_l.h         judy_set_l class only
-  c) judy_set_m.h         judy_set_m class only
+judy_map.h        - all classes for associative arrays,
+judy_set.h        - all classes for sets,
+judy_map_kdcell.h - judy_map_kdcell class only,
+judy_map_l.h      - judy_map_l class only,
+judy_map_m.h      - judy_map_m class only,
+judy_set_cell.h   - judy_set_cell class only,
+judy_set_l.h      - judy_set_l class only,
+judy_set_m.h      - judy_set_m class only.
 
 Neither of judy_xxx_yyy are thread-safe.
 
@@ -138,14 +139,18 @@ Note that some libraries should be properly installed
 BENCHMARKING
 ==========
 
-Benchmarks for several platforms are available
-here http://judyhash.sourceforge.net/benchmarks
+Benchmarks for dual-core Pentium 4(tm) 3Ghz (g++ v3.4.5, Debian/Linux )
+are available here http://judyhash.sourceforge.net/benchmarks
 
-Edit Makefile.bench, read Makefile carefully and then run the following
-
+To obtain new benchmarks, edit Makefile.bench, and then run
 'make bench'
 
 CONCLUSION
 ==========
 - An associative array of type (integer -> pointer) is one of
    the most important data structure that ever exists ;-)
+
+AUTHOR
+==========
+Written by Aleksey Cheusov <vle@gmx.net> 
+Bug reports and suggestions are welcomed.

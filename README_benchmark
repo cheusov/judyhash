@@ -1,4 +1,5 @@
 Key is of 'int' type in all benchmarks.
+Values of keys are 0...N in all tests (I know it is too primitively).
 
 =============
 bench_size) This test is very artificial
@@ -8,6 +9,8 @@ bench_size) This test is very artificial
      bool operator < (int, int)
   c) X-axis is a number of elements in array
 
+  http://judyhash.sourceforge.net/benchmarks/bench_size.html
+
 =============
 bench_size65599) Much more real test with real hash function and compare function close to the real one
 
@@ -16,9 +19,13 @@ bench_size65599) Much more real test with real hash function and compare functio
      but is not very slow (slowness_level=SLOW_LEVEL_DEF)
   c) X-axis is a number of elements in array
 
+  http://judyhash.sourceforge.net/benchmarks/bench_size65599.html
+
 =============
 bench_slowness) This benchmark is about how performance is changed in case of sloooow key comparing function.
 
   a) Hash function is "polynom 65599" as in 'bench_size65599'
   b) ITEMS_DEF elements in array
   c) X-axis is a slowness of the key comparing function
+
+  http://judyhash.sourceforge.net/benchmarks/bench_slowness.html
