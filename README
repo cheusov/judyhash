@@ -139,7 +139,7 @@ Note that some libraries should be properly installed
 BENCHMARKING
 ==========
 
-Benchmarks for dual-core Pentium 4(tm) 3Ghz (g++ v3.4.5, Debian/Linux )
+Benchmarks for dual-core Pentium 4(tm) 3Ghz (g++ v3.4.4, Debian/Linux )
 are available here http://judyhash.sourceforge.net/benchmarks
 
 To obtain new benchmarks, edit Makefile.bench, and then run

@@ -2,6 +2,8 @@
 .include "Makefile.config"
 .include "Makefile.benchmark"
 
+# JUDYHASH_VERSION 0.1.0
+
 ############################################################
 
 .PHONY : all
