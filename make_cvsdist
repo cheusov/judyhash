@@ -1,0 +1,32 @@
+#!/bin/sh
+
+VERSION=`awk '/JUDYHASH_VERSION/ {print $NF}' Makefile`
+
+make_changelog (){
+    printf "making ChangeLog..." 1>&2
+    rcs2log -i 2 -r . |
+    sed \
+        -e 's,/[^ ]*cvs[^ ]*judyhash/,,g' \
+        -e 's,cheusov@[^>]*,vle@gmx.net,g' \
+        -e 's,\(.*\)<\([^@<>]\+\)@\([^@<>]\+\)>\(.*\),\1<\2 at \3}\4,g' \
+    > ChangeLog || return 1
+    printf "done\n" 1>&2
+}
+
+CVSROOT=`cat CVS/Root`
+export CVSROOT
+VERSION_CVS=`echo ${VERSION} | tr . -`
+#make_changelog || exit 1
+#cp ChangeLog /tmp/judyhash.ChangeLog.${VERSION} &&
+echo "***** Exporting files for judyhash-${VERSION}..." &&
+cd /tmp &&
+rm -rf /tmp/judyhash-${VERSION} &&
+cvs export -d judyhash-${VERSION} -r judyhash-${VERSION_CVS} libjudyhash &&
+cd judyhash-${VERSION} && # mv /tmp/....ChangeLog
+chmod -R a+rX,g-w . &&
+cd .. &&
+echo "***** Taring and gzipping judyhash-${VERSION}.tar.gz..." &&
+tar cvvf judyhash-${VERSION}.tar judyhash-${VERSION} &&
+gzip -9 judyhash-${VERSION}.tar &&
+echo "***** Done making /tmp/judyhash-${VERSION}.tar.gz"
+#mv /tmp/judyhash.ChangeLog.${VERSION} ChangeLog &&
