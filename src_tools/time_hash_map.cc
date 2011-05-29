@@ -40,7 +40,7 @@
 #include <getopt.h>
 #endif
 
-#include <google/sparsehash/config.h>
+#include <google/sparsehash/sparseconfig.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
