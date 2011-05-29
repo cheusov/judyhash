@@ -52,13 +52,13 @@
 
 extern "C" {
 #include <time.h>
-#ifdef HAVE_SYS_TIME_H
+#ifdef HAVE_HEADER_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#ifdef HAVE_SYS_RESOURCE_H
+#ifdef HAVE_HEADER_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
-#ifdef HAVE_SYS_UTSNAME_H
+#ifdef HAVE_HEADER_SYS_UTSNAME_H
 #include <sys/utsname.h>      // for uname()
 #endif
 }
@@ -292,7 +292,7 @@ public:
 	int Memory ();
 
 private:
-#ifdef HAVE_SYS_RESOURCE_H
+#ifdef HAVE_HEADER_SYS_RESOURCE_H
 	struct rusage start;
 #else
 	time_t start_time_t;
@@ -311,7 +311,7 @@ void Rusage::ResetMemory() {
 }
 
 void Rusage::ResetTime() {
-#ifdef HAVE_SYS_RESOURCE_H
+#ifdef HAVE_HEADER_SYS_RESOURCE_H
 	getrusage(RUSAGE_SELF, &start);
 #else
 	time(&start_time_t);
@@ -319,7 +319,7 @@ void Rusage::ResetTime() {
 }
 
 inline double Rusage::UserTime() {
-#ifdef HAVE_SYS_RESOURCE_H
+#ifdef HAVE_HEADER_SYS_RESOURCE_H
 	struct rusage u;
 
 	getrusage(RUSAGE_SELF, &u);
@@ -341,7 +341,7 @@ int Rusage::Memory () {
 }
 
 static void print_uname() {
-#ifdef HAVE_SYS_UTSNAME_H
+#ifdef HAVE_HEADER_SYS_UTSNAME_H
 	struct utsname u;
 	if (uname(&u) == 0) {
 		printf("%s %s %s %s %s\n",
@@ -691,7 +691,7 @@ int main(int argc, char** argv)
 
 //	stamp_run(iters);
 
-#ifndef HAVE_SYS_RESOURCE_H
+#ifndef HAVE_HEADER_SYS_RESOURCE_H
 	printf("\n*** WARNING ***: sys/resources.h was not found, so all times\n"
 		   "                 reported are wall-clock time, not user time\n");
 #endif
