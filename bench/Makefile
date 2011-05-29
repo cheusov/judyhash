@@ -2,6 +2,8 @@
 
 bench_tool_cmd=../bench_tool/bench_tool
 
+CLEANFILES += *.bench *.png *.tmp *.plot
+
 .PHONY: all
 all: ${BENCH_TYPES}
 
