@@ -18,7 +18,8 @@
 #include "judy_set.h"
 #include "judy_set_cell.h"
 #include "judy_map_kdcell.h"
-#include "hash_funcs.h"
+#include "hashfuncs.h"
+#include "../src_tools/hash_funcs.h"
 
 template <typename T>
 class my_pool {

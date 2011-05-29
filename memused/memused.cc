@@ -1,19 +1,26 @@
 #include <string>
 #include <iostream>
 #include <map>
-#include <hash_map>
+#include <tr1/unordered_map>
 #include <google/sparse_hash_map>
 #include <google/dense_hash_map>
 
 #include "judy_map.h"
-#include "hash_funcs.h"
+#include "hashfuncs.h"
+#include "memused.h"
 
-judy_map_l <std::string, int, hashfunc_poly <65599> > map_judy_l;
-judy_map_m <std::string, int, hashfunc_poly <65599> > map_judy_m;
+struct hash_string_poly65k {
+	unsigned operator () (const std::string &v) const {
+		return hash_str_poly65k (v.c_str ());
+	};
+};
+
+judy_map_l <std::string, int, hash_string_poly65k > map_judy_l;
+judy_map_m <std::string, int, hash_string_poly65k > map_judy_m;
 std::map <std::string, int> map_map;
-google::sparse_hash_map <std::string, int, hashfunc_poly <65599> > map_sparse;
-google::dense_hash_map <std::string, int, hashfunc_poly <65599> > map_dense;
-std::hash_map <std::string, int, hashfunc_poly <65599> > map_hash;
+google::sparse_hash_map <std::string, int, hash_string_poly65k > map_sparse;
+google::dense_hash_map <std::string, int, hash_string_poly65k > map_dense;
+std::tr1::unordered_map <std::string, int, hash_string_poly65k > map_hash;
 
 template <typename T>
 static void add (T& m, const std::string &line)
@@ -43,11 +50,9 @@ static void do_main (T& m)
 	print_all (m);
 }
 
-unsigned memory_used ();
-
 int main ()
 {
-	unsigned mem = memory_used ();
+	unsigned mem = memused ();
 
 	map_dense.set_empty_key ("\n");
 
@@ -58,6 +63,6 @@ int main ()
 //	do_main (map_sparse);
 	do_main (map_dense);
 
-	std::cerr << memory_used () - mem << " bytes\n";
+	std::cerr << memused () - mem << " bytes\n";
 	return 0;
 }

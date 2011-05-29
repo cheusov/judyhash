@@ -71,7 +71,9 @@ extern "C" {
 #include <google/dense_hash_map>
 #include "judy_map.h"
 #include "judy_map_kdcell.h"
-#include "hash_funcs.h"
+#include "hashfuncs.h"
+#include "memused.h"
+#include "../src_tools/hash_funcs.h"
 
 #ifdef NO_HASH_MAP
 template <typename T>
@@ -273,8 +275,6 @@ REDEF_GLOBAL(hashfunc_poly <65599>, slow_less,       slow_equal)
  * Measure resource usage.
  */
 
-unsigned memory_used ();
-
 class Rusage {
 public:
 	/* Start collecting usage */
@@ -307,7 +307,7 @@ void Rusage::Reset() {
 }
 
 void Rusage::ResetMemory() {
-	start_memory = memory_used ();
+	start_memory = memused ();
 }
 
 void Rusage::ResetTime() {
@@ -337,7 +337,7 @@ inline double Rusage::UserTime() {
 }
 
 int Rusage::Memory () {
-	return memory_used () - start_memory;
+	return memused () - start_memory;
 }
 
 static void print_uname() {

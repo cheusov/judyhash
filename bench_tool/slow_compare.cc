@@ -1,7 +1,3 @@
-#ifndef SLOW_LEVEL
-#error SLOW_LEVEL is undefined
-#endif
-
 int dummy = 0;
 static void func (int slowness)
 {

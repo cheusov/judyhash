@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-unsigned memory_used ()
+unsigned memused (void)
 {
 #if defined(__NetBSD__) || defined(sun)
 	char path [200];

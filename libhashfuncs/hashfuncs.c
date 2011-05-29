@@ -12,9 +12,9 @@
  *
  */
 
-#include "hash_funcs.h"
+#include "hashfuncs.h"
 
-const unsigned rand_256_array [] = {
+static const unsigned rand_256_array [] = {
 	0x2e7dcfdb, 0x6b1bbd5c, 0xfbec6127, 0x86c5859c,
 	0x0d923501, 0x8a26ba9c, 0x2d960b70, 0x184daa2e,
 	0xc809c705, 0x866eb1d6, 0xafedec24, 0x3910eee7,
@@ -80,3 +80,89 @@ const unsigned rand_256_array [] = {
 	0x5708342e, 0xf1a3f4d4, 0x113f122e, 0xcd56947a,
 	0x6e3c1eae, 0x291f45f4, 0xf004e085, 0xab2a2738,
 };
+
+unsigned hash_str_poly31 (const char *key)
+{
+	unsigned h = 0;
+
+	while (*key){
+		h = h * 31 ^ (unsigned char) *key++;
+	}
+
+	return h; 
+}
+
+unsigned hash_str_poly65k (const char *key)
+{
+	unsigned h = 0;
+
+	while (*key){
+		h = h * 65599 ^ (unsigned char) *key++;
+	}
+
+	return h; 
+}
+
+unsigned hash_str_poly2g (const char *key)
+{
+	unsigned h = 0;
+
+	while (*key){
+		h = h * 2654435789U ^ (unsigned char) *key++;
+	}
+
+	return h; 
+}
+
+unsigned hash_str_random (const char *key)
+{
+	unsigned h = 0;
+
+	int cnt = 0;
+	for (; *key; ++key, ++cnt){
+		int ch = (unsigned char) *key;
+		h = h ^ rand_256_array [(ch + cnt) & 255];
+	}
+
+	return h;
+}
+
+unsigned hash_int_poly31 (int key)
+{
+	int i;
+	int h = 0;
+	for (i=0; i < sizeof (key); ++i){
+		int b = key & 255;
+		key >>= 8;
+		h = h * 31 ^ b;
+	}
+
+	return h;
+}
+
+unsigned hash_int_poly65k (int key)
+{
+	int i;
+	int h = 0;
+	for (i=0; i < sizeof (key); ++i){
+		int b = key & 255;
+		key >>= 8;
+		h = h * 65599 ^ b;
+	}
+
+	return h;
+}
+
+unsigned hash_int_poly2g (int key)
+{
+	int i;
+	int h = 0;
+
+	for (i=0; i < sizeof (key); ++i){
+		int b = key & 255;
+		key >>= 8;
+		h = h * 2654435789U ^ b;
+	}
+
+	return h;
+}

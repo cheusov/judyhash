@@ -53,26 +53,16 @@ struct hashfunc_poly {
 	}
 };
 
-extern const unsigned rand_256_array [256];
-
 // mixed
 struct hashfunc_random {
 	size_t operator () (const char *key) const
 	{
-		unsigned h = 0;
-
-		int cnt = 0;
-		for (; *key; ++key, ++cnt){
-			int ch = (unsigned char) *key;
-			h = h ^ rand_256_array [(ch + cnt) & 255];
-		}
-
-		return h;
+		return hash_str_random (key);
 	}
 
 	size_t operator () (const std::string &key) const
 	{
-		return operator () (key.c_str ());
+		return hash_str_random (key.c_str ());
 	}
 };
 
