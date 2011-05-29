@@ -10,7 +10,7 @@ shift
 test_type="$1"
 shift
 
-nawk -v map_type="$map_type" -v test_type="$test_type" '
+awk -v map_type="$map_type" -v test_type="$test_type" '
 BEGIN {
    skip = 0
 }

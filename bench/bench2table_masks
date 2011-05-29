@@ -13,7 +13,7 @@ shift
 mask="$1"
 shift
 
-nawk -v map_type="$map_type" -v test_type="$test_type" -v mask="$mask" '
+awk -v map_type="$map_type" -v test_type="$test_type" -v mask="$mask" '
 BEGIN {
    skip = 0
 }
