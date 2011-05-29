@@ -6,7 +6,8 @@ SUBPRJ += libhashfuncs:selftest \
            libjudyhash:selftest
 
 SUBPRJ += libhashfuncs:bench_tool \
-           libjudyhash:bench_tool
+           libjudyhash:bench_tool \
+            libmemused:bench_tool
 
 SUBPRJ += selftest:test
 
