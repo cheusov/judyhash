@@ -8,6 +8,7 @@
 
 unsigned memused (void)
 {
+	int cnt;
 #if defined(__NetBSD__) || defined(sun)
 	char path [200];
 #if defined(__NetBSD__)
@@ -36,7 +37,7 @@ unsigned memused (void)
 
 	char *p = NULL;
 	strtok (buf, " ");
-	for (int cnt=22; cnt--; ){
+	for (cnt=22; cnt--; ){
 		p = strtok (NULL, " ");
 	}
 	return strtol (p, NULL, 10);
