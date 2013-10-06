@@ -2,8 +2,8 @@
 #include <iostream>
 #include <map>
 #include <tr1/unordered_map>
-#include <google/sparse_hash_map>
-#include <google/dense_hash_map>
+#include <sparsehash/sparse_hash_map>
+#include <sparsehash/dense_hash_map>
 
 #include "judy_map.h"
 #include "hashfuncs.h"

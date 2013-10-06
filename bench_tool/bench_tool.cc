@@ -40,7 +40,6 @@
 #include <getopt.h>
 #endif
 
-#include <google/sparsehash/sparseconfig.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,8 +66,8 @@ extern "C" {
 // By default each is a noop, but we redefine them for types that need them.
 
 #include <map>
-#include <google/sparse_hash_map>
-#include <google/dense_hash_map>
+#include <sparsehash/sparse_hash_map>
+#include <sparsehash/dense_hash_map>
 #include "judy_map.h"
 #include "judy_map_kdcell.h"
 #include "hashfuncs.h"
