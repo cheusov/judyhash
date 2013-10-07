@@ -66,6 +66,7 @@ extern "C" {
 // By default each is a noop, but we redefine them for types that need them.
 
 #include <map>
+#include <iostream>
 #include <sparsehash/sparse_hash_map>
 #include <sparsehash/dense_hash_map>
 #include "judy_map.h"
@@ -129,7 +130,7 @@ using HASH_NAMESPACE::hash_map;
 
 using GOOGLE_NAMESPACE::sparse_hash_map;
 using GOOGLE_NAMESPACE::dense_hash_map;
-using STL_NAMESPACE::map;
+using std::map;
 
 // map type for testing
 enum {
