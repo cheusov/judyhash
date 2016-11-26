@@ -724,7 +724,7 @@ private:
 			value.m_judy_int = ptr -> m_judy_int;
 
 			if ((value.m_judy_int & 1) == 0){
-				if (m_eq_func (value2key (*value.m_pointer), key)){
+				if (m_eq_func (this->value2key (*value.m_pointer), key)){
 					return iterator (iterator_base ((Pcvoid_t *) &m_judy, h, value.m_judy_int));
 				}else{
 					iterator ret (iterator_base ((Pcvoid_t *) &m_judy, h, value.m_judy_int));
@@ -750,7 +750,7 @@ private:
 					= lst -> begin ();
 
 				for (; !(beg == end); ++beg){
-					if (m_eq_func (value2key (**beg), key)){
+					if (m_eq_func (this->value2key (**beg), key)){
 						return iterator (iterator_base
 										 ((Pcvoid_t *) &m_judy, h, value.m_judy_int, beg));
 					}
@@ -783,7 +783,7 @@ public:
 		// optimize me!!!
 		for (
 			const_iterator found = find (key);
-			!(found == e) && m_eq_func (value2key (*found), key);
+			!(found == e) && m_eq_func (this->value2key (*found), key);
 			++found)
 		{
 			++c;
@@ -794,7 +794,7 @@ public:
 
 	std::pair <iterator, bool> insert (const value_type& value)
 	{
-		const TKey &key = value2key (value);
+		const TKey &key = this->value2key (value);
 
 		Word_t h = m_hash_func (key) & m_hash_mask;
 		judyarray_union_type *ptr
@@ -805,8 +805,7 @@ public:
 		if (ptr -> m_judy_int){
 			// JudyL cell was already initialized
 			if ((ptr -> m_judy_int & 1) == 0){
-				if (m_eq_func (
-						value2key (*ptr -> m_pointer), key))
+				if (m_eq_func (this->value2key (*ptr -> m_pointer), key))
 				{
 					// JudyL cell points to the same value
 					return std::make_pair
