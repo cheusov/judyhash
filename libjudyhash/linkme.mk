@@ -1,3 +1,3 @@
-PATH.jh :=	${.PARSEDIR}
+PATH.libjudyhash :=	${.PARSEDIR:tA}
 
-CPPFLAGS +=		-I${PATH.jh}
+DPLDADD ?=
