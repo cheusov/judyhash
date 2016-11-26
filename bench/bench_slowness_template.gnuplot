@@ -4,7 +4,7 @@ set terminal png
 set logscale x 2
 #set logscale y 1.2
 
-set xrange   [0:*]
+set xrange   [1:*]
 set yrange   [0:5000]
 
 set xlabel "Slowness of compare function" 
